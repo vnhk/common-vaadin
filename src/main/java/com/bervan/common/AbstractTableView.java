@@ -31,7 +31,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         this.pageLayout = pageLayout;
         add(pageLayout);
 
-        data = this.service.load();
+        data = loadData();
 
         //view
         H3 header = new H3(pageName);
@@ -45,6 +45,15 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         addButton = new Button("Add New Element", e -> openAddDialog());
         add(header, searchField, grid, addButton);
 
+    }
+
+    protected List<T> loadData() {
+        return this.service.load();
+    }
+
+    protected void refreshData() {
+        this.data.removeAll(this.data);
+        this.data.addAll(this.service.load());
     }
 
     protected void filterTable(String filterText) {
