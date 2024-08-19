@@ -24,7 +24,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected final BaseService<T> service;
     protected final Grid<T> grid;
     protected AbstractPageLayout pageLayout;
-
+    protected Button addButton;
 
     public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName) {
         this.service = service;
@@ -42,7 +42,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
         TextField searchField = getFilter();
 
-        Button addButton = new Button("Add New Element", e -> openAddDialog());
+        addButton = new Button("Add New Element", e -> openAddDialog());
         add(header, searchField, grid, addButton);
 
     }
