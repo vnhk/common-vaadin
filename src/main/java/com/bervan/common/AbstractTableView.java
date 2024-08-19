@@ -37,7 +37,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         H3 header = new H3(pageName);
         grid = getGrid();
         grid.setItems(data);
-        grid.addItemClickListener(this::openEditDialog);
+        grid.addItemClickListener(this::openClickOnColumnDialog);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
         TextField searchField = getFilter();
@@ -76,7 +76,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected abstract Grid<T> getGrid();
 
-    protected abstract void openEditDialog(ItemClickEvent<T> event);
+    protected abstract void openClickOnColumnDialog(ItemClickEvent<T> event);
 
     protected Span formatTextComponent(String text) {
         if (text == null) {
