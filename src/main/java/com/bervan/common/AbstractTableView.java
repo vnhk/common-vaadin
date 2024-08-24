@@ -5,6 +5,7 @@ import com.bervan.common.service.BaseService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -14,40 +15,76 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractTableView<T extends PersistableTableData> extends VerticalLayout {
-    protected final List<T> data;
+public abstract class AbstractTableView<T extends PersistableTableData> extends VerticalLayout implements AfterNavigationObserver {
+    protected final Set<T> data = new HashSet<>();
     protected final BaseService<T> service;
-    protected final Grid<T> grid;
+    protected Grid<T> grid;
     protected AbstractPageLayout pageLayout;
+    private final String pageName;
     protected Button addButton;
+    protected final VerticalLayout contentLayout = new VerticalLayout();
+    private final Set<String> currentlySortedColumns = new HashSet<>();
+    protected H3 header;
 
     public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName) {
         this.service = service;
         this.pageLayout = pageLayout;
-        add(pageLayout);
+        this.pageName = pageName;
+    }
 
-        data = loadData();
+    @Override
+    public void afterNavigation(AfterNavigationEvent afterNavigationEvent) {
+        data.addAll(loadData());
+    }
 
-        //view
-        H3 header = new H3(pageName);
+    public void renderCommonComponents() {
+//        removeAll();
+        header = new H3(pageName);
         grid = getGrid();
         grid.setItems(data);
-        grid.addItemClickListener(this::openClickOnColumnDialog);
+        grid.addItemClickListener(this::doOnColumnClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
         TextField searchField = getFilter();
 
         addButton = new Button("Add New Element", e -> openAddDialog());
-        add(header, searchField, grid, addButton);
-
+        contentLayout.add(header, searchField, grid, addButton);
+        add(pageLayout);
+        add(contentLayout);
     }
 
-    protected List<T> loadData() {
+    protected void removeUnSortedState(Grid<T> grid, int columnIndex) {
+        grid.addSortListener(e -> {
+            List<GridSortOrder<T>> sortOrderList = e.getSortOrder();
+            List<String> notFound = new ArrayList<>(
+                    currentlySortedColumns);
+            for (GridSortOrder<T> sortOrder : sortOrderList) {
+                String key = sortOrder.getSorted().getKey();
+                currentlySortedColumns.add(key);
+                notFound.remove(key);
+            }
+            if (!notFound.isEmpty()) {
+                for (String key : notFound) {
+                    sortOrderList.add(columnIndex, new GridSortOrder<>(
+                            grid.getColumnByKey(key), SortDirection.ASCENDING));
+                }
+                grid.sort(sortOrderList);
+            }
+        });
+    }
+
+    protected Set<T> loadData() {
         return this.service.load();
     }
 
@@ -85,7 +122,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected abstract Grid<T> getGrid();
 
-    protected abstract void openClickOnColumnDialog(ItemClickEvent<T> event);
+    protected abstract void doOnColumnClick(ItemClickEvent<T> event);
 
     protected Span formatTextComponent(String text) {
         if (text == null) {
