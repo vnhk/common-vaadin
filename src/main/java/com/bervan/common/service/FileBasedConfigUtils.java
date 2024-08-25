@@ -22,6 +22,14 @@ public class FileBasedConfigUtils {
         return fileInfos;
     }
 
+    public void importDataFromExcel() {
+
+    }
+
+    public void exportDataToExcel() {
+
+    }
+
     public static void scanDirectory(File fileParent, List<File> fileInfos) throws IOException {
         try (Stream<Path> paths = Files.walk(Paths.get(fileParent.getAbsolutePath()))) {
             Set<Path> collect = paths.filter(path -> !path.toAbsolutePath()
