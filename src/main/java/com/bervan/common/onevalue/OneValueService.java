@@ -1,7 +1,7 @@
 package com.bervan.common.onevalue;
 
-import com.bervan.common.model.BervanLogger;
 import com.bervan.common.service.BaseOneValueService;
+import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.ExcelIEEntity;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +46,7 @@ public class OneValueService implements BaseOneValueService<OneValue> {
                 .filter(e -> !names.contains(((OneValue) e).getName()))
                 .toList();
 
-        logger.logDebug("Filtered One Values to be imported: " + list.size());
+        logger.debug("Filtered One Values to be imported: " + list.size());
         for (ExcelIEEntity excelIEEntity : list) {
             repository.save(((OneValue) excelIEEntity));
         }
