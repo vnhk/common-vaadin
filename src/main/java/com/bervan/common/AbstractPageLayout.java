@@ -14,6 +14,7 @@ public abstract class AbstractPageLayout extends VerticalLayout {
     protected final String CURRENT_ROUTE_NAME;
 
     public AbstractPageLayout(String currentRouteName) {
+        addClassName("route-buttons-layout");
         CURRENT_ROUTE_NAME = currentRouteName;
     }
 
@@ -28,9 +29,10 @@ public abstract class AbstractPageLayout extends VerticalLayout {
 
         buttons.put(routeName, button);
 
+        button.addClassName("option-button");
+
         if (routeName.equals(CURRENT_ROUTE_NAME)) {
-            button.getStyle().set("background-color", "blue");
-            button.getStyle().set("color", "white");
+            button.addClassName("selected-route-button");
         }
 
         menuRow.add(button);

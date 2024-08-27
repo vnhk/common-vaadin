@@ -6,12 +6,11 @@ import com.bervan.common.service.BaseOneValueService;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 
 import java.util.Optional;
 
-public abstract class AbstractOneValueView extends VerticalLayout {
+public abstract class AbstractOneValueView extends AbstractPageView {
     protected final BaseOneValueService service;
     protected final AbstractPageLayout pageLayout;
     protected final String key;
@@ -31,6 +30,8 @@ public abstract class AbstractOneValueView extends VerticalLayout {
         textArea.setWidthFull();
         textArea.setHeight(getTextAreaHeight());
         Button saveButton = new Button("Save");
+        saveButton.addClassName("option-button");
+
         saveButton.addClickListener(event -> save(textArea.getValue()));
 
         add(header, textArea, saveButton);

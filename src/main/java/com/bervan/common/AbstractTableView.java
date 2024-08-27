@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractTableView<T extends PersistableTableData> extends VerticalLayout implements AfterNavigationObserver {
+public abstract class AbstractTableView<T extends PersistableTableData> extends AbstractPageView implements AfterNavigationObserver {
     protected final Set<T> data = new HashSet<>();
     protected final BaseService<T> service;
     protected Grid<T> grid;
@@ -41,6 +41,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         this.service = service;
         this.pageLayout = pageLayout;
         this.pageName = pageName;
+
+        addClassName("bervan-table-view");
     }
 
     @Override
@@ -58,6 +60,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         TextField searchField = getFilter();
 
         addButton = new Button("Add New Element", e -> newItemButtonClick());
+        addButton.addClassName("option-button");
+
         contentLayout.add(header, searchField, grid, addButton);
         add(pageLayout);
         add(contentLayout);
@@ -112,6 +116,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected HorizontalLayout getDialogTopBarLayout(Dialog dialog) {
         Button closeButton = new Button(new Icon(VaadinIcon.CLOSE));
+        closeButton.addClassName("option-button");
+
         closeButton.addClickListener(e -> dialog.close());
         HorizontalLayout headerLayout = new HorizontalLayout(closeButton);
         headerLayout.setWidthFull();
