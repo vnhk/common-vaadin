@@ -49,7 +49,6 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     }
 
     public void renderCommonComponents() {
-//        removeAll();
         header = new H3(pageName);
         grid = getGrid();
         grid.setItems(data);
@@ -58,7 +57,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
         TextField searchField = getFilter();
 
-        addButton = new Button("Add New Element", e -> openAddDialog());
+        addButton = new Button("Add New Element", e -> newItemButtonClick());
         contentLayout.add(header, searchField, grid, addButton);
         add(pageLayout);
         add(contentLayout);
@@ -122,7 +121,20 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected abstract Grid<T> getGrid();
 
-    protected abstract void doOnColumnClick(ItemClickEvent<T> event);
+    protected void doOnColumnClick(ItemClickEvent<T> event) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("80vw");
+        VerticalLayout dialogLayout = new VerticalLayout();
+        HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
+        String clickedColumn = event.getColumn().getKey();
+
+        buildOnColumnClickDialogContent(dialog, dialogLayout, headerLayout, clickedColumn, event.getItem());
+
+        dialog.add(dialogLayout);
+        dialog.open();
+    }
+
+    protected abstract void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout, String clickedColumn, T item);
 
     protected Span formatTextComponent(String text) {
         if (text == null) {
@@ -133,5 +145,18 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         return span;
     }
 
-    protected abstract void openAddDialog();
+    protected void newItemButtonClick() {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("80vw");
+        VerticalLayout dialogLayout = new VerticalLayout();
+        HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
+
+        buildNewItemDialogContent(dialog, dialogLayout, headerLayout);
+
+        dialog.add(dialogLayout);
+        dialog.open();
+    }
+
+    protected abstract void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout);
+
 }

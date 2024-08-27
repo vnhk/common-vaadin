@@ -9,7 +9,7 @@ import java.util.Set;
 public interface BaseService<T extends PersistableTableData> {
     void save(List<T> data);
 
-    void save(T data);
+    T save(T data);
 
     Set<T> load();
 
