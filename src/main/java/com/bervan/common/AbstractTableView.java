@@ -1,8 +1,12 @@
 package com.bervan.common;
 
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.VaadinTableColumn;
 import com.bervan.common.service.BaseService;
+import com.bervan.core.model.BervanLogger;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
@@ -11,19 +15,23 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class AbstractTableView<T extends PersistableTableData> extends AbstractPageView implements AfterNavigationObserver {
@@ -36,11 +44,13 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected final VerticalLayout contentLayout = new VerticalLayout();
     private final Set<String> currentlySortedColumns = new HashSet<>();
     protected H3 header;
+    protected final BervanLogger log;
 
-    public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName) {
+    public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName, BervanLogger log) {
         this.service = service;
         this.pageLayout = pageLayout;
         this.pageName = pageName;
+        this.log = log;
 
         addClassName("bervan-table-view");
     }
@@ -127,6 +137,44 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected abstract Grid<T> getGrid();
 
+    protected final void buildGridAutomatically(Grid<T> grid) {
+        Class<T> beanType = grid.getBeanType();
+        List<Field> vaadinTableColumns = getVaadinTableColumns(beanType);
+        for (Field vaadinTableColumn : vaadinTableColumns) {
+            String columnInternalName = vaadinTableColumn.getAnnotation(VaadinTableColumn.class).internalName();
+            String columnName = vaadinTableColumn.getAnnotation(VaadinTableColumn.class).displayName();
+            grid.addColumn(createTextColumnComponent(vaadinTableColumn)).setHeader(columnName).setKey(columnInternalName)
+                    .setResizable(true);
+        }
+
+        grid.getElement().getStyle().set("--lumo-size-m", 100 + "px");
+    }
+
+    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f) {
+        return (span, record) -> {
+            try {
+                f.setAccessible(true);
+                Object o = f.get(record);
+                f.setAccessible(false);
+                if (o != null) {
+                    span.add(o.toString());
+                }
+                customizeTextColumnUpdater(span, record, f);
+            } catch (Exception e) {
+                log.error("Could not create column in table!", e);
+                Notification.show("Could not create column in table!");
+            }
+        };
+    }
+
+    protected void customizeTextColumnUpdater(Span span, T record, Field f) {
+
+    }
+
+    private ComponentRenderer<Span, T> createTextColumnComponent(Field f) {
+        return new ComponentRenderer<>(Span::new, textColumnUpdater(f));
+    }
+
     protected void doOnColumnClick(ItemClickEvent<T> event) {
         Dialog dialog = new Dialog();
         dialog.setWidth("80vw");
@@ -140,7 +188,104 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         dialog.open();
     }
 
-    protected abstract void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout, String clickedColumn, T item);
+    protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout, String clickedColumn, T item) {
+        Field field = null;
+        try {
+            List<Field> declaredFields = getVaadinTableColumns(item.getClass());
+
+            field = declaredFields.stream()
+                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
+                    .findFirst().get();
+            field.setAccessible(true);
+            Object value = field.get(item);
+
+            VerticalLayout layoutForField = new VerticalLayout();
+            AbstractField componentWithValue = null;
+            String typeName = field.getType().getTypeName();
+            if (String.class.getTypeName().equals(typeName)) {
+                componentWithValue = buildTextArea(value, clickedColumn);
+            } else if (Integer.class.getTypeName().equals(typeName)) {
+                componentWithValue = buildIntegerInput(value, clickedColumn);
+            } else if (LocalDateTime.class.getTypeName().equals(typeName)) {
+                componentWithValue = buildDateTimeInput(value, clickedColumn);
+            } else {
+                componentWithValue = new TextField("Not supported yet");
+                componentWithValue.setValue(value);
+            }
+
+            layoutForField.add(componentWithValue);
+
+            customFieldLayout(layoutForField, componentWithValue, clickedColumn, item);
+
+            Button dialogSaveButton = new Button("Save");
+            dialogSaveButton.addClassName("option-button");
+
+            //maybe move it as fields in class if dont work or wrap it in holder class?
+            Field finalField = field;
+            AbstractField finalComponentWithValue = componentWithValue;
+            dialogSaveButton.addClickListener(buttonClickEvent -> {
+                try {
+                    finalField.setAccessible(true);
+                    finalField.set(item, finalComponentWithValue.getValue());
+                    finalField.setAccessible(false);
+
+                    customizeSaving(finalField, layoutForField, clickedColumn, item);
+
+                    grid.getDataProvider().refreshItem(item);
+                    service.save(item);
+                } catch (IllegalAccessException e) {
+                    log.error("Could not update field value!", e);
+                    Notification.show("Could not update value!");
+                }
+                dialog.close();
+            });
+
+            dialogLayout.add(headerLayout, layoutForField, dialogSaveButton);
+        } catch (Exception e) {
+            log.error("Error during using edit modal. Check columns name or create custom modal!", e);
+            Notification.show("Error during using edit modal. Check columns name or create custom modal!");
+        } finally {
+            if (field != null) {
+                field.setAccessible(false);
+            }
+        }
+    }
+
+    private List<Field> getVaadinTableColumns(Class<?> tClass) {
+        return Arrays.stream(tClass.getDeclaredFields())
+                .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
+                .toList();
+    }
+
+    private void customizeSaving(Field field, VerticalLayout layoutForField, String clickedColumn, T item) {
+
+    }
+
+    private void customFieldLayout(VerticalLayout layoutForField, AbstractField componentWithValue, String clickedColumn, T item) {
+
+    }
+
+    private AbstractField buildDateTimeInput(Object value, String clickedColumn) {
+        DateTimePicker dateTimePicker = new DateTimePicker(clickedColumn);
+        dateTimePicker.setLabel("Select Date and Time");
+
+        dateTimePicker.setValue((LocalDateTime) value);
+        return dateTimePicker;
+    }
+
+    private AbstractField buildIntegerInput(Object value, String clickedColumn) {
+        IntegerField field = new IntegerField(clickedColumn);
+        field.setWidth("100%");
+        field.setValue(((Integer) value));
+        return field;
+    }
+
+    private AbstractField buildTextArea(Object value, String clickedColumn) {
+        TextArea textArea = new TextArea(clickedColumn);
+        textArea.setWidth("100%");
+        textArea.setValue(((String) value));
+        return textArea;
+    }
 
     protected Span formatTextComponent(String text) {
         if (text == null) {
