@@ -202,12 +202,13 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             VerticalLayout layoutForField = new VerticalLayout();
             AbstractField componentWithValue = null;
             String typeName = field.getType().getTypeName();
+            String displayName = field.getAnnotation(VaadinTableColumn.class).displayName();
             if (String.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildTextArea(value, clickedColumn);
+                componentWithValue = buildTextArea(value, clickedColumn, displayName);
             } else if (Integer.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildIntegerInput(value, clickedColumn);
+                componentWithValue = buildIntegerInput(value, clickedColumn, displayName);
             } else if (LocalDateTime.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildDateTimeInput(value, clickedColumn);
+                componentWithValue = buildDateTimeInput(value, clickedColumn, displayName);
             } else {
                 componentWithValue = new TextField("Not supported yet");
                 componentWithValue.setValue(value);
@@ -220,7 +221,6 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             Button dialogSaveButton = new Button("Save");
             dialogSaveButton.addClassName("option-button");
 
-            //maybe move it as fields in class if dont work or wrap it in holder class?
             Field finalField = field;
             AbstractField finalComponentWithValue = componentWithValue;
             dialogSaveButton.addClickListener(buttonClickEvent -> {
@@ -231,8 +231,9 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
                     customizeSaving(finalField, layoutForField, clickedColumn, item);
 
-                    grid.getDataProvider().refreshItem(item);
                     service.save(item);
+
+                    refreshDataAfterUpdate();
                 } catch (IllegalAccessException e) {
                     log.error("Could not update field value!", e);
                     Notification.show("Could not update value!");
@@ -251,37 +252,43 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         }
     }
 
+    protected void refreshDataAfterUpdate() {
+        this.data.removeAll(this.data);
+        this.data.addAll(this.service.load());
+        this.grid.getDataProvider().refreshAll();
+    }
+
     private List<Field> getVaadinTableColumns(Class<?> tClass) {
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
                 .toList();
     }
 
-    private void customizeSaving(Field field, VerticalLayout layoutForField, String clickedColumn, T item) {
+    protected void customizeSaving(Field field, VerticalLayout layoutForField, String clickedColumn, T item) {
 
     }
 
-    private void customFieldLayout(VerticalLayout layoutForField, AbstractField componentWithValue, String clickedColumn, T item) {
+    protected void customFieldLayout(VerticalLayout layoutForField, AbstractField componentWithValue, String clickedColumn, T item) {
 
     }
 
-    private AbstractField buildDateTimeInput(Object value, String clickedColumn) {
-        DateTimePicker dateTimePicker = new DateTimePicker(clickedColumn);
+    private AbstractField buildDateTimeInput(Object value, String clickedColumn, String displayName) {
+        DateTimePicker dateTimePicker = new DateTimePicker(displayName);
         dateTimePicker.setLabel("Select Date and Time");
 
         dateTimePicker.setValue((LocalDateTime) value);
         return dateTimePicker;
     }
 
-    private AbstractField buildIntegerInput(Object value, String clickedColumn) {
-        IntegerField field = new IntegerField(clickedColumn);
+    private AbstractField buildIntegerInput(Object value, String clickedColumn, String displayName) {
+        IntegerField field = new IntegerField(displayName);
         field.setWidth("100%");
         field.setValue(((Integer) value));
         return field;
     }
 
-    private AbstractField buildTextArea(Object value, String clickedColumn) {
-        TextArea textArea = new TextArea(clickedColumn);
+    private AbstractField buildTextArea(Object value, String clickedColumn, String displayName) {
+        TextArea textArea = new TextArea(displayName);
         textArea.setWidth("100%");
         textArea.setValue(((String) value));
         return textArea;
@@ -309,5 +316,6 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     }
 
     protected abstract void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout);
+
 
 }
