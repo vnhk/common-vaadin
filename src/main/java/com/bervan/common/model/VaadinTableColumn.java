@@ -11,4 +11,10 @@ public @interface VaadinTableColumn {
     String internalName();
 
     String displayName();
+
+    String[] strValues() default {};
+
+    boolean valuesSingleChoice() default true;
+
+    int[] intValues() default {};
 }

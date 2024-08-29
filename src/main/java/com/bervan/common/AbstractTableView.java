@@ -6,6 +6,7 @@ import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -20,6 +21,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.SortDirection;
@@ -203,10 +205,22 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             AbstractField componentWithValue = null;
             String typeName = field.getType().getTypeName();
             String displayName = field.getAnnotation(VaadinTableColumn.class).displayName();
-            if (String.class.getTypeName().equals(typeName)) {
+
+            List<String> stringValues = Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList();
+            List<Integer> integerValues = Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList());
+
+            if (stringValues.size() > 0) {
+                ComboBox<String> comboBox = new ComboBox<>(displayName);
+                componentWithValue = buildComponentForComboBox(stringValues, comboBox, ((String) value));
+            } else if (integerValues.size() > 0) {
+                ComboBox<Integer> comboBox = new ComboBox<>(displayName);
+                componentWithValue = buildComponentForComboBox(integerValues, comboBox, ((Integer) value));
+            } else if (String.class.getTypeName().equals(typeName)) {
                 componentWithValue = buildTextArea(value, clickedColumn, displayName);
             } else if (Integer.class.getTypeName().equals(typeName)) {
                 componentWithValue = buildIntegerInput(value, clickedColumn, displayName);
+            } else if (Double.class.getTypeName().equals(typeName)) {
+                componentWithValue = buildDoubleInput(value, clickedColumn, displayName);
             } else if (LocalDateTime.class.getTypeName().equals(typeName)) {
                 componentWithValue = buildDateTimeInput(value, clickedColumn, displayName);
             } else {
@@ -266,6 +280,15 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         }
     }
 
+    private static <X> AbstractField buildComponentForComboBox(List<X> values, ComboBox<X> comboBox, X initVal) {
+        AbstractField componentWithValue;
+        comboBox.setItems(values);
+        comboBox.setWidth("100%");
+        comboBox.setValue(initVal);
+        componentWithValue = comboBox;
+        return componentWithValue;
+    }
+
     protected void modalDeleteItem(Dialog dialog, T item) {
         service.delete(item);
         removeItemFromGrid(item);
@@ -284,6 +307,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected void refreshDataAfterUpdate(T item) {
         removeItemFromGrid(item);
+        this.data.add(item);
         this.grid.getDataProvider().refreshAll();
     }
 
@@ -313,6 +337,13 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         IntegerField field = new IntegerField(displayName);
         field.setWidth("100%");
         field.setValue(((Integer) value));
+        return field;
+    }
+
+    private AbstractField buildDoubleInput(Object value, String clickedColumn, String displayName) {
+        NumberField field = new NumberField(displayName);
+        field.setWidth("100%");
+        field.setValue(((Double) value));
         return field;
     }
 
