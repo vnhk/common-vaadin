@@ -247,7 +247,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
                     service.save(item);
 
-                    refreshDataAfterUpdate();
+                    refreshDataAfterUpdate(item);
                 } catch (IllegalAccessException e) {
                     log.error("Could not update field value!", e);
                     Notification.show("Could not update value!");
@@ -268,14 +268,22 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected void modalDeleteItem(Dialog dialog, T item) {
         service.delete(item);
-        this.data.remove(item);
+        removeItemFromGrid(item);
         this.grid.getDataProvider().refreshAll();
         dialog.close();
     }
 
-    protected void refreshDataAfterUpdate() {
-        this.data.removeAll(this.data);
-        this.data.addAll(this.service.load());
+    protected void removeItemFromGrid(T item) {
+        int oldSize = this.data.size();
+        this.data.remove(item);
+        if (oldSize == this.data.size()) {
+            UUID id = item.getId();
+            this.data.removeIf(e -> e.getId().equals(id));
+        }
+    }
+
+    protected void refreshDataAfterUpdate(T item) {
+        removeItemFromGrid(item);
         this.grid.getDataProvider().refreshAll();
     }
 
