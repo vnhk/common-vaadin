@@ -221,6 +221,20 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             Button dialogSaveButton = new Button("Save");
             dialogSaveButton.addClassName("option-button");
 
+            Button deleteButton = new Button("Delete Item");
+            deleteButton.addClassName("option-button-warning");
+            deleteButton.addClassName("option-button");
+
+            HorizontalLayout buttonsLayout = new HorizontalLayout();
+            buttonsLayout.setWidthFull();
+            buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+            buttonsLayout.add(dialogSaveButton, deleteButton);
+
+            deleteButton.addClickListener(buttonClickEvent -> {
+                modalDeleteItem(dialog, item);
+            });
+
             Field finalField = field;
             AbstractField finalComponentWithValue = componentWithValue;
             dialogSaveButton.addClickListener(buttonClickEvent -> {
@@ -241,7 +255,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                 dialog.close();
             });
 
-            dialogLayout.add(headerLayout, layoutForField, dialogSaveButton);
+            dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
         } catch (Exception e) {
             log.error("Error during using edit modal. Check columns name or create custom modal!", e);
             Notification.show("Error during using edit modal. Check columns name or create custom modal!");
@@ -250,6 +264,13 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                 field.setAccessible(false);
             }
         }
+    }
+
+    protected void modalDeleteItem(Dialog dialog, T item) {
+        service.delete(item);
+        this.data.remove(item);
+        this.grid.getDataProvider().refreshAll();
+        dialog.close();
     }
 
     protected void refreshDataAfterUpdate() {

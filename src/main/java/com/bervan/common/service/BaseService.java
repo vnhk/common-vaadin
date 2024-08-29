@@ -13,4 +13,5 @@ public interface BaseService<T extends PersistableTableData> {
 
     Set<T> load();
 
+    void delete(T item);
 }
