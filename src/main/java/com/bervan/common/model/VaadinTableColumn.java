@@ -17,4 +17,10 @@ public @interface VaadinTableColumn {
     boolean valuesSingleChoice() default true;
 
     int[] intValues() default {};
+
+    int order() default 0;
+
+    boolean inSaveForm() default true;
+
+    boolean inEditForm() default true;
 }

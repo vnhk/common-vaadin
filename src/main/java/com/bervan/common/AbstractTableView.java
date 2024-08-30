@@ -2,6 +2,7 @@ package com.bervan.common;
 
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinTableColumn;
+import com.bervan.common.model.VaadinTableColumnConfig;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.AbstractField;
@@ -32,6 +33,7 @@ import com.vaadin.flow.router.AfterNavigationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,12 +49,14 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     private final Set<String> currentlySortedColumns = new HashSet<>();
     protected H3 header;
     protected final BervanLogger log;
+    protected final Class<T> tClass;
 
-    public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName, BervanLogger log) {
+    public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName, BervanLogger log, Class<T> tClass) {
         this.service = service;
         this.pageLayout = pageLayout;
         this.pageName = pageName;
         this.log = log;
+        this.tClass = tClass;
 
         addClassName("bervan-table-view");
     }
@@ -137,11 +141,14 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         return headerLayout;
     }
 
-    protected abstract Grid<T> getGrid();
+    protected Grid<T> getGrid() {
+        Grid<T> grid = new Grid<>(tClass, false);
+        buildGridAutomatically(grid);
+        return grid;
+    }
 
     protected final void buildGridAutomatically(Grid<T> grid) {
-        Class<T> beanType = grid.getBeanType();
-        List<Field> vaadinTableColumns = getVaadinTableColumns(beanType);
+        List<Field> vaadinTableColumns = getVaadinTableColumns();
         for (Field vaadinTableColumn : vaadinTableColumns) {
             String columnInternalName = vaadinTableColumn.getAnnotation(VaadinTableColumn.class).internalName();
             String columnName = vaadinTableColumn.getAnnotation(VaadinTableColumn.class).displayName();
@@ -179,7 +186,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected void doOnColumnClick(ItemClickEvent<T> event) {
         Dialog dialog = new Dialog();
-        dialog.setWidth("80vw");
+        dialog.setWidth("60vw");
         VerticalLayout dialogLayout = new VerticalLayout();
         HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
         String clickedColumn = event.getColumn().getKey();
@@ -190,86 +197,106 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         dialog.open();
     }
 
+    protected VaadinTableColumnConfig buildColumnConfig(Field field) {
+        VaadinTableColumnConfig config = new VaadinTableColumnConfig();
+        config.setField(field);
+        config.setTypeName(field.getType().getTypeName());
+        config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
+
+        config.setStrValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList());
+        config.setIntValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList()));
+
+        return config;
+    }
+
+    protected AbstractField buildComponentForField(Field field, Object item) throws IllegalAccessException {
+        AbstractField component = null;
+        VaadinTableColumnConfig config = buildColumnConfig(field);
+
+        field.setAccessible(true);
+        Object value = item == null ? null : field.get(item);
+
+        if (config.getStrValues().size() > 0) {
+            ComboBox<String> comboBox = new ComboBox<>(config.getDisplayName());
+            component = buildComponentForComboBox(config.getStrValues(), comboBox, ((String) value));
+        } else if (config.getIntValues().size() > 0) {
+            ComboBox<Integer> comboBox = new ComboBox<>(config.getDisplayName());
+            component = buildComponentForComboBox(config.getIntValues(), comboBox, ((Integer) value));
+        } else if (String.class.getTypeName().equals(config.getTypeName())) {
+            component = buildTextArea(value, config.getDisplayName());
+        } else if (Integer.class.getTypeName().equals(config.getTypeName())) {
+            component = buildIntegerInput(value, config.getDisplayName());
+        } else if (Double.class.getTypeName().equals(config.getTypeName())) {
+            component = buildDoubleInput(value, config.getDisplayName());
+        } else if (LocalDateTime.class.getTypeName().equals(config.getTypeName())) {
+            component = buildDateTimeInput(value, config.getDisplayName());
+        } else {
+            component = new TextField("Not supported yet");
+            component.setValue(value);
+        }
+
+        component.setId(config.getTypeName() + "_id");
+
+        field.setAccessible(false);
+
+        return component;
+    }
+
     protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout, String clickedColumn, T item) {
         Field field = null;
         try {
-            List<Field> declaredFields = getVaadinTableColumns(item.getClass());
+            List<Field> declaredFields = getVaadinTableColumns();
 
-            field = declaredFields.stream()
+            Optional<Field> fieldOptional = declaredFields.stream()
                     .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
-                    .findFirst().get();
-            field.setAccessible(true);
-            Object value = field.get(item);
+                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).inEditForm())
+                    .findFirst();
 
-            VerticalLayout layoutForField = new VerticalLayout();
-            AbstractField componentWithValue = null;
-            String typeName = field.getType().getTypeName();
-            String displayName = field.getAnnotation(VaadinTableColumn.class).displayName();
+            if (fieldOptional.isPresent()) {
+                field = fieldOptional.get();
+                AbstractField componentWithValue = buildComponentForField(field, item);
+                VerticalLayout layoutForField = new VerticalLayout();
+                layoutForField.add(componentWithValue);
+                customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
 
-            List<String> stringValues = Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList();
-            List<Integer> integerValues = Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList());
+                Button dialogSaveButton = new Button("Save");
+                dialogSaveButton.addClassName("option-button");
 
-            if (stringValues.size() > 0) {
-                ComboBox<String> comboBox = new ComboBox<>(displayName);
-                componentWithValue = buildComponentForComboBox(stringValues, comboBox, ((String) value));
-            } else if (integerValues.size() > 0) {
-                ComboBox<Integer> comboBox = new ComboBox<>(displayName);
-                componentWithValue = buildComponentForComboBox(integerValues, comboBox, ((Integer) value));
-            } else if (String.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildTextArea(value, clickedColumn, displayName);
-            } else if (Integer.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildIntegerInput(value, clickedColumn, displayName);
-            } else if (Double.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildDoubleInput(value, clickedColumn, displayName);
-            } else if (LocalDateTime.class.getTypeName().equals(typeName)) {
-                componentWithValue = buildDateTimeInput(value, clickedColumn, displayName);
-            } else {
-                componentWithValue = new TextField("Not supported yet");
-                componentWithValue.setValue(value);
+                Button deleteButton = new Button("Delete Item");
+                deleteButton.addClassName("option-button-warning");
+                deleteButton.addClassName("option-button");
+
+                HorizontalLayout buttonsLayout = new HorizontalLayout();
+                buttonsLayout.setWidthFull();
+                buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+                buttonsLayout.add(dialogSaveButton, deleteButton);
+
+                deleteButton.addClickListener(buttonClickEvent -> {
+                    modalDeleteItem(dialog, item);
+                });
+
+                Field finalField = field;
+                AbstractField finalComponentWithValue = componentWithValue;
+                dialogSaveButton.addClickListener(buttonClickEvent -> {
+                    try {
+                        finalField.setAccessible(true);
+                        finalField.set(item, finalComponentWithValue.getValue());
+                        finalField.setAccessible(false);
+
+                        service.save(item);
+
+                        refreshDataAfterUpdate(item);
+                    } catch (IllegalAccessException e) {
+                        log.error("Could not update field value!", e);
+                        Notification.show("Could not update value!");
+                    }
+                    dialog.close();
+                });
+
+                dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
+
             }
-
-            layoutForField.add(componentWithValue);
-
-            customFieldLayout(layoutForField, componentWithValue, clickedColumn, item);
-
-            Button dialogSaveButton = new Button("Save");
-            dialogSaveButton.addClassName("option-button");
-
-            Button deleteButton = new Button("Delete Item");
-            deleteButton.addClassName("option-button-warning");
-            deleteButton.addClassName("option-button");
-
-            HorizontalLayout buttonsLayout = new HorizontalLayout();
-            buttonsLayout.setWidthFull();
-            buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-
-            buttonsLayout.add(dialogSaveButton, deleteButton);
-
-            deleteButton.addClickListener(buttonClickEvent -> {
-                modalDeleteItem(dialog, item);
-            });
-
-            Field finalField = field;
-            AbstractField finalComponentWithValue = componentWithValue;
-            dialogSaveButton.addClickListener(buttonClickEvent -> {
-                try {
-                    finalField.setAccessible(true);
-                    finalField.set(item, finalComponentWithValue.getValue());
-                    finalField.setAccessible(false);
-
-                    customizeSaving(finalField, layoutForField, clickedColumn, item);
-
-                    service.save(item);
-
-                    refreshDataAfterUpdate(item);
-                } catch (IllegalAccessException e) {
-                    log.error("Could not update field value!", e);
-                    Notification.show("Could not update value!");
-                }
-                dialog.close();
-            });
-
-            dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
         } catch (Exception e) {
             log.error("Error during using edit modal. Check columns name or create custom modal!", e);
             Notification.show("Error during using edit modal. Check columns name or create custom modal!");
@@ -311,46 +338,51 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         this.grid.getDataProvider().refreshAll();
     }
 
-    private List<Field> getVaadinTableColumns(Class<?> tClass) {
+    private List<Field> getVaadinTableColumns() {
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
                 .toList();
     }
 
-    protected void customizeSaving(Field field, VerticalLayout layoutForField, String clickedColumn, T item) {
+
+    protected void customFieldInEditLayout(VerticalLayout layoutForField, AbstractField componentWithValue, String clickedColumn, T item) {
 
     }
 
-    protected void customFieldLayout(VerticalLayout layoutForField, AbstractField componentWithValue, String clickedColumn, T item) {
+    protected void customFieldInCreateLayout(Field field, VerticalLayout layoutForField, AbstractField componentWithValue) {
 
     }
 
-    private AbstractField buildDateTimeInput(Object value, String clickedColumn, String displayName) {
+    private AbstractField buildDateTimeInput(Object value, String displayName) {
         DateTimePicker dateTimePicker = new DateTimePicker(displayName);
         dateTimePicker.setLabel("Select Date and Time");
 
-        dateTimePicker.setValue((LocalDateTime) value);
+        if (value != null)
+            dateTimePicker.setValue((LocalDateTime) value);
         return dateTimePicker;
     }
 
-    private AbstractField buildIntegerInput(Object value, String clickedColumn, String displayName) {
+    private AbstractField buildIntegerInput(Object value, String displayName) {
         IntegerField field = new IntegerField(displayName);
-        field.setWidth("100%");
-        field.setValue(((Integer) value));
+        field.setWidthFull();
+        if (value != null)
+            field.setValue((Integer) value);
         return field;
     }
 
-    private AbstractField buildDoubleInput(Object value, String clickedColumn, String displayName) {
+    private AbstractField buildDoubleInput(Object value, String displayName) {
         NumberField field = new NumberField(displayName);
-        field.setWidth("100%");
-        field.setValue(((Double) value));
+        field.setWidthFull();
+        if (value != null)
+            field.setValue(((Double) value));
         return field;
     }
 
-    private AbstractField buildTextArea(Object value, String clickedColumn, String displayName) {
+    private AbstractField buildTextArea(Object value, String displayName) {
         TextArea textArea = new TextArea(displayName);
-        textArea.setWidth("100%");
-        textArea.setValue(((String) value));
+        textArea.setWidthFull();
+        if (value != null)
+            textArea.setValue((String) value);
         return textArea;
     }
 
@@ -365,9 +397,15 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected void newItemButtonClick() {
         Dialog dialog = new Dialog();
-        dialog.setWidth("80vw");
+        dialog.setWidth("60vw");
         VerticalLayout dialogLayout = new VerticalLayout();
         HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
+
+        dialogLayout.getThemeList().remove("spacing");
+        dialogLayout.getThemeList().remove("padding");
+
+        headerLayout.getThemeList().remove("spacing");
+        headerLayout.getThemeList().remove("padding");
 
         buildNewItemDialogContent(dialog, dialogLayout, headerLayout);
 
@@ -375,7 +413,72 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         dialog.open();
     }
 
-    protected abstract void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout);
+    protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
+        try {
+            Map<Field, AbstractField> fieldsHolder = new HashMap<>();
+            Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
+            VerticalLayout formLayout = new VerticalLayout();
+            List<Field> declaredFields = getVaadinTableColumns().stream()
+                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).inSaveForm())
+                    .toList();
 
+            for (Field field : declaredFields) {
+                AbstractField componentWithValue = buildComponentForField(field, null);
+                VerticalLayout layoutForField = new VerticalLayout();
+                layoutForField.getThemeList().remove("spacing");
+                layoutForField.getThemeList().remove("padding");
+                layoutForField.add(componentWithValue);
+                customFieldInCreateLayout(field, layoutForField, componentWithValue);
+                formLayout.add(layoutForField);
+                fieldsHolder.put(field, componentWithValue);
+                fieldsLayoutHolder.put(field, layoutForField);
+            }
 
+            customFieldInCreateLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
+
+            Button dialogSaveButton = new Button("Save");
+            dialogSaveButton.addClassName("option-button");
+
+            HorizontalLayout buttonsLayout = new HorizontalLayout();
+            buttonsLayout.setWidthFull();
+            buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+            buttonsLayout.add(dialogSaveButton);
+
+            dialogSaveButton.addClickListener(buttonClickEvent -> {
+                try {
+                    T newObject = tClass.getConstructor().newInstance();
+                    for (Map.Entry<Field, AbstractField> fieldAbstractFieldEntry : fieldsHolder.entrySet()) {
+                        fieldAbstractFieldEntry.getKey().setAccessible(true);
+                        fieldAbstractFieldEntry.getKey().set(newObject, fieldAbstractFieldEntry.getValue().getValue());
+                        fieldAbstractFieldEntry.getKey().setAccessible(false);
+                    }
+
+                    newObject = customizeSavingInCreateForm(newObject);
+
+                    newObject = service.save(newObject);
+                    this.data.add(newObject);
+                    this.grid.getDataProvider().refreshAll();
+                } catch (IllegalAccessException | NoSuchMethodException | InstantiationException |
+                         InvocationTargetException e) {
+                    log.error("Could not save new item!", e);
+                    Notification.show("Could not save new item!");
+                }
+                dialog.close();
+            });
+
+            dialogLayout.add(headerLayout, formLayout, buttonsLayout);
+        } catch (Exception e) {
+            log.error("Error during using creation modal. Check columns name or create custom modal!", e);
+            Notification.show("Error during using creation modal. Check columns name or create custom modal!");
+        }
+    }
+
+    protected void customFieldInCreateLayout(Map<Field, AbstractField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
+
+    }
+
+    protected T customizeSavingInCreateForm(T newItem) {
+        return newItem;
+    }
 }
