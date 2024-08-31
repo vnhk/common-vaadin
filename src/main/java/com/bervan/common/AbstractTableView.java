@@ -13,6 +13,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -71,6 +72,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         grid = getGrid();
         grid.setItems(data);
         grid.addItemClickListener(this::doOnColumnClick);
+        grid.addItemDoubleClickListener(this::doOnColumnDoubleClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
         TextField searchField = getFilter();
@@ -81,6 +83,10 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         contentLayout.add(header, searchField, grid, addButton);
         add(pageLayout);
         add(contentLayout);
+    }
+
+    protected void doOnColumnDoubleClick(ItemDoubleClickEvent<T> tItemDoubleClickEvent) {
+
     }
 
     protected void removeUnSortedState(Grid<T> grid, int columnIndex) {
