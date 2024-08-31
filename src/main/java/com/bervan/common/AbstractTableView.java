@@ -110,6 +110,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected void refreshData() {
         this.data.removeAll(this.data);
         this.data.addAll(this.service.load());
+        this.grid.getDataProvider().refreshAll();
     }
 
     protected void filterTable(String filterText) {
@@ -284,9 +285,9 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                         finalField.set(item, finalComponentWithValue.getValue());
                         finalField.setAccessible(false);
 
-                        service.save(item);
+                        T changed = service.save(item);
 
-                        refreshDataAfterUpdate(item);
+                        refreshDataAfterUpdate(changed);
                     } catch (IllegalAccessException e) {
                         log.error("Could not update field value!", e);
                         Notification.show("Could not update value!");
@@ -335,6 +336,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected void refreshDataAfterUpdate(T item) {
         removeItemFromGrid(item);
         this.data.add(item);
+        this.grid.setItems(this.data);
+        this.grid.getDataProvider().refreshItem(item);
         this.grid.getDataProvider().refreshAll();
     }
 
