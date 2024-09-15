@@ -291,6 +291,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                         finalField.set(item, finalComponentWithValue.getValue());
                         finalField.setAccessible(false);
 
+                        customPreUpdate(clickedColumn, layoutForField, item, finalField, finalComponentWithValue);
+
                         T changed = service.save(item);
 
                         refreshDataAfterUpdate(changed);
@@ -312,6 +314,10 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                 field.setAccessible(false);
             }
         }
+    }
+
+    protected void customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AbstractField finalComponentWithValue) {
+
     }
 
     private static <X> AbstractField buildComponentForComboBox(List<X> values, ComboBox<X> comboBox, X initVal) {
