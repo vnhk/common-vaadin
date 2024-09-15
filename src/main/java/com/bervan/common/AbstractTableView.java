@@ -358,6 +358,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         this.grid.setItems(this.data);
         this.grid.getDataProvider().refreshItem(item);
         this.grid.getDataProvider().refreshAll();
+        //filter table after refreshing
+        filterTable(searchField.getValue());
     }
 
     private List<Field> getVaadinTableColumns() {
