@@ -51,6 +51,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected H3 header;
     protected final BervanLogger log;
     protected final Class<T> tClass;
+    protected TextField searchField;
 
     public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -75,7 +76,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         grid.addItemDoubleClickListener(this::doOnColumnDoubleClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
-        TextField searchField = getFilter();
+        searchField = getFilter();
 
         addButton = new Button("Add New Element", e -> newItemButtonClick());
         addButton.addClassName("option-button");
@@ -333,7 +334,13 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         service.delete(item);
         removeItemFromGrid(item);
         this.grid.getDataProvider().refreshAll();
+        resetTableResults();
         dialog.close();
+    }
+
+    protected void resetTableResults() {
+        searchField.setValue("");
+        filterTable("");
     }
 
     protected void removeItemFromGrid(T item) {
