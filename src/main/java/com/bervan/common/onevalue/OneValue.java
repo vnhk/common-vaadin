@@ -6,7 +6,6 @@ import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import com.bervan.ieentities.ExcelIEEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.time.LocalDateTime;
@@ -24,7 +23,7 @@ public class OneValue implements BaseOneValue, AbstractBaseEntity<UUID>, ExcelIE
 
     @Unique
     private String name;
-    @Size(max = 50000)
+    @Lob
     private String content;
     private LocalDateTime modificationDate;
 

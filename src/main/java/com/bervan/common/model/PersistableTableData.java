@@ -3,7 +3,7 @@ package com.bervan.common.model;
 import java.util.UUID;
 
 public interface PersistableTableData {
-    String getName();
+    String getTableFilterableColumnValue();
 
     UUID getId();
 }

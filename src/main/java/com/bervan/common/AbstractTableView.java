@@ -125,7 +125,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             grid.setItems(data);
         } else {
             List<T> collect = data.stream()
-                    .filter(q -> q.getName().toLowerCase().contains(filterText.toLowerCase()))
+                    .filter(q -> q.getTableFilterableColumnValue().toLowerCase().contains(filterText.toLowerCase()))
                     .collect(Collectors.toList());
             grid.setItems(collect);
         }
@@ -188,7 +188,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     }
 
-    private ComponentRenderer<Span, T> createTextColumnComponent(Field f) {
+    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f) {
         return new ComponentRenderer<>(Span::new, textColumnUpdater(f));
     }
 
