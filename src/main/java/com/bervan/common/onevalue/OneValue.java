@@ -20,11 +20,9 @@ public class OneValue implements BaseOneValue, AbstractBaseEntity<UUID>, ExcelIE
     @Id
     @GeneratedValue
     private UUID id;
-
     @Unique
     private String name;
     @Lob
-    @Column(columnDefinition = "BLOB")
     private String content;
     private LocalDateTime modificationDate;
 
