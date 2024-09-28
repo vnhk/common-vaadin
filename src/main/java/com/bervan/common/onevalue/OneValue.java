@@ -24,7 +24,7 @@ public class OneValue implements BaseOneValue, AbstractBaseEntity<UUID>, ExcelIE
     @Unique
     private String name;
     @Lob
-    @Column(columnDefinition = "MEDIUMBLOB")
+    @Column(columnDefinition = "BLOB")
     private String content;
     private LocalDateTime modificationDate;
 
