@@ -111,7 +111,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     }
 
     protected Set<T> loadData() {
-        return this.service.load();
+        return this.service.load().stream().filter(e -> !e.getDeleted())
+                .collect(Collectors.toSet());
     }
 
     protected void refreshData() {
@@ -179,7 +180,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                 customizeTextColumnUpdater(span, record, f);
             } catch (Exception e) {
                 log.error("Could not create column in table!", e);
-                Notification.show("Could not create column in table!");
+                showErrorNotification("Could not create column in table!");
             }
         };
     }
@@ -299,7 +300,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                         refreshDataAfterUpdate(changed);
                     } catch (IllegalAccessException e) {
                         log.error("Could not update field value!", e);
-                        Notification.show("Could not update value!");
+                        showErrorNotification("Could not update value!");
                     }
                     dialog.close();
                 });
@@ -309,7 +310,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             }
         } catch (Exception e) {
             log.error("Error during using edit modal. Check columns name or create custom modal!", e);
-            Notification.show("Error during using edit modal. Check columns name or create custom modal!");
+            showErrorNotification("Error during using edit modal. Check columns name or create custom modal!");
         } finally {
             if (field != null) {
                 field.setAccessible(false);
@@ -336,6 +337,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         this.grid.getDataProvider().refreshAll();
         resetTableResults();
         dialog.close();
+
+        showSuccessNotification("Deleted successfully!");
     }
 
     protected void resetTableResults() {
@@ -486,7 +489,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                 } catch (IllegalAccessException | NoSuchMethodException | InstantiationException |
                          InvocationTargetException e) {
                     log.error("Could not save new item!", e);
-                    Notification.show("Could not save new item!");
+                    showErrorNotification("Could not save new item!");
                 }
                 dialog.close();
             });
@@ -494,7 +497,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             dialogLayout.add(headerLayout, formLayout, buttonsLayout);
         } catch (Exception e) {
             log.error("Error during using creation modal. Check columns name or create custom modal!", e);
-            Notification.show("Error during using creation modal. Check columns name or create custom modal!");
+            showErrorNotification("Error during using creation modal. Check columns name or create custom modal!");
         }
     }
 

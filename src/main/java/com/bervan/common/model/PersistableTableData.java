@@ -6,4 +6,8 @@ public interface PersistableTableData {
     String getTableFilterableColumnValue();
 
     UUID getId();
+
+    default Boolean getDeleted() {
+        return false;
+    }
 }

@@ -18,10 +18,6 @@ public abstract class AbstractPageLayout extends VerticalLayout {
         CURRENT_ROUTE_NAME = currentRouteName;
     }
 
-    public void notification(String message) {
-        Notification.show(message);
-    }
-
     public void addButton(HorizontalLayout menuRow, String routeName, String buttonText) {
         Button button = new Button(buttonText);
         button.addClickListener(buttonClickEvent ->
