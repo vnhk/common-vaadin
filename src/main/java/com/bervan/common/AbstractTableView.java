@@ -18,7 +18,6 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -111,7 +110,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     }
 
     protected Set<T> loadData() {
-        return this.service.load().stream().filter(e -> !e.getDeleted())
+        return this.service.load().stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
                 .collect(Collectors.toSet());
     }
 
