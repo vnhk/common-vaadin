@@ -112,7 +112,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected void refreshData() {
         this.data.removeAll(this.data);
-        this.data.addAll(this.service.load());
+        this.data.addAll(loadData());
         this.grid.getDataProvider().refreshAll();
     }
 
