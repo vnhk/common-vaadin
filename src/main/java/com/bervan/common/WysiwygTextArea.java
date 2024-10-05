@@ -7,6 +7,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableField<String> {
     private String value;
     private final String id;
+    private Div editorDiv;
 
     public WysiwygTextArea(String id) {
         this.id = id;
@@ -20,7 +21,7 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
 
     private void configure(String id, String initValue) {
         //Id in constructor is required to have more than 1 on the same page...
-        Div editorDiv = new Div();
+        editorDiv = new Div();
         editorDiv.setId(id);
         if (initValue != null) {
             editorDiv.getElement().setProperty("innerHTML", initValue);
@@ -50,6 +51,11 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
                         "document.body.appendChild(script);",
                 getElement()
         );
+    }
+
+    @Override
+    public void setHeight(String height) {
+        editorDiv.setHeight(height);
     }
 
     @ClientCallable
