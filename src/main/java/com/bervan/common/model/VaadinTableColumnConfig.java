@@ -7,9 +7,11 @@ public class VaadinTableColumnConfig {
     private Field field;
     private String typeName;
     private String displayName;
+    private String internalName;
     private List<String> strValues;
     private List<Integer> intValues;
     private boolean isSingleValue = true;
+    private boolean isWysiwyg = false;
 
     public String getTypeName() {
         return typeName;
@@ -57,5 +59,21 @@ public class VaadinTableColumnConfig {
 
     public void setField(Field field) {
         this.field = field;
+    }
+
+    public boolean isWysiwyg() {
+        return isWysiwyg;
+    }
+
+    public void setWysiwyg(boolean wysiwyg) {
+        isWysiwyg = wysiwyg;
+    }
+
+    public String getInternalName() {
+        return internalName;
+    }
+
+    public void setInternalName(String internalName) {
+        this.internalName = internalName;
     }
 }

@@ -5,10 +5,8 @@ import com.bervan.common.model.VaadinTableColumn;
 import com.bervan.common.model.VaadinTableColumnConfig;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
-import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
@@ -21,9 +19,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -51,6 +46,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected final BervanLogger log;
     protected final Class<T> tClass;
     protected TextField searchField;
+    private int amountOfWysiwygEditors = 0;
 
     public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -158,23 +154,30 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected final void buildGridAutomatically(Grid<T> grid) {
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         for (Field vaadinTableColumn : vaadinTableColumns) {
-            String columnInternalName = vaadinTableColumn.getAnnotation(VaadinTableColumn.class).internalName();
-            String columnName = vaadinTableColumn.getAnnotation(VaadinTableColumn.class).displayName();
-            grid.addColumn(createTextColumnComponent(vaadinTableColumn)).setHeader(columnName).setKey(columnInternalName)
+            VaadinTableColumnConfig config = buildColumnConfig(vaadinTableColumn);
+            String columnInternalName = config.getInternalName();
+            String columnName = config.getDisplayName();
+            grid.addColumn(createTextColumnComponent(vaadinTableColumn, config)).setHeader(columnName).setKey(columnInternalName)
                     .setResizable(true);
         }
 
         grid.getElement().getStyle().set("--lumo-size-m", 100 + "px");
     }
 
-    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f) {
+
+    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinTableColumnConfig config) {
         return (span, record) -> {
             try {
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
                 if (o != null) {
-                    span.add(o.toString());
+                    if (config.isWysiwyg()) {
+                        Icon showEditorIcon = new Icon(VaadinIcon.OPEN_BOOK);
+                        span.add(showEditorIcon);
+                    } else {
+                        span.add(o.toString());
+                    }
                 }
                 customizeTextColumnUpdater(span, record, f);
             } catch (Exception e) {
@@ -188,13 +191,13 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     }
 
-    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f) {
-        return new ComponentRenderer<>(Span::new, textColumnUpdater(f));
+    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinTableColumnConfig config) {
+        return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
     }
 
     protected void doOnColumnClick(ItemClickEvent<T> event) {
         Dialog dialog = new Dialog();
-        dialog.setWidth("60vw");
+        dialog.setWidth("80vw");
         VerticalLayout dialogLayout = new VerticalLayout();
         HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
         String clickedColumn = event.getColumn().getKey();
@@ -210,6 +213,8 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         config.setField(field);
         config.setTypeName(field.getType().getTypeName());
         config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
+        config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());
+        config.setWysiwyg(field.getAnnotation(VaadinTableColumn.class).isWysiwyg());
 
         config.setStrValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList());
         config.setIntValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList()));
@@ -217,21 +222,21 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         return config;
     }
 
-    protected AbstractField buildComponentForField(Field field, Object item) throws IllegalAccessException {
-        AbstractField component = null;
+    protected AutoConfigurableField buildComponentForField(Field field, Object item) throws IllegalAccessException {
+        AutoConfigurableField component = null;
         VaadinTableColumnConfig config = buildColumnConfig(field);
 
         field.setAccessible(true);
         Object value = item == null ? null : field.get(item);
 
         if (config.getStrValues().size() > 0) {
-            ComboBox<String> comboBox = new ComboBox<>(config.getDisplayName());
+            BervanComboBox<String> comboBox = new BervanComboBox<>(config.getDisplayName());
             component = buildComponentForComboBox(config.getStrValues(), comboBox, ((String) value));
         } else if (config.getIntValues().size() > 0) {
-            ComboBox<Integer> comboBox = new ComboBox<>(config.getDisplayName());
+            BervanComboBox<Integer> comboBox = new BervanComboBox<>(config.getDisplayName());
             component = buildComponentForComboBox(config.getIntValues(), comboBox, ((Integer) value));
         } else if (String.class.getTypeName().equals(config.getTypeName())) {
-            component = buildTextArea(value, config.getDisplayName());
+            component = buildTextArea(value, config.getDisplayName(), config.isWysiwyg());
         } else if (Integer.class.getTypeName().equals(config.getTypeName())) {
             component = buildIntegerInput(value, config.getDisplayName());
         } else if (Double.class.getTypeName().equals(config.getTypeName())) {
@@ -239,7 +244,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         } else if (LocalDateTime.class.getTypeName().equals(config.getTypeName())) {
             component = buildDateTimeInput(value, config.getDisplayName());
         } else {
-            component = new TextField("Not supported yet");
+            component = new BervanTextField("Not supported yet");
             component.setValue(value);
         }
 
@@ -262,9 +267,9 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
             if (fieldOptional.isPresent()) {
                 field = fieldOptional.get();
-                AbstractField componentWithValue = buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
                 VerticalLayout layoutForField = new VerticalLayout();
-                layoutForField.add(componentWithValue);
+                layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
 
                 Button dialogSaveButton = new Button("Save");
@@ -285,7 +290,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                 });
 
                 Field finalField = field;
-                AbstractField finalComponentWithValue = componentWithValue;
+                AutoConfigurableField finalComponentWithValue = componentWithValue;
                 dialogSaveButton.addClickListener(buttonClickEvent -> {
                     try {
                         finalField.setAccessible(true);
@@ -317,12 +322,12 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         }
     }
 
-    protected void customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AbstractField finalComponentWithValue) {
+    protected void customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AutoConfigurableField finalComponentWithValue) {
 
     }
 
-    private static <X> AbstractField buildComponentForComboBox(List<X> values, ComboBox<X> comboBox, X initVal) {
-        AbstractField componentWithValue;
+    private static <X> AutoConfigurableField buildComponentForComboBox(List<X> values, BervanComboBox<X> comboBox, X initVal) {
+        AutoConfigurableField componentWithValue;
         comboBox.setItems(values);
         comboBox.setWidth("100%");
         comboBox.setValue(initVal);
@@ -371,16 +376,16 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     }
 
 
-    protected void customFieldInEditLayout(VerticalLayout layoutForField, AbstractField componentWithValue, String clickedColumn, T item) {
+    protected void customFieldInEditLayout(VerticalLayout layoutForField, AutoConfigurableField componentWithValue, String clickedColumn, T item) {
 
     }
 
-    protected void customFieldInCreateLayout(Field field, VerticalLayout layoutForField, AbstractField componentWithValue) {
+    protected void customFieldInCreateLayout(Field field, VerticalLayout layoutForField, AutoConfigurableField componentWithValue) {
 
     }
 
-    private AbstractField buildDateTimeInput(Object value, String displayName) {
-        DateTimePicker dateTimePicker = new DateTimePicker(displayName);
+    private AutoConfigurableField<LocalDateTime> buildDateTimeInput(Object value, String displayName) {
+        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(displayName);
         dateTimePicker.setLabel("Select Date and Time");
 
         if (value != null)
@@ -388,24 +393,28 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         return dateTimePicker;
     }
 
-    private AbstractField buildIntegerInput(Object value, String displayName) {
-        IntegerField field = new IntegerField(displayName);
+    private AutoConfigurableField<Integer> buildIntegerInput(Object value, String displayName) {
+        BervanIntegerField field = new BervanIntegerField(displayName);
         field.setWidthFull();
         if (value != null)
             field.setValue((Integer) value);
         return field;
     }
 
-    private AbstractField buildDoubleInput(Object value, String displayName) {
-        NumberField field = new NumberField(displayName);
+    private AutoConfigurableField<Double> buildDoubleInput(Object value, String displayName) {
+        BervanDoubleField field = new BervanDoubleField(displayName);
         field.setWidthFull();
         if (value != null)
             field.setValue(((Double) value));
         return field;
     }
 
-    private AbstractField buildTextArea(Object value, String displayName) {
-        TextArea textArea = new TextArea(displayName);
+    private AutoConfigurableField<String> buildTextArea(Object value, String displayName, boolean isWysiwyg) {
+        AutoConfigurableField<String> textArea = new BervanTextArea(displayName);
+        if (isWysiwyg) {
+            amountOfWysiwygEditors++;
+            textArea = new WysiwygTextArea("editor_" + amountOfWysiwygEditors, (String) value);
+        }
         textArea.setWidthFull();
         if (value != null)
             textArea.setValue((String) value);
@@ -441,7 +450,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
 
     protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
         try {
-            Map<Field, AbstractField> fieldsHolder = new HashMap<>();
+            Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             VerticalLayout formLayout = new VerticalLayout();
             List<Field> declaredFields = getVaadinTableColumns().stream()
@@ -449,11 +458,11 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                     .toList();
 
             for (Field field : declaredFields) {
-                AbstractField componentWithValue = buildComponentForField(field, null);
+                AutoConfigurableField componentWithValue = buildComponentForField(field, null);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
-                layoutForField.add(componentWithValue);
+                layoutForField.add((Component) componentWithValue);
                 customFieldInCreateLayout(field, layoutForField, componentWithValue);
                 formLayout.add(layoutForField);
                 fieldsHolder.put(field, componentWithValue);
@@ -474,10 +483,10 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
             dialogSaveButton.addClickListener(buttonClickEvent -> {
                 try {
                     T newObject = tClass.getConstructor().newInstance();
-                    for (Map.Entry<Field, AbstractField> fieldAbstractFieldEntry : fieldsHolder.entrySet()) {
-                        fieldAbstractFieldEntry.getKey().setAccessible(true);
-                        fieldAbstractFieldEntry.getKey().set(newObject, fieldAbstractFieldEntry.getValue().getValue());
-                        fieldAbstractFieldEntry.getKey().setAccessible(false);
+                    for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
+                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, fieldAutoConfigurableFieldEntry.getValue().getValue());
+                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 
                     newObject = customizeSavingInCreateForm(newObject);
@@ -500,7 +509,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         }
     }
 
-    protected void customFieldInCreateLayout(Map<Field, AbstractField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
+    protected void customFieldInCreateLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
 
     }
 

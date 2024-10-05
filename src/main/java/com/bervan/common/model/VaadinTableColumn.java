@@ -22,5 +22,7 @@ public @interface VaadinTableColumn {
 
     boolean inSaveForm() default true;
 
+    boolean isWysiwyg() default false;
+
     boolean inEditForm() default true;
 }
