@@ -134,17 +134,6 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         return searchField;
     }
 
-    protected HorizontalLayout getDialogTopBarLayout(Dialog dialog) {
-        Button closeButton = new Button(new Icon(VaadinIcon.CLOSE));
-        closeButton.addClassName("option-button");
-
-        closeButton.addClickListener(e -> dialog.close());
-        HorizontalLayout headerLayout = new HorizontalLayout(closeButton);
-        headerLayout.setWidthFull();
-        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        return headerLayout;
-    }
-
     protected Grid<T> getGrid() {
         Grid<T> grid = new Grid<>(tClass, false);
         buildGridAutomatically(grid);
