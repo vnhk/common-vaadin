@@ -12,12 +12,12 @@ import java.util.Optional;
 
 public abstract class AbstractOneValueView extends AbstractPageView {
     protected final BaseOneValueService service;
-    protected final AbstractPageLayout pageLayout;
+    protected final MenuNavigationComponent pageLayout;
     protected final String key;
     protected BaseOneValue item;
     protected TextArea textArea = new TextArea();
 
-    public AbstractOneValueView(AbstractPageLayout pageLayout, String key, String headerValue, BaseOneValueService service) {
+    public AbstractOneValueView(MenuNavigationComponent pageLayout, String key, String headerValue, BaseOneValueService service) {
         this.service = service;
         this.pageLayout = pageLayout;
         this.key = key;

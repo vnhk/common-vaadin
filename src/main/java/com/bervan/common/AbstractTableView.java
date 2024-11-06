@@ -8,11 +8,7 @@ import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.GridSortOrder;
-import com.vaadin.flow.component.grid.ItemClickEvent;
-import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.grid.*;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -37,21 +33,18 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     protected final Set<T> data = new HashSet<>();
     protected final BaseService<T> service;
     protected Grid<T> grid;
-    protected AbstractPageLayout pageLayout;
-    private final String pageName;
+    protected MenuNavigationComponent pageLayout;
     protected Button addButton;
     protected final VerticalLayout contentLayout = new VerticalLayout();
     private final Set<String> currentlySortedColumns = new HashSet<>();
-    protected H3 header;
     protected final BervanLogger log;
     protected final Class<T> tClass;
     protected TextField searchField;
     private int amountOfWysiwygEditors = 0;
 
-    public AbstractTableView(AbstractPageLayout pageLayout, @Autowired BaseService<T> service, String pageName, BervanLogger log, Class<T> tClass) {
+    public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
         this.pageLayout = pageLayout;
-        this.pageName = pageName;
         this.log = log;
         this.tClass = tClass;
 
@@ -64,9 +57,9 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
     }
 
     public void renderCommonComponents() {
-        header = new H3(pageName);
         grid = getGrid();
         grid.setItems(data);
+        grid.addClassName("bervan-table");
         grid.addItemClickListener(this::doOnColumnClick);
         grid.addItemDoubleClickListener(this::doOnColumnDoubleClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
@@ -76,7 +69,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
         addButton = new Button("Add New Element", e -> newItemButtonClick());
         addButton.addClassName("option-button");
 
-        contentLayout.add(header, searchField, grid, addButton);
+        contentLayout.add(searchField, grid, addButton);
         add(pageLayout);
         add(contentLayout);
     }
@@ -150,7 +143,7 @@ public abstract class AbstractTableView<T extends PersistableTableData> extends 
                     .setResizable(true);
         }
 
-        grid.getElement().getStyle().set("--lumo-size-m", 100 + "px");
+        grid.getElement().getStyle().set("--lumo-size-m", 10 + "px");
     }
 
 
