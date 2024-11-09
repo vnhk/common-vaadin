@@ -1,13 +1,5 @@
 package com.bervan.common.model;
 
-import java.util.UUID;
-
-public interface PersistableTableData {
+public interface PersistableTableData extends PersistableData {
     String getTableFilterableColumnValue();
-
-    UUID getId();
-
-    default Boolean getDeleted() {
-        return false;
-    }
 }
