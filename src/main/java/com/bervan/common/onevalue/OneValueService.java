@@ -1,8 +1,10 @@
 package com.bervan.common.onevalue;
 
+import com.bervan.common.service.AuthService;
 import com.bervan.common.service.BaseOneValueService;
 import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.ExcelIEEntity;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,13 +29,15 @@ public class OneValueService implements BaseOneValueService<OneValue> {
     }
 
     public Optional<OneValue> loadByKey(String name) {
-        return repository.findByName(name);
+        return repository.findByNameAndOwnerId(name, AuthService.getLoggedUserId());
     }
 
+    @PostFilter("filterObject.owner != null && filterObject.owner.getId().equals(T(com.bervan.common.service.AuthService).getLoggedUserId())")
     public List<OneValue> load() {
         return repository.findAll();
     }
 
+    @PostFilter("filterObject.owner != null && filterObject.owner.getId().equals(T(com.bervan.common.service.AuthService).getLoggedUserId())")
     public List<HistoryOneValue> loadHistory() {
         return historyRepository.findAll();
     }

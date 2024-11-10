@@ -3,6 +3,8 @@ package com.bervan.common.service;
 
 import com.bervan.common.model.PersistableTableData;
 
-public interface CSVService<T extends PersistableTableData> extends BaseService<T> {
+import java.io.Serializable;
+
+public interface CSVService<ID extends Serializable, T extends PersistableTableData<ID>> extends BaseService<ID, T> {
 
 }

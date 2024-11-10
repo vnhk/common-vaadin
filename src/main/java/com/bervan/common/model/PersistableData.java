@@ -1,19 +1,16 @@
 package com.bervan.common.model;
 
-import java.util.UUID;
+import com.bervan.common.user.User;
+import com.bervan.history.model.Persistable;
 
-public interface PersistableData {
-    UUID getId();
+public interface PersistableData<ID> extends Persistable<ID> {
+    ID getId();
 
     default Boolean getDeleted() {
         return false;
     }
 
-    default PersistableData getOwner() {
-        return null;
-    }
+    User getOwner();
 
-    default void setOwner() {
-
-    }
+    void setOwner(User user);
 }
