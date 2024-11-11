@@ -1,12 +1,8 @@
 package com.bervan.common.user;
 
+import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.history.model.AbstractBaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
+import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +13,8 @@ import java.util.HashSet;
 import java.util.UUID;
 
 @Entity
-@FilterDef(name = "ownerFilter", parameters = @ParamDef(name = "ownerId", type = UUID.class))
-public class User implements AbstractBaseEntity<UUID>, PersistableTableData<UUID>, UserDetails {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public class User extends BervanBaseEntity<UUID> implements PersistableTableData<UUID>, UserDetails {
     @Id
     @GeneratedValue
     private UUID id;
@@ -85,14 +81,6 @@ public class User implements AbstractBaseEntity<UUID>, PersistableTableData<UUID
         return deleted;
     }
 
-    @Override
-    public User getOwner() {
-        return null;
-    }
-
-    @Override
-    public void setOwner(User user) {
-    }
 
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;

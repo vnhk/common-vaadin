@@ -1,8 +1,8 @@
 package com.bervan.common.onevalue;
 
+import com.bervan.common.model.BervanHistoryEntity;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
-import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.HistoryOwnerEntity;
 import com.bervan.history.model.HistorySupported;
@@ -13,8 +13,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @HistorySupported
-public class HistoryOneValue implements PersistableData<UUID>, AbstractBaseHistoryEntity<UUID>, ExcelIEEntity<UUID> {
+public class HistoryOneValue extends BervanHistoryEntity<UUID> implements PersistableData<UUID>, ExcelIEEntity<UUID> {
     @Id
     @GeneratedValue
     private UUID id;
@@ -28,9 +29,6 @@ public class HistoryOneValue implements PersistableData<UUID>, AbstractBaseHisto
     @ManyToOne(fetch = FetchType.EAGER)
     @HistoryOwnerEntity
     private OneValue oneValue;
-
-    @ManyToOne
-    private User owner;
 
     public String getContent() {
         return content;
@@ -73,13 +71,5 @@ public class HistoryOneValue implements PersistableData<UUID>, AbstractBaseHisto
 
     public void setOneValue(OneValue oneValue) {
         this.oneValue = oneValue;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
     }
 }

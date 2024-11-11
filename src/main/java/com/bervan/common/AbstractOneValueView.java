@@ -8,6 +8,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.textfield.TextArea;
 
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractOneValueView extends AbstractPageView {
@@ -51,9 +52,13 @@ public abstract class AbstractOneValueView extends AbstractPageView {
     }
 
     protected Optional<BaseOneValue> load(String key) {
-        return service.loadByKey(key);
-    }
+        List<BaseOneValue> list = service.loadByKey(key);
+        if (list.size() > 0) {
+            return Optional.of(list.get(0));
+        }
 
+        return Optional.empty();
+    }
 
     protected void save(String value) {
         item.setContent(value);

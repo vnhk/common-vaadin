@@ -1,9 +1,8 @@
 package com.bervan.common.onevalue;
 
 import com.bervan.common.model.BaseOneValue;
+import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableData;
-import com.bervan.common.user.User;
-import com.bervan.history.model.AbstractBaseEntity;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import com.bervan.ieentities.ExcelIEEntity;
@@ -15,11 +14,12 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @HistorySupported
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"name", "owner.id"})
 )
-public class OneValue implements BaseOneValue, PersistableData<UUID>, AbstractBaseEntity<UUID>, ExcelIEEntity<UUID> {
+public class OneValue extends BervanBaseEntity<UUID> implements BaseOneValue, PersistableData<UUID>, ExcelIEEntity<UUID> {
 
     @Id
     @GeneratedValue
@@ -28,9 +28,6 @@ public class OneValue implements BaseOneValue, PersistableData<UUID>, AbstractBa
     @Lob
     private String content;
     private LocalDateTime modificationDate;
-
-    @ManyToOne
-    private User owner;
 
     @OneToMany(fetch = FetchType.EAGER)
     @HistoryCollection(historyClass = HistoryOneValue.class)
@@ -57,16 +54,6 @@ public class OneValue implements BaseOneValue, PersistableData<UUID>, AbstractBa
 
     public UUID getId() {
         return id;
-    }
-
-    @Override
-    public User getOwner() {
-        return owner;
-    }
-
-    @Override
-    public void setOwner(User user) {
-        this.owner = user;
     }
 
     @Override

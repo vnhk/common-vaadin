@@ -28,16 +28,17 @@ public class OneValueService implements BaseOneValueService<OneValue> {
         repository.save(item);
     }
 
-    public Optional<OneValue> loadByKey(String name) {
-        return repository.findByNameAndOwnerId(name, AuthService.getLoggedUserId());
+    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
+    public List<OneValue> loadByKey(String name) {
+        return repository.findByNameAndOwnersId(name, AuthService.getLoggedUserId());
     }
 
-    @PostFilter("filterObject.owner != null && filterObject.owner.getId().equals(T(com.bervan.common.service.AuthService).getLoggedUserId())")
+    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
     public List<OneValue> load() {
         return repository.findAll();
     }
 
-    @PostFilter("filterObject.owner != null && filterObject.owner.getId().equals(T(com.bervan.common.service.AuthService).getLoggedUserId())")
+    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
     public List<HistoryOneValue> loadHistory() {
         return historyRepository.findAll();
     }

@@ -7,6 +7,7 @@ import com.bervan.history.model.BaseRepositoryImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -22,25 +23,23 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     @Override
     public Optional<T> findById(ID id) {
         Optional<T> byId = super.findById(id);
-        if (byId.isPresent() && byId.get().getOwner() != null) {
-            if (AuthService.getLoggedUserId().equals(byId.get().getOwner().getId())) {
-                return byId;
-            }
+        if (byId.isPresent() && byId.get().hasAccess(AuthService.getLoggedUserId())) {
+            return byId;
         }
         return Optional.empty();
     }
 
     @Override
-    @PostFilter("filterObject.owner != null && filterObject.owner.getId().equals(T(com.bervan.common.service.AuthService).getLoggedUserId())")
+    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
     public @NotNull List<T> findAll() {
         return super.findAll();
     }
 
     @Override
     public <S extends T> @NotNull S save(S entity) {
-        if (entity.getOwner() == null) {
+        if (entity.getOwners() == null || entity.getOwners().size() == 0) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            entity.setOwner(user);
+            entity.addOwner(user);
         }
 
         return super.save(entity);
@@ -48,9 +47,9 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
 
     @Override
     public <S extends T> S saveWithoutHistory(S entity) {
-        if (entity.getOwner() == null) {
+        if (entity.getOwners() == null || entity.getOwners().size() == 0) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            entity.setOwner(user);
+            entity.addOwner(user);
         }
         return super.saveWithoutHistory(entity);
     }
