@@ -103,8 +103,14 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected Set<T> loadData() {
-        return this.service.load().stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
-                .collect(Collectors.toSet());
+        try {
+            return this.service.load().stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            log.error("Could not load table!");
+            showErrorNotification("Unable to load table!");
+        }
+        return new HashSet<>();
     }
 
     protected void refreshData() {
