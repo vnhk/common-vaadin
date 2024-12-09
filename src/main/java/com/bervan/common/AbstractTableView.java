@@ -6,6 +6,7 @@ import com.bervan.common.model.VaadinTableColumnConfig;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -44,6 +45,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final BervanLogger log;
     protected final Class<T> tClass;
     protected TextField searchField;
+    protected Text countItemsInfo = new Text("");
     private int amountOfWysiwygEditors = 0;
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
@@ -73,7 +75,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         addButton = new Button("Add New Element", e -> newItemButtonClick());
         addButton.addClassName("option-button");
 
-        contentLayout.add(searchField, grid, addButton);
+        contentLayout.add(searchField, countItemsInfo, grid, addButton);
         add(pageLayout);
         add(contentLayout);
     }
@@ -104,13 +106,20 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     protected Set<T> loadData() {
         try {
-            return this.service.load().stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
+            Set<T> collect = this.service.load().stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
                     .collect(Collectors.toSet());
+            reloadItemsCountInfo(collect);
+            return collect;
+
         } catch (Exception e) {
             log.error("Could not load table!");
             showErrorNotification("Unable to load table!");
         }
         return new HashSet<>();
+    }
+
+    protected void reloadItemsCountInfo(Collection<T> collect) {
+        countItemsInfo.setText("Items: " + collect.size());
     }
 
     protected void refreshData() {
@@ -122,11 +131,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected void filterTable(String filterText) {
         if (filterText == null || filterText.isEmpty()) {
             grid.setItems(data);
+            reloadItemsCountInfo(data);
         } else {
             List<T> collect = data.stream()
                     .filter(q -> q.getTableFilterableColumnValue().toLowerCase().contains(filterText.toLowerCase()))
                     .collect(Collectors.toList());
             grid.setItems(collect);
+            reloadItemsCountInfo(collect);
         }
     }
 
