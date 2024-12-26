@@ -2,6 +2,7 @@ package com.bervan.common.service;
 
 
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.ieentities.ExcelIEEntity;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,4 +16,6 @@ public interface BaseService<ID extends Serializable, T extends PersistableTable
     Set<T> load();
 
     void delete(T item);
+
+    void saveIfValid(List<? extends ExcelIEEntity> objects);
 }
