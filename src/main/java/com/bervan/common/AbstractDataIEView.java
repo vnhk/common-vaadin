@@ -107,7 +107,7 @@ public abstract class AbstractDataIEView extends AbstractPageView {
         try {
             BaseExcelExport baseExcelExport = new BaseExcelExport();
             Workbook workbook = baseExcelExport.exportExcel(getDataToExport(), null);
-            File saved = baseExcelExport.save(workbook, "./tmp", "export" + LocalDateTime.now() + ".xlsx");
+            File saved = baseExcelExport.save(workbook, pathToFileStorage + globalTmpDir, "export" + LocalDateTime.now() + ".xlsx");
             String filename = saved.getName();
 
             return new StreamResource(filename, () -> {
