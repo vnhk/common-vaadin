@@ -8,11 +8,13 @@ import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -48,6 +50,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Text countItemsInfo = new Text("");
     private int amountOfWysiwygEditors = 0;
 
+    protected Button filtersButton;
+    protected VerticalLayout filtersMenuLayout;
+    protected Button applyFiltersButton;
+    private final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
+
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
         this.pageLayout = pageLayout;
@@ -72,10 +79,22 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         searchField = getFilter();
 
+        filtersButton = new Button("Filters", e -> toggleFiltersMenu());
+        filtersButton.addClassName("option-button");
+
+        filtersMenuLayout = new VerticalLayout();
+        filtersMenuLayout.setVisible(false);
+
+        buildFiltersMenu();
+
+        applyFiltersButton = new Button("Apply", e -> applyCombinedFilters());
+        applyFiltersButton.addClassName("option-button");
+        filtersMenuLayout.add(applyFiltersButton);
+
         addButton = new Button("Add New Element", e -> newItemButtonClick());
         addButton.addClassName("option-button");
 
-        contentLayout.add(searchField, countItemsInfo, grid, addButton);
+        contentLayout.add(filtersButton, filtersMenuLayout, searchField, countItemsInfo, grid, addButton);
         add(pageLayout);
         add(contentLayout);
     }
@@ -129,22 +148,113 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void filterTable(String filterText) {
-        if (filterText == null || filterText.isEmpty()) {
+        if ((filterText == null || filterText.isEmpty()) && filtersMap.isEmpty()) {
             grid.setItems(data);
             reloadItemsCountInfo(data);
-        } else {
-            List<T> collect = data.stream()
-                    .filter(q -> q.getTableFilterableColumnValue().toLowerCase().contains(filterText.toLowerCase()))
-                    .collect(Collectors.toList());
-            grid.setItems(collect);
-            reloadItemsCountInfo(collect);
+            return;
         }
+        List<T> collect = data.stream()
+                .filter(q -> filterByText(q, filterText))
+                .collect(Collectors.toList());
+        grid.setItems(collect);
+        reloadItemsCountInfo(collect);
+    }
+
+    private boolean filterByText(T record, String filterText) {
+        if (filterText == null || filterText.isEmpty()) return true;
+        return record.getTableFilterableColumnValue().toLowerCase().contains(filterText.toLowerCase());
+    }
+
+    protected void filterTableWithCheckboxes(String filterText) {
+        List<T> filtered = data.stream()
+                .filter(q -> filterByText(q, filterText))
+                .filter(this::filterBySelectedValues)
+                .collect(Collectors.toList());
+        grid.setItems(filtered);
+        reloadItemsCountInfo(filtered);
+    }
+
+    private boolean filterBySelectedValues(T record) {
+        for (Field field : filtersMap.keySet()) {
+            VaadinTableColumnConfig config = buildColumnConfig(field);
+            if (!filtersMap.get(field).isEmpty()) {
+                Object fieldValue = null;
+                try {
+                    field.setAccessible(true);
+                    fieldValue = field.get(record);
+                    field.setAccessible(false);
+                } catch (Exception ex) {
+                    return false;
+                }
+                if (config.getStrValues().size() > 0) {
+                    if (fieldValue instanceof String value) {
+                        Checkbox c = filtersMap.get(field).get(value);
+                        if (c != null && !c.getValue()) {
+                            return false;
+                        }
+                    }
+                }
+                if (config.getIntValues().size() > 0) {
+                    if (fieldValue instanceof Integer intVal) {
+                        Checkbox c = filtersMap.get(field).get(intVal);
+                        if (c != null && !c.getValue()) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private void buildFiltersMenu() {
+        List<Field> fields = getVaadinTableColumns();
+        for (Field field : fields) {
+            VaadinTableColumnConfig config = buildColumnConfig(field);
+            if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
+                VerticalLayout fieldLayout = new VerticalLayout();
+                fieldLayout.setWidthFull();
+                filtersMap.putIfAbsent(field, new HashMap<>());
+                if (!config.getStrValues().isEmpty()) {
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    for (String val : config.getStrValues()) {
+                        Checkbox checkbox = new Checkbox(val);
+                        checkbox.setValue(true);
+                        filtersMap.get(field).put(val, checkbox);
+                        fieldLayout.add(checkbox);
+                    }
+                } else {
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    for (Integer val : config.getIntValues()) {
+                        Checkbox checkbox = new Checkbox(val.toString());
+                        checkbox.setValue(true);
+                        filtersMap.get(field).put(val, checkbox);
+                        fieldLayout.add(checkbox);
+                    }
+                }
+                filtersMenuLayout.add(fieldLayout);
+            }
+        }
+
+        if (fields.size() == 0) {
+            filtersButton.setVisible(false);
+        }
+    }
+
+    private void toggleFiltersMenu() {
+        filtersMenuLayout.setVisible(!filtersMenuLayout.isVisible());
+    }
+
+    private void applyCombinedFilters() {
+        filterTableWithCheckboxes(searchField.getValue());
     }
 
     protected TextField getFilter() {
         TextField searchField = new TextField("Filter table...");
         searchField.setWidth("100%");
-        searchField.addValueChangeListener(e -> filterTable(e.getValue()));
+        searchField.addValueChangeListener(e -> filterTableWithCheckboxes(e.getValue()));
         return searchField;
     }
 
@@ -166,7 +276,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         grid.getElement().getStyle().set("--lumo-size-m", 10 + "px");
     }
-
 
     private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinTableColumnConfig config) {
         return (span, record) -> {
@@ -313,7 +422,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 });
 
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
-
             }
         } catch (Exception e) {
             log.error("Error during using edit modal. Check columns name or create custom modal!", e);
@@ -350,7 +458,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     protected void resetTableResults() {
         searchField.setValue("");
-        filterTable("");
+        filterTableWithCheckboxes("");
     }
 
     protected void removeItemFromGrid(T item) {
@@ -368,8 +476,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         this.grid.setItems(this.data);
         this.grid.getDataProvider().refreshItem(item);
         this.grid.getDataProvider().refreshAll();
-        //filter table after refreshing
-        filterTable(searchField.getValue());
+        filterTableWithCheckboxes(searchField.getValue());
     }
 
     private List<Field> getVaadinTableColumns() {
@@ -377,7 +484,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
                 .toList();
     }
-
 
     protected void customFieldInEditLayout(VerticalLayout layoutForField, AutoConfigurableField componentWithValue, String clickedColumn, T item) {
 
