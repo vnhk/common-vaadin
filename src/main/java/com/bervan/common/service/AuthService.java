@@ -5,13 +5,17 @@ import com.bervan.common.user.User;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 public class AuthService {
 
     public static UUID getLoggedUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof String) {
+            if (principal.equals("anonymousUser")) {
+                return UUID.randomUUID();
+            }
+        }
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
     }
 

@@ -7,7 +7,6 @@ import com.bervan.history.model.BaseRepositoryImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -21,11 +20,17 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     }
 
     @Override
-    public Optional<T> findById(ID id) {
+    public @NotNull Optional<T> findById(@NotNull ID id) {
         Optional<T> byId = super.findById(id);
+
+        if (byId.isPresent() && byId.get() instanceof User) {
+            return byId;
+        }
+
         if (byId.isPresent() && byId.get().hasAccess(AuthService.getLoggedUserId())) {
             return byId;
         }
+
         return Optional.empty();
     }
 
