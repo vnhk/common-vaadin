@@ -8,8 +8,10 @@ import com.bervan.ieentities.BaseExcelExport;
 import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
@@ -17,10 +19,14 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static com.bervan.common.TableClassUtils.buildFiltersMenu;
 
 public abstract class AbstractDataIEView extends AbstractPageView {
     public static final String ROUTE_NAME = "interview-app/import-export-data";
@@ -32,6 +38,8 @@ public abstract class AbstractDataIEView extends AbstractPageView {
     private String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     private String globalTmpDir;
+    private final Map<Field, Map<Object, Checkbox>> filtersMap;
+    private final VerticalLayout filtersLayout = new VerticalLayout();
 
     public AbstractDataIEView(List<BaseService<? extends Serializable, ? extends PersistableTableData<?>>> dataServices,
                               MenuNavigationComponent pageLayout,
@@ -41,10 +49,12 @@ public abstract class AbstractDataIEView extends AbstractPageView {
         this.pageLayout = pageLayout;
         this.classesToExport = classesToExport;
 
+        filtersMap = buildFiltersMenu(classesToExport, filtersLayout);
         add(pageLayout);
 
         Button prepareExportButton = new Button("Prepare data for export");
         prepareExportButton.addClassName("option-button");
+        add(filtersLayout);
         add(prepareExportButton);
 
         MemoryBuffer buffer = new MemoryBuffer();
@@ -86,7 +96,7 @@ public abstract class AbstractDataIEView extends AbstractPageView {
         }
         File file = new File(pathToFileStorage + globalTmpDir + File.separator + fileName);
         try (FileOutputStream fos = new FileOutputStream(file)) {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[10240];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 fos.write(buffer, 0, bytesRead);
@@ -125,12 +135,25 @@ public abstract class AbstractDataIEView extends AbstractPageView {
         return null;
     }
 
-    private List<ExcelIEEntity<?>> getDataToExport() {
+    private List<ExcelIEEntity<?>> getDataToExport() throws IllegalAccessException {
         List<ExcelIEEntity<?>> result = new ArrayList<>();
+
         for (BaseService<? extends Serializable, ? extends PersistableTableData<?>> dataService : dataServices) {
             Set<?> loaded = dataService.load();
+            mainLoop:
             for (Object t : loaded) {
                 if (t instanceof ExcelIEEntity<?>) {
+                    for (Field declaredField : t.getClass().getDeclaredFields()) {
+                        Set<Object> selectedObjects = TableClassUtils.getSelectedObjects(filtersMap, declaredField);
+                        if (selectedObjects != null && selectedObjects.size() > 0) {
+                            declaredField.setAccessible(true);
+                            if (!selectedObjects.contains(declaredField.get(t))) {
+                                declaredField.setAccessible(false);
+                                continue mainLoop;
+                            }
+                            declaredField.setAccessible(false);
+                        }
+                    }
                     result.add((ExcelIEEntity<?>) t);
                 } else {
                     logger.warn("Data to be exported is not ExcelIEEntity!: " + t.getClass().getName());

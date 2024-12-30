@@ -36,6 +36,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.bervan.common.TableClassUtils.buildColumnConfig;
+
 public abstract class AbstractTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView implements AfterNavigationObserver {
     protected final Set<T> data = new HashSet<>();
     protected final BaseService<ID, T> service;
@@ -320,19 +322,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         dialog.open();
     }
 
-    protected VaadinTableColumnConfig buildColumnConfig(Field field) {
-        VaadinTableColumnConfig config = new VaadinTableColumnConfig();
-        config.setField(field);
-        config.setTypeName(field.getType().getTypeName());
-        config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
-        config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());
-        config.setWysiwyg(field.getAnnotation(VaadinTableColumn.class).isWysiwyg());
-
-        config.setStrValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList());
-        config.setIntValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList()));
-
-        return config;
-    }
 
     protected AutoConfigurableField buildComponentForField(Field field, Object item) throws IllegalAccessException {
         AutoConfigurableField component = null;
