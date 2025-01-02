@@ -33,7 +33,7 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
         setStyle(editorDiv);
 
         viewEditSwitchButton = new Button();
-        viewEditSwitchButton.setClassName("option-button");
+        viewEditSwitchButton.addClassName("option-button");
         setViewEditButtonText();
         executeViewEditModePropertyChange(id);
 
