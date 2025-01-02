@@ -1,0 +1,7 @@
+package com.bervan.common.search.model;
+
+public enum SearchOperation {
+    EQUALS_OPERATION, IS_NULL_OPERATION, IS_NOT_NULL_OPERATION,
+    LIKE_OPERATION, NOT_LIKE_OPERATION, NOT_EQUALS_OPERATION,
+    IN_OPERATION, NOT_IN_OPERATION
+}
