@@ -1,18 +1,20 @@
 package com.bervan.common.search;
 
+import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.search.model.SortDirection;
+import com.bervan.history.model.AbstractBaseEntity;
 import jakarta.validation.constraints.NotNull;
 
 public class SearchQueryOption {
     @NotNull
-    private SortDirection sortDirection;
+    private SortDirection sortDirection = SortDirection.ASC;
     @NotNull
-    private String sortField;
+    private String sortField = "id";
     @NotNull
-    private Integer page;
+    private Integer page = 0;
     @NotNull
-    private Integer pageSize;
-    private String entityToFind;
+    private Integer pageSize = 50;
+    private Class<? extends BervanBaseEntity> entityToFind;
 
     public SortDirection getSortDirection() {
         return sortDirection;
@@ -46,11 +48,11 @@ public class SearchQueryOption {
         this.pageSize = pageSize;
     }
 
-    public String getEntityToFind() {
+    public Class<? extends BervanBaseEntity> getEntityToFind() {
         return entityToFind;
     }
 
-    public void setEntityToFind(String entityToFind) {
+    public void setEntityToFind(Class<? extends BervanBaseEntity> entityToFind) {
         this.entityToFind = entityToFind;
     }
 }

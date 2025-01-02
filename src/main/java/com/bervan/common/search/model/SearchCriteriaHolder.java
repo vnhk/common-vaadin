@@ -1,19 +1,20 @@
 package com.bervan.common.search.model;
 
+import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.history.model.AbstractBaseEntity;
 
 import java.util.Map;
 
 public class SearchCriteriaHolder {
-    private Class<? extends AbstractBaseEntity> entityToFind;
+    private Class<? extends BervanBaseEntity> entityToFind;
     private QueryHolder holder;
     private Map<QueryMapping, SearchCriteria> searchCriteria;
 
-    public Class<? extends AbstractBaseEntity> getEntityToFind() {
+    public Class<? extends BervanBaseEntity> getEntityToFind() {
         return entityToFind;
     }
 
-    public void setEntityToFind(Class<? extends AbstractBaseEntity> entityToFind) {
+    public void setEntityToFind(Class<? extends BervanBaseEntity> entityToFind) {
         this.entityToFind = entityToFind;
     }
 

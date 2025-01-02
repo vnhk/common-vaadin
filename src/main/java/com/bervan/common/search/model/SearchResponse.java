@@ -4,25 +4,25 @@ import com.bervan.history.model.Persistable;
 
 import java.util.List;
 
-public class SearchResponse {
+public class SearchResponse<T extends Persistable> {
 
-    public SearchResponse(List<? extends Persistable> resultList, Integer currentFound, Integer currentPage, Integer allFound) {
+    public SearchResponse(List<T> resultList, Integer currentFound, Integer currentPage, Long allFound) {
         this.resultList = resultList;
         this.currentFound = currentFound;
         this.currentPage = currentPage;
         this.allFound = allFound;
     }
 
-    private List<? extends Persistable> resultList;
+    private List<T> resultList;
     private Integer currentFound;
     private Integer currentPage;
-    private Integer allFound;
+    private Long allFound;
 
-    public List<? extends Persistable> getResultList() {
+    public List<T> getResultList() {
         return resultList;
     }
 
-    public void setResultList(List<? extends Persistable> resultList) {
+    public void setResultList(List<T> resultList) {
         this.resultList = resultList;
     }
 
@@ -42,11 +42,11 @@ public class SearchResponse {
         this.currentPage = currentPage;
     }
 
-    public Integer getAllFound() {
+    public Long getAllFound() {
         return allFound;
     }
 
-    public void setAllFound(Integer allFound) {
+    public void setAllFound(Long allFound) {
         this.allFound = allFound;
     }
 }

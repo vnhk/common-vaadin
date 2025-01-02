@@ -1,13 +1,13 @@
 package com.bervan.common.search;
 
+import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.search.model.*;
-import com.bervan.history.model.AbstractBaseEntity;
+import com.bervan.history.model.Persistable;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.internal.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,66 +45,47 @@ public class SearchService {
         criteriaBuilder = entityManager.getCriteriaBuilder();
     }
 
-    public SearchResponse search(String query, SearchQueryOption options) {
-        init();
-        validateOptions(options);
-        Class<? extends AbstractBaseEntity> entityToFind = getEntityToFind(options);
-
-        SortDirection sortDirection = options.getSortDirection();
-        String sortField = options.getSortField();
-        Integer page = options.getPage();
-        Integer pageSize = options.getPageSize();
-
-        CriteriaQuery<? extends AbstractBaseEntity> criteriaQuery = criteriaBuilder.createQuery(entityToFind);
-        Root<? extends AbstractBaseEntity> root = criteriaQuery.from(entityToFind);
-
-        if (StringUtils.isNoneEmpty(query)) {
-            criteriaQuery.where(buildMainPredicate(query, root, entityToFind));
-        }
-
-        criteriaQuery.orderBy(new OrderImpl(SearchOperationsHelper.getExpression(root, sortField), isAscendingSortDirection(sortDirection)));
-
-        TypedQuery<? extends AbstractBaseEntity> resultQuery = entityManager.createQuery(criteriaQuery);
-        Integer allFound = getHowManyItemsExist(criteriaQuery, root);
-
-        resultQuery.setFirstResult(pageSize * (page - 1));
-        resultQuery.setMaxResults(pageSize);
-        List<? extends AbstractBaseEntity> resultList = resultQuery.getResultList();
-
-        return new SearchResponse(resultList, resultList.size(), page, allFound);
-    }
-
-    public SearchResponse search(SearchRequest searchRequest, SearchQueryOption options) {
+    public <T extends Persistable> SearchResponse<T> search(SearchRequest searchRequest, SearchQueryOption options) {
         try {
             init();
             validateOptions(options);
-            Class<? extends AbstractBaseEntity> entityToFind = getEntityToFind(options);
+            Class<? extends BervanBaseEntity> entityToFind = getEntityToFind(options);
 
             SortDirection sortDirection = options.getSortDirection();
             String sortField = options.getSortField();
             Integer page = options.getPage();
             Integer pageSize = options.getPageSize();
 
-            CriteriaQuery<? extends AbstractBaseEntity> criteriaQuery = criteriaBuilder.createQuery(entityToFind);
-            Root<? extends AbstractBaseEntity> root = criteriaQuery.from(entityToFind);
+            CriteriaQuery<? extends BervanBaseEntity> mainQuery = criteriaBuilder.createQuery(entityToFind);
+            Root<? extends BervanBaseEntity> root = mainQuery.from(entityToFind);
 
-            if (searchRequest != null && searchRequest.groups != null && searchRequest.groups.size() > 0) {
-                criteriaQuery.where(buildMainPredicate(searchRequest, root, entityToFind));
+            Predicate predicates = null;
+            if (searchRequest != null && searchRequest.groups.size() > 0) {
+                predicates = buildMainPredicate(searchRequest, root, entityToFind);
+                mainQuery.where(predicates);
             }
 
-            criteriaQuery.orderBy(new OrderImpl(SearchOperationsHelper.getExpression(root, sortField), isAscendingSortDirection(sortDirection)));
+            mainQuery.orderBy(createOrder(criteriaBuilder, root, sortField, isAscendingSortDirection(sortDirection)));
 
-            TypedQuery<? extends AbstractBaseEntity> resultQuery = entityManager.createQuery(criteriaQuery);
-            Integer allFound = getHowManyItemsExist(criteriaQuery, root);
+            TypedQuery<? extends BervanBaseEntity> resultQuery = entityManager.createQuery(mainQuery);
+            Long allFound = getHowManyItemsExist(searchRequest, entityToFind);
 
-            resultQuery.setFirstResult(pageSize * (page - 1));
+            resultQuery.setFirstResult(pageSize * (page));
             resultQuery.setMaxResults(pageSize);
-            List<? extends AbstractBaseEntity> resultList = resultQuery.getResultList();
+            List<? extends BervanBaseEntity> resultList = resultQuery.getResultList();
 
             return new SearchResponse(resultList, resultList.size(), page, allFound);
         } catch (Exception e) {
             log.error("Could not perform search!", e);
             throw new RuntimeException("Could not perform search!");
+        }
+    }
+
+    private Order createOrder(CriteriaBuilder cb, Root<?> root, String sortField, boolean ascending) {
+        if (ascending) {
+            return cb.asc(root.get(sortField));
+        } else {
+            return cb.desc(root.get(sortField));
         }
     }
 
@@ -121,32 +102,29 @@ public class SearchService {
         }
     }
 
-    public Class<? extends AbstractBaseEntity> getEntityToFind(SearchQueryOption options) {
-//        if (options.getEntityToFind().equals("project")) {
-//            return Project.class;
-//        } else if (options.getEntityToFind().equals("task")) {
-//            return Task.class;
-//        } else if (options.getEntityToFind().equals("userAccount")) {
-//            return UserAccount.class;
-//        }
-
-        try {
-            return (Class<? extends AbstractBaseEntity>) Class.forName(options.getEntityToFind());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not create query for " + options.getEntityToFind() + "!");
-        }
+    public Class<? extends BervanBaseEntity> getEntityToFind(SearchQueryOption options) {
+        return options.getEntityToFind();
     }
 
-    private Integer getHowManyItemsExist(CriteriaQuery<? extends AbstractBaseEntity> criteriaQuery, Root<? extends AbstractBaseEntity> root) {
-        criteriaQuery.select(root.get("id"));
-        return entityManager.createQuery(criteriaQuery).getResultList().size();
+    private Long getHowManyItemsExist(SearchRequest searchRequest, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<? extends BervanBaseEntity> newR = countQuery.from(entityToFind);
+        Predicate predicate = buildMainPredicate(searchRequest, newR, entityToFind);
+        if (predicate != null) {
+            countQuery.select(cb.count(newR)).where(predicate);
+        } else {
+            countQuery.select(cb.count(newR));
+        }
+
+        return entityManager.createQuery(countQuery).getSingleResult();
     }
 
     private boolean isAscendingSortDirection(SortDirection sortDirection) {
         return sortDirection.equals(SortDirection.ASC);
     }
 
-    private Predicate buildMainPredicate(String query, Root<? extends AbstractBaseEntity> root, Class<? extends AbstractBaseEntity> entityToFind) {
+    private Predicate buildMainPredicate(String query, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) {
         log.info(String.format("Processing query:[%s]", query));
 
         List<Operator> operators = new ArrayList<>();
@@ -161,7 +139,7 @@ public class SearchService {
         }
     }
 
-    private Predicate buildMainPredicate(SearchRequest searchRequest, Root<? extends AbstractBaseEntity> root, Class<? extends AbstractBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Predicate buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
         Map<String, Predicate> groupPredicate = new HashMap<>();
 
         int actualGroup = 1;
@@ -170,51 +148,30 @@ public class SearchService {
         do {
             Group group = groupOpt.get();
             List<Predicate> predicatesForGroup = new ArrayList<>();
-            for (String queryId : group.queries) {
+            for (String queryId : group.criteriaIds) {
                 if (groupPredicate.containsKey(queryId)) {
                     predicatesForGroup.add(groupPredicate.get(queryId));
                 } else {
-                    Criterion queryCriterion = searchRequest.criteria.stream().filter(criterion -> criterion.id.equals(queryId))
-                            .findFirst().get();
+                    Criterion queryCriterion = searchRequest.criteria.stream().filter(criterion -> criterion.id.equals(queryId)).findFirst().get();
 
-//                    if (queryCriterion.type.startsWith("[") && queryCriterion.type.endsWith("]")) {
-//                        Criterion newCriterion = new Criterion();
-//                        newCriterion.value = queryCriterion.value;
-//                        newCriterion.id = queryCriterion.id;
-//                        newCriterion.operator = queryCriterion.operator;
-//                        newCriterion.attr = queryCriterion.attr;
-//                        List<Project> projects = null;
-//                        if (queryCriterion.type.equals("[addedToProjects]")) {
-//                            CriteriaQuery<UserProject> userProjectQuery = criteriaBuilder.createQuery(UserProject.class);
-//                            Root<UserProject> rootUserProject = userProjectQuery.from(UserProject.class);
-//                            newCriterion.type = "user";
-//
-//                            Predicate predicate = buildPredicateForNotCollection(rootUserProject, UserProject.class, newCriterion);
-//                            userProjectQuery.where(predicate);
-//                            List<UserProject> resultList = entityManager.createQuery(userProjectQuery).getResultList();
-//                            projects = resultList.stream().map(UserProject::getProject).collect(Collectors.toList());
-//                        } else if (queryCriterion.type.equals("[tasks]")) {
-//                            CriteriaQuery<Task> projectTaskQuery = criteriaBuilder.createQuery(Task.class);
-//                            Root<Task> rootTask = projectTaskQuery.from(Task.class);
-//                            newCriterion.type = "task";
-//
-//                            Predicate predicate = buildPredicateForNotCollection(rootTask, Task.class, newCriterion);
-//                            projectTaskQuery.where(predicate);
-//                            List<Task> resultList = entityManager.createQuery(projectTaskQuery).getResultList();
-//                            projects = resultList.stream().map(Task::getProject).collect(Collectors.toList());
-//                        }
-//
-//                        Predicate addedToProjects = root.in(projects);
-//                        predicatesForGroup.add(addedToProjects);
-//                    } else {
-//                        Predicate predicate = buildPredicateForNotCollection(root, entityToFind, queryCriterion);
-//                        predicatesForGroup.add(predicate);
-//                    }
+                    if (queryCriterion.attr.startsWith("[")) {
+                        //join
+                        String joinFieldName = queryCriterion.attr.substring(1, queryCriterion.attr.indexOf("]"));
+                        Join join = root.join(joinFieldName);
+                        Class javaType = join.getJavaType();
+                        String newAttr = queryCriterion.attr.replace("[" + joinFieldName + "].", "");
+                        Criterion newQueryCriterion = new Criterion(UUID.randomUUID().toString(), javaType.getSimpleName(), newAttr, queryCriterion.operator, queryCriterion.value);
+                        Predicate predicate = buildPredicateForNotCollection(join, javaType, newQueryCriterion);
+                        predicatesForGroup.add(predicate);
+                    } else {
+                        Predicate predicate = buildPredicateForNotCollection(root, entityToFind, queryCriterion);
+                        predicatesForGroup.add(predicate);
+                    }
                 }
 
-                if (group.operator.equals("AND")) {
+                if (group.operator.equals(Operator.AND_OPERATOR)) {
                     groupPredicate.put(group.id, criteriaBuilder.and(predicatesForGroup.toArray(Predicate[]::new)));
-                } else if (group.operator.equals("OR")) {
+                } else if (group.operator.equals(Operator.OR_OPERATOR)) {
                     groupPredicate.put(group.id, criteriaBuilder.or(predicatesForGroup.toArray(Predicate[]::new)));
                 } else {
                     log.warn("Empty operator, default is AND!");
@@ -230,23 +187,24 @@ public class SearchService {
         return groupPredicate.get("G" + (actualGroup - 1));
     }
 
-    private Predicate buildPredicateForNotCollection(Root<? extends AbstractBaseEntity> root, Class<? extends AbstractBaseEntity> entityToFind, Criterion queryCriterion) throws NoSuchFieldException {
+    private Predicate buildPredicateForNotCollection(From root, Class<? extends BervanBaseEntity> entityToFind, Criterion queryCriterion) throws NoSuchFieldException {
         String field = queryCriterion.type + "." + queryCriterion.attr;
         SearchCriteria entityCriterion = new SearchCriteria(field, null, getValue(queryCriterion.value, field, entityToFind));
 
         Predicate predicate = null;
         switch (queryCriterion.operator) {
-            case "equals" -> predicate = SearchOperationsHelper.equal(root, criteriaBuilder, entityCriterion);
-            case "contains" -> predicate = SearchOperationsHelper.contains(root, criteriaBuilder, entityCriterion);
-            case "notEquals" -> predicate = SearchOperationsHelper.notEqual(root, criteriaBuilder, entityCriterion);
-            case "notContains" ->
+            case EQUALS_OPERATION -> predicate = SearchOperationsHelper.equal(root, criteriaBuilder, entityCriterion);
+            case LIKE_OPERATION -> predicate = SearchOperationsHelper.contains(root, criteriaBuilder, entityCriterion);
+            case NOT_EQUALS_OPERATION ->
+                    predicate = SearchOperationsHelper.notEqual(root, criteriaBuilder, entityCriterion);
+            case NOT_LIKE_OPERATION ->
                     predicate = SearchOperationsHelper.notContains(root, criteriaBuilder, entityCriterion);
             default -> log.error("NULL PREDICATE, INVALID OPERATOR!!!");
         }
         return predicate;
     }
 
-    private Predicate buildPredicate(String queryWithOneSubQuery, Root<? extends AbstractBaseEntity> root, Class<? extends AbstractBaseEntity> entityToFind) {
+    private Predicate buildPredicate(String queryWithOneSubQuery, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) {
         queryWithOneSubQuery = removeParentheses(queryWithOneSubQuery);
         SearchCriteria searchCriteria = buildSearchCriteria(queryWithOneSubQuery);
         log.info(String.format("Criteria created:[%s]", searchCriteria));
@@ -254,8 +212,8 @@ public class SearchService {
         return preparePredicates(root, searchCriteria, entityToFind);
     }
 
-    private Predicate buildPredicate(String query, Root<? extends AbstractBaseEntity> root,
-                                     Class<? extends AbstractBaseEntity> entityToFind, List<Operator> operators) {
+    private Predicate buildPredicate(String query, Root<? extends BervanBaseEntity> root,
+                                     Class<? extends BervanBaseEntity> entityToFind, List<Operator> operators) {
         SearchCriteriaHolder mainCriteriaHolder = buildCriteriaHolder(query, operators);
         mainCriteriaHolder.setEntityToFind(entityToFind);
         QueryHolder holder = mainCriteriaHolder.getHolder();
@@ -267,8 +225,8 @@ public class SearchService {
         return predicate;
     }
 
-    private Predicate buildPredicates(QueryHolder holder, SearchCriteriaHolder mainCriteriaHolder, Root<? extends AbstractBaseEntity> root) {
-        Class<? extends AbstractBaseEntity> entityToFind = mainCriteriaHolder.getEntityToFind();
+    private Predicate buildPredicates(QueryHolder holder, SearchCriteriaHolder mainCriteriaHolder, Root<? extends BervanBaseEntity> root) {
+        Class<? extends BervanBaseEntity> entityToFind = mainCriteriaHolder.getEntityToFind();
         SearchCriteria fstSearchCriteria;
         SearchCriteria sndSearchCriteria;
 
@@ -441,7 +399,7 @@ public class SearchService {
         return query;
     }
 
-    private Predicate preparePredicates(Root<? extends AbstractBaseEntity> root, SearchCriteria searchCriteria, Class<? extends AbstractBaseEntity> entityToFind) {
+    private Predicate preparePredicates(Root<? extends BervanBaseEntity> root, SearchCriteria searchCriteria, Class<? extends BervanBaseEntity> entityToFind) {
         try {
             return execute(root, searchCriteria, entityToFind);
         } catch (NoSuchFieldException e) {
@@ -460,7 +418,7 @@ public class SearchService {
         throw new IllegalArgumentException("Invalid operator!");
     }
 
-    private Predicate execute(Root<? extends AbstractBaseEntity> root, SearchCriteria entityCriterion, Class<? extends AbstractBaseEntity> entity) throws NoSuchFieldException {
+    private Predicate execute(Root<? extends BervanBaseEntity> root, SearchCriteria entityCriterion, Class<? extends BervanBaseEntity> entity) throws NoSuchFieldException {
         Object value;
         String[] subObjects = entityCriterion.getField().split("\\.");
         Field field = entity.getDeclaredField(subObjects[0]);
@@ -491,7 +449,7 @@ public class SearchService {
         return result;
     }
 
-    private Field getDeclaredField(String fieldName, Field field, Class<? extends AbstractBaseEntity> entity) throws NoSuchFieldException {
+    private Field getDeclaredField(String fieldName, Field field, Class<? extends BervanBaseEntity> entity) throws NoSuchFieldException {
         try {
             return field.getType().getDeclaredField(fieldName);
         } catch (NoSuchFieldException e) {
@@ -517,7 +475,7 @@ public class SearchService {
         return value;
     }
 
-    private Object getValue(Object value, String field, Class<? extends AbstractBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Object getValue(Object value, String field, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
         String[] subObjects = field.split("\\.");
         String fst = subObjects[0];
         int i = 1;
