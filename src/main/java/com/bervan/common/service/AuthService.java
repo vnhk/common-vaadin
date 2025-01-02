@@ -41,4 +41,9 @@ public class AuthService {
         }
         return elements.stream().anyMatch(e -> e.getId().equals(loggedUser.getId()));
     }
+
+    public static String getUserRole() {
+        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return principal.getRole();
+    }
 }
