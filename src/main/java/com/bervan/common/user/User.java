@@ -2,15 +2,14 @@ package com.bervan.common.user;
 
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -19,9 +18,14 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     @GeneratedValue
     private UUID id;
     private String username;
+    @JsonIgnore
     private String password;
+    private String role;
+    private boolean mainAccount = true;
     private Boolean deleted = false;
     private LocalDateTime modificationDate;
+    @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER)
+    private Set<UserToUserRelation> childrenRelations = new HashSet<>();
 
     @Override
     public UUID getId() {
@@ -64,10 +68,14 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         HashSet<GrantedAuthority> grantedAuthorities = new HashSet<>();
-        grantedAuthorities.add(new SimpleGrantedAuthority("USER"));
+        if (role == null) {
+            role = "ROLE_USER";
+        }
+        grantedAuthorities.add(new SimpleGrantedAuthority(role));
         return grantedAuthorities;
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
@@ -99,5 +107,41 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     @Override
     public void setModificationDate(LocalDateTime modificationDate) {
         this.modificationDate = modificationDate;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public boolean isMainAccount() {
+        return mainAccount;
+    }
+
+    public void setMainAccount(boolean mainAccount) {
+        this.mainAccount = mainAccount;
+    }
+
+    public Set<UserToUserRelation> getChildrenRelations() {
+        return childrenRelations;
+    }
+
+    public void setChildrenRelations(Set<UserToUserRelation> userRelations) {
+        this.childrenRelations = userRelations;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return mainAccount == user.mainAccount && Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && Objects.equals(role, user.role) && Objects.equals(deleted, user.deleted) && Objects.equals(modificationDate, user.modificationDate) && Objects.equals(childrenRelations, user.childrenRelations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, password, role, mainAccount, deleted, modificationDate, childrenRelations);
     }
 }

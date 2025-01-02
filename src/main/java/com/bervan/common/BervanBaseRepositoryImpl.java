@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
@@ -21,17 +22,7 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
 
     @Override
     public @NotNull Optional<T> findById(@NotNull ID id) {
-        Optional<T> byId = super.findById(id);
-
-        if (byId.isPresent() && byId.get() instanceof User) {
-            return byId;
-        }
-
-        if (byId.isPresent() && byId.get().hasAccess(AuthService.getLoggedUserId())) {
-            return byId;
-        }
-
-        return Optional.empty();
+        return super.findById(id);
     }
 
     @Override
@@ -41,6 +32,7 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     }
 
     @Override
+    @PreAuthorize("hasRole('USER')")
     public <S extends T> @NotNull S save(S entity) {
         if (entity.getOwners() == null || entity.getOwners().size() == 0) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -51,11 +43,18 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     }
 
     @Override
+    @PreAuthorize("hasRole('USER')")
     public <S extends T> S saveWithoutHistory(S entity) {
         if (entity.getOwners() == null || entity.getOwners().size() == 0) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             entity.addOwner(user);
         }
         return super.saveWithoutHistory(entity);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('USER')")
+    public void delete(T entity) {
+        super.delete(entity);
     }
 }

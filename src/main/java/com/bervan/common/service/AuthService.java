@@ -2,10 +2,13 @@ package com.bervan.common.service;
 
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
+import com.bervan.common.user.UserToUserRelation;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class AuthService {
 
@@ -23,8 +26,19 @@ public class AuthService {
         if (elements == null || elements.size() == 0) {
             return false;
         }
-        UUID loggedUserId = getLoggedUserId();
 
-        return elements.stream().anyMatch(e -> e.getId().equals(loggedUserId));
+        User loggedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!loggedUser.isMainAccount()) {
+            Set<User> parents = loggedUser.getChildrenRelations().stream().filter(e -> e.getChild().getId().equals(loggedUser.getId()))
+                    .map(UserToUserRelation::getParent)
+                    .collect(Collectors.toSet());
+
+            for (User parent : parents) {
+                if (elements.stream().anyMatch(e -> e.getId().equals(parent.getId()))) {
+                    return true;
+                }
+            }
+        }
+        return elements.stream().anyMatch(e -> e.getId().equals(loggedUser.getId()));
     }
 }
