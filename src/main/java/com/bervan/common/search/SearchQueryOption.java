@@ -2,7 +2,6 @@ package com.bervan.common.search;
 
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.search.model.SortDirection;
-import com.bervan.history.model.AbstractBaseEntity;
 import jakarta.validation.constraints.NotNull;
 
 public class SearchQueryOption {
@@ -15,6 +14,14 @@ public class SearchQueryOption {
     @NotNull
     private Integer pageSize = 50;
     private Class<? extends BervanBaseEntity> entityToFind;
+
+    public SearchQueryOption() {
+
+    }
+
+    public SearchQueryOption(Class<? extends BervanBaseEntity> entityToFind) {
+        this.entityToFind = entityToFind;
+    }
 
     public SortDirection getSortDirection() {
         return sortDirection;

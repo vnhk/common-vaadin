@@ -1,10 +1,13 @@
 package com.bervan.common.search;
 
 import com.bervan.common.search.model.SearchCriteria;
-import com.bervan.history.model.AbstractBaseEntity;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class SearchOperationsHelper {
 
@@ -46,7 +49,8 @@ public class SearchOperationsHelper {
     }
 
     public static Predicate in(From root, SearchCriteria entityCriterion) {
-        return getExpression(root, entityCriterion.getField()).in(Arrays.asList(entityCriterion.getValue()));
+        Object value = entityCriterion.getValue();
+        return getExpression(root, entityCriterion.getField()).in(((Collection) value));
     }
 
     public static Predicate contains(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {

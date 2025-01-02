@@ -32,6 +32,10 @@ public class SearchRequest {
         addCriterion(groupId, objectType, "deleted", SearchOperation.EQUALS_OPERATION, false);
     }
 
+    public void addIdEqualsCriteria(String groupId, Class<?> objectType, UUID id) {
+        addCriterion(groupId, objectType, "id", SearchOperation.EQUALS_OPERATION, id);
+    }
+
     public void addOwnerAccessCriteria(String groupId, Class<?> objectType) {
         addCriterion(groupId, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
     }
