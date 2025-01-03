@@ -28,9 +28,9 @@ import java.util.Set;
 
 import static com.bervan.common.TableClassUtils.buildFiltersMenu;
 
-public abstract class AbstractDataIEView extends AbstractPageView {
+public abstract class AbstractDataIEView<ID extends Serializable> extends AbstractPageView {
     public static final String ROUTE_NAME = "interview-app/import-export-data";
-    protected final List<BaseService<? extends Serializable, ? extends PersistableTableData<?>>> dataServices;
+    protected final List<BaseService<ID, ? extends PersistableTableData<?>>> dataServices;
     protected final MenuNavigationComponent pageLayout;
     protected final BervanLogger logger;
     protected final List<Class<?>> classesToExport;
@@ -41,7 +41,7 @@ public abstract class AbstractDataIEView extends AbstractPageView {
     private final Map<Field, Map<Object, Checkbox>> filtersMap;
     private final VerticalLayout filtersLayout = new VerticalLayout();
 
-    public AbstractDataIEView(List<BaseService<? extends Serializable, ? extends PersistableTableData<?>>> dataServices,
+    public AbstractDataIEView(List<BaseService<ID, ? extends PersistableTableData<?>>> dataServices,
                               MenuNavigationComponent pageLayout,
                               BervanLogger logger, List<Class<?>> classesToExport) {
         this.logger = logger;
@@ -105,10 +105,10 @@ public abstract class AbstractDataIEView extends AbstractPageView {
 
         logger.debug("Class that will be imported: " + classesToExport);
         BaseExcelImport baseExcelImport = new BaseExcelImport(classesToExport, logger);
-        List<? extends ExcelIEEntity> objects = (List<? extends ExcelIEEntity>) baseExcelImport.importExcel(baseExcelImport.load(file));
+        List<? extends ExcelIEEntity<ID>> objects = (List<? extends ExcelIEEntity<ID>>) baseExcelImport.importExcel(baseExcelImport.load(file));
         logger.debug("Extracted " + objects.size() + " entities from excel.");
 
-        for (BaseService<? extends Serializable, ? extends PersistableTableData<?>> dataService : dataServices) {
+        for (BaseService<ID, ? extends PersistableTableData<?>> dataService : dataServices) {
             dataService.saveIfValid(objects);
         }
     }
