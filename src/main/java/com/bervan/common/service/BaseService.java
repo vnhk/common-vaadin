@@ -58,6 +58,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
                         T inDbItem = byId.get();
                         if (AuthService.hasAccess(inDbItem.getOwners())) {
                             checkDifferencesAndUpdate(inDbItem, (T) excelIEEntity);
+                            repository.save(inDbItem);
                         } else {
                             throw new RuntimeException("User is trying to update item that does not belong to him! ID=" + inDbItem.getId());
                         }
