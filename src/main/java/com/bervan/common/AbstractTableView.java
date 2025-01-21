@@ -22,24 +22,25 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 public abstract class AbstractTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView implements AfterNavigationObserver {
-    protected final Set<T> data = new HashSet<>();
     protected final BaseService<ID, T> service;
     protected Grid<T> grid;
     protected MenuNavigationComponent pageLayout;
@@ -68,12 +69,14 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     @Override
     public void afterNavigation(AfterNavigationEvent afterNavigationEvent) {
-        data.addAll(loadData());
+
     }
 
     public void renderCommonComponents() {
         grid = getGrid();
-        grid.setItems(data);
+        grid.setPageSize(20);
+        grid.setItems(this::loadItems, query -> countItems());
+
         grid.addClassName("bervan-table");
         grid.addItemClickListener(this::doOnColumnClick);
         grid.addItemDoubleClickListener(this::doOnColumnDoubleClick);
@@ -101,6 +104,19 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         add(contentLayout);
     }
 
+    protected int countItems() {
+        int intExact = Math.toIntExact(service.loadCount());
+        reloadItemsCountInfo(intExact);
+        return intExact;
+    }
+
+    protected Stream<T> loadItems(Query<T, Void> query) {
+        int offset = query.getPage() * query.getPageSize();
+        int limit = query.getPageSize();
+
+        return service.load(PageRequest.of(offset / limit, limit)).stream();
+    }
+
     protected void doOnColumnDoubleClick(ItemDoubleClickEvent<T> tItemDoubleClickEvent) {
 
     }
@@ -125,41 +141,22 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         });
     }
 
-    protected Set<T> loadData() {
-        try {
-            Set<T> collect = this.service.load().stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
-                    .collect(Collectors.toSet());
-            reloadItemsCountInfo(collect);
-            return collect;
-
-        } catch (Exception e) {
-            log.error("Could not load table!");
-            showErrorNotification("Unable to load table!");
-        }
-        return new HashSet<>();
-    }
-
-    protected void reloadItemsCountInfo(Collection<T> collect) {
-        countItemsInfo.setText("Items: " + collect.size());
+    protected void reloadItemsCountInfo(int size) {
+        countItemsInfo.setText("Items: " + size);
     }
 
     protected void refreshData() {
-        this.data.removeAll(this.data);
-        this.data.addAll(loadData());
         this.grid.getDataProvider().refreshAll();
     }
 
     protected void filterTable(String filterText) {
         if ((filterText == null || filterText.isEmpty()) && filtersMap.isEmpty()) {
-            grid.setItems(data);
-            reloadItemsCountInfo(data);
+            grid.setItems(this::loadItems, query -> countItems());
             return;
         }
-        List<T> collect = data.stream()
-                .filter(q -> filterByText(q, filterText))
-                .collect(Collectors.toList());
-        grid.setItems(collect);
-        reloadItemsCountInfo(collect);
+
+        grid.setItems(query -> loadItems(query)
+                .filter(q -> filterByText(q, filterText)));
     }
 
     private boolean filterByText(T record, String filterText) {
@@ -168,12 +165,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void filterTableWithCheckboxes(String filterText) {
-        List<T> filtered = data.stream()
+        grid.setItems(query -> loadItems(query)
                 .filter(q -> filterByText(q, filterText))
-                .filter(this::filterBySelectedValues)
-                .collect(Collectors.toList());
-        grid.setItems(filtered);
-        reloadItemsCountInfo(filtered);
+                .filter(this::filterBySelectedValues));
     }
 
     private boolean filterBySelectedValues(T record) {
@@ -402,7 +396,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
                         T changed = service.save(item);
 
-                        refreshDataAfterUpdate(changed);
+                        refreshDataAfterUpdate();
                     } catch (IllegalAccessException e) {
                         log.error("Could not update field value!", e);
                         showErrorNotification("Could not update value!");
@@ -436,12 +430,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void modalDeleteItem(Dialog dialog, T item) {
-        service.delete(item);
-        removeItemFromGrid(item);
-        this.grid.getDataProvider().refreshAll();
-        resetTableResults();
+        deleteAndRemoveItemFromGrid(item);
         dialog.close();
-
         showSuccessNotification("Deleted successfully!");
     }
 
@@ -450,21 +440,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         filterTableWithCheckboxes("");
     }
 
-    protected void removeItemFromGrid(T item) {
-        int oldSize = this.data.size();
-        this.data.remove(item);
-        if (oldSize == this.data.size()) {
-            ID id = item.getId();
-            this.data.removeIf(e -> e.getId().equals(id));
-        }
+    protected void deleteAndRemoveItemFromGrid(T item) {
+        service.delete(item);
+        resetTableResults();
+        filterTableWithCheckboxes(searchField.getValue());
     }
 
-    protected void refreshDataAfterUpdate(T item) {
-        removeItemFromGrid(item);
-        this.data.add(item);
-        this.grid.setItems(this.data);
-        this.grid.getDataProvider().refreshItem(item);
-        this.grid.getDataProvider().refreshAll();
+    protected void refreshDataAfterUpdate() {
         filterTableWithCheckboxes(searchField.getValue());
     }
 
@@ -590,7 +572,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                     newObject = customizeSavingInCreateForm(newObject);
 
                     newObject = service.save(newObject);
-                    this.data.add(newObject);
                     this.grid.getDataProvider().refreshAll();
                 } catch (IllegalAccessException | NoSuchMethodException | InstantiationException |
                          InvocationTargetException e) {

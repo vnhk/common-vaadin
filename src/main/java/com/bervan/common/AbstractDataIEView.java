@@ -17,6 +17,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -139,7 +140,7 @@ public abstract class AbstractDataIEView<ID extends Serializable> extends Abstra
         List<ExcelIEEntity<?>> result = new ArrayList<>();
 
         for (BaseService<? extends Serializable, ? extends PersistableTableData<?>> dataService : dataServices) {
-            Set<?> loaded = dataService.load();
+            Set<?> loaded = dataService.load(Pageable.ofSize(100000));
             mainLoop:
             for (Object t : loaded) {
                 if (t instanceof ExcelIEEntity<?>) {

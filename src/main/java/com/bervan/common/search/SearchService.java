@@ -70,12 +70,14 @@ public class SearchService {
 
             mainQuery.orderBy(createOrder(criteriaBuilder, root, sortField, isAscendingSortDirection(sortDirection)));
 
-            TypedQuery<? extends BervanBaseEntity> resultQuery = entityManager.createQuery(mainQuery);
+            List<? extends BervanBaseEntity> resultList = new ArrayList<>();
+            if (!options.isCountQuery()) {
+                TypedQuery<? extends BervanBaseEntity> resultQuery = entityManager.createQuery(mainQuery);
+                resultQuery.setFirstResult(pageSize * (page));
+                resultQuery.setMaxResults(pageSize);
+                resultList = resultQuery.getResultList();
+            }
             Long allFound = getHowManyItemsExist(searchRequest, entityToFind);
-
-            resultQuery.setFirstResult(pageSize * (page));
-            resultQuery.setMaxResults(pageSize);
-            List<? extends BervanBaseEntity> resultList = resultQuery.getResultList();
 
             return new SearchResponse(resultList, resultList.size(), page, allFound);
         } catch (Exception e) {

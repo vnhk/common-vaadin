@@ -14,6 +14,7 @@ public class SearchQueryOption {
     @NotNull
     private Integer pageSize = 50;
     private Class<? extends BervanBaseEntity> entityToFind;
+    private boolean countQuery;
 
     public SearchQueryOption() {
 
@@ -61,5 +62,13 @@ public class SearchQueryOption {
 
     public void setEntityToFind(Class<? extends BervanBaseEntity> entityToFind) {
         this.entityToFind = entityToFind;
+    }
+
+    public void isCountQuery(boolean countQuery) {
+        this.countQuery = countQuery;
+    }
+
+    public boolean isCountQuery() {
+        return countQuery;
     }
 }
