@@ -53,6 +53,29 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return new HashSet<>(search.getResultList());
     }
 
+    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
+    public Set<T> load(SearchRequest request, Pageable pageable) {
+        SearchRequest result = buildLoadSearchRequestData();
+        result.merge(request);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        options.setSortField("id");
+        options.setPage(pageable.getPageNumber());
+        options.setPageSize(pageable.getPageSize());
+        options.isCountQuery(false);
+        SearchResponse<T> search = searchService.search(result, options);
+        return new HashSet<>(search.getResultList());
+    }
+
+    public long loadCount(SearchRequest request) {
+        SearchRequest result = buildLoadSearchRequestData();
+        result.merge(request);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        options.isCountQuery(true);
+
+        SearchResponse<T> search = searchService.search(result, options);
+        return search.getAllFound();
+    }
+
     public long loadCount() {
         SearchRequest result = buildLoadSearchRequestData();
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);

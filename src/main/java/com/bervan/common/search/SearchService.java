@@ -64,7 +64,8 @@ public class SearchService {
 
             Predicate predicates = null;
             if (searchRequest != null && searchRequest.groups.size() > 0) {
-                predicates = buildMainPredicate(searchRequest, root, entityToFind);
+                Collection<Predicate> allPredicates = buildMainPredicate(searchRequest, root, entityToFind).values();
+                predicates = criteriaBuilder.and(allPredicates.toArray(allPredicates.toArray(new Predicate[0])));
                 mainQuery.where(predicates);
             }
 
@@ -115,7 +116,8 @@ public class SearchService {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<? extends BervanBaseEntity> newR = countQuery.from(entityToFind);
-        Predicate predicate = buildMainPredicate(searchRequest, newR, entityToFind);
+        Collection<Predicate> allPredicates = buildMainPredicate(searchRequest, newR, entityToFind).values();
+        Predicate predicate = criteriaBuilder.and(allPredicates.toArray(allPredicates.toArray(new Predicate[0])));
         if (predicate != null) {
             countQuery.select(cb.count(newR)).where(predicate);
         } else {
@@ -129,14 +131,12 @@ public class SearchService {
         return sortDirection.equals(SortDirection.ASC);
     }
 
-    private Predicate buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Map<String, Predicate> buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
         Map<String, Predicate> groupPredicate = new HashMap<>();
 
-        int actualGroup = 1;
-        Optional<Group> groupOpt = searchRequest.groups.stream().filter(g -> g.id.equals("G1"))
-                .findFirst();
-        do {
-            Group group = groupOpt.get();
+        Group lastProcessed = null;
+        for (Group group : searchRequest.groups) {
+            lastProcessed = group;
             List<Predicate> predicatesForGroup = new ArrayList<>();
             for (String queryId : group.criteriaIds) {
                 if (groupPredicate.containsKey(queryId)) {
@@ -168,13 +168,8 @@ public class SearchService {
                     groupPredicate.put(group.id, criteriaBuilder.and(predicatesForGroup.toArray(Predicate[]::new)));
                 }
             }
-            actualGroup++;
-            int finalActualGroup = actualGroup;
-            groupOpt = searchRequest.groups.stream().filter(g -> g.id.equals("G" + finalActualGroup))
-                    .findFirst();
-        } while (groupOpt.isPresent());
-
-        return groupPredicate.get("G" + (actualGroup - 1));
+        }
+        return groupPredicate;
     }
 
     private Predicate buildPredicateForNotCollection(From root, Class<? extends BervanBaseEntity> entityToFind, Criterion queryCriterion) throws NoSuchFieldException {
