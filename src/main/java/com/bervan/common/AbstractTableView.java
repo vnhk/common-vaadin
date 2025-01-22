@@ -196,7 +196,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             Set<T> collect = this.service.load(request, Pageable.ofSize(pageSize).withPage(pageNumber)).stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
                     .collect(Collectors.toSet());
 
-            allFound = this.service.loadCount(request);
+            allFound = countAll(request, collect);
             maxPages = (int) Math.ceil((double) allFound / pageSize);
 
             reloadItemsCountInfo();
@@ -207,6 +207,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             showErrorNotification("Unable to load table!");
         }
         return new HashSet<>();
+    }
+
+    protected long countAll(SearchRequest request, Set<T> collect) {
+        return this.service.loadCount(request);
     }
 
     private void createCriteriaForCheckbox(SearchRequest request, Field field, Checkbox checkbox, Object key) {
