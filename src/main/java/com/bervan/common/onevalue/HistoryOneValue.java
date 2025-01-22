@@ -2,12 +2,12 @@ package com.bervan.common.onevalue;
 
 import com.bervan.common.model.BervanHistoryEntity;
 import com.bervan.common.model.PersistableData;
-import com.bervan.common.user.User;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.HistoryOwnerEntity;
 import com.bervan.history.model.HistorySupported;
 import com.bervan.ieentities.ExcelIEEntity;
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,7 +17,6 @@ import java.util.UUID;
 @HistorySupported
 public class HistoryOneValue extends BervanHistoryEntity<UUID> implements PersistableData<UUID>, ExcelIEEntity<UUID> {
     @Id
-    @GeneratedValue
     private UUID id;
 
     @HistoryField

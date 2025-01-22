@@ -1,7 +1,6 @@
 package com.bervan.common;
 
 import com.bervan.common.model.PersistableData;
-import com.bervan.common.service.AuthService;
 import com.bervan.common.user.User;
 import com.bervan.history.model.BaseRepositoryImpl;
 import jakarta.persistence.EntityManager;
@@ -14,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends Serializable> extends BaseRepositoryImpl<T, ID> {
     public BervanBaseRepositoryImpl(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
@@ -37,6 +37,14 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
         if (entity.getOwners() == null || entity.getOwners().size() == 0) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             entity.addOwner(user);
+        }
+
+        if (entity.getId() == null) {
+            try {
+                entity.setId((ID) UUID.randomUUID());
+            } catch (Exception ignored) {
+
+            }
         }
 
         return super.save(entity);

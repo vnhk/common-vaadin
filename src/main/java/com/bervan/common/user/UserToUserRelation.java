@@ -3,6 +3,7 @@ package com.bervan.common.user;
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,7 +12,6 @@ import java.util.UUID;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class UserToUserRelation extends BervanBaseEntity<UUID> implements PersistableTableData<UUID> {
     @Id
-    @GeneratedValue
     private UUID id;
     @ManyToOne
     @JoinColumn(name = "parent_id")

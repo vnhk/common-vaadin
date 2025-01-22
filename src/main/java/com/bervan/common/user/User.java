@@ -4,6 +4,7 @@ import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +16,6 @@ import java.util.*;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class User extends BervanBaseEntity<UUID> implements PersistableTableData<UUID>, UserDetails {
     @Id
-    @GeneratedValue
     private UUID id;
     private String username;
     @JsonIgnore
