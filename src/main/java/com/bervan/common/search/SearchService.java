@@ -178,6 +178,8 @@ public class SearchService {
 
         Predicate predicate = null;
         switch (queryCriterion.operator) {
+            case IS_NULL_OPERATION -> predicate = SearchOperationsHelper.isNull(root, criteriaBuilder, entityCriterion);
+            case IS_NOT_NULL_OPERATION -> predicate = SearchOperationsHelper.isNotNull(root, criteriaBuilder, entityCriterion);
             case EQUALS_OPERATION -> predicate = SearchOperationsHelper.equal(root, criteriaBuilder, entityCriterion);
             case LIKE_OPERATION -> predicate = SearchOperationsHelper.contains(root, criteriaBuilder, entityCriterion);
             case NOT_EQUALS_OPERATION ->
@@ -218,10 +220,6 @@ public class SearchService {
             value = getEnumValue(value, field);
         } else {
             value = getPrimitiveTypeValue(value, field);
-        }
-
-        if (value == null) {
-            log.warn("Query parameter \"" + field.getName() + "\" is empty!");
         }
 
         return value;

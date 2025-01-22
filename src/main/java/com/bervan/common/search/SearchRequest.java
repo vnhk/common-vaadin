@@ -54,16 +54,17 @@ public class SearchRequest {
         }
     }
 
-    public void addDeletedFalseCriteria(String groupId, Class<?> objectType) {
-        addCriterion(groupId, objectType, "deleted", SearchOperation.EQUALS_OPERATION, false);
+    public void addDeletedFalseCriteria(Class<?> objectType) {
+        addCriterion("DELETED_FALSE_CRITERIA_GROUP", Operator.OR_OPERATOR, objectType, "deleted", SearchOperation.EQUALS_OPERATION, false);
+        addCriterion("DELETED_FALSE_CRITERIA_GROUP", Operator.OR_OPERATOR, objectType, "deleted", SearchOperation.IS_NULL_OPERATION, null);
+    }
+
+    public void addOwnerAccessCriteria(Class<?> objectType) {
+        addCriterion("OWNER_ACCESS_GROUP", objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
     }
 
     public void addIdEqualsCriteria(String groupId, Class<?> objectType, UUID id) {
         addCriterion(groupId, objectType, "id", SearchOperation.EQUALS_OPERATION, id);
-    }
-
-    public void addOwnerAccessCriteria(String groupId, Class<?> objectType) {
-        addCriterion(groupId, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
     }
 
     public void merge(SearchRequest request) {

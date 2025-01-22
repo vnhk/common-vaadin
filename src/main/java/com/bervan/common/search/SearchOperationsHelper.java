@@ -23,6 +23,14 @@ public class SearchOperationsHelper {
         return criteriaBuilder.equal(getExpression(root, entityCriterion.getField()), entityCriterion.getValue());
     }
 
+    public static Predicate isNull(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
+        return criteriaBuilder.isNull(getExpression(root, entityCriterion.getField()));
+    }
+
+    public static Predicate isNotNull(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
+        return criteriaBuilder.isNotNull(getExpression(root, entityCriterion.getField()));
+    }
+
     public static Predicate like(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
         return criteriaBuilder.like(getExpression(root, entityCriterion.getField()), String.valueOf(entityCriterion.getValue()));
     }

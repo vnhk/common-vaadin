@@ -87,9 +87,9 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
 
     private SearchRequest buildLoadSearchRequestData() {
         SearchRequest searchRequest = new SearchRequest();
-        searchRequest.addOwnerAccessCriteria("G1", entityType);
+        searchRequest.addOwnerAccessCriteria(entityType);
         if (Arrays.stream(entityType.getDeclaredFields()).peek(e -> e.setAccessible(true)).anyMatch(e -> e.getName().equals("deleted"))) {
-            searchRequest.addDeletedFalseCriteria("G1", entityType);
+            searchRequest.addDeletedFalseCriteria( entityType);
         }
 
         return searchRequest;
@@ -119,6 +119,8 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
                         } else {
                             throw new RuntimeException("User is trying to update item that does not belong to him! ID=" + inDbItem.getId());
                         }
+                    } else {
+                        repository.save(((T) excelIEEntity));
                     }
                 } else {
                     repository.save(((T) excelIEEntity));

@@ -50,10 +50,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected int maxPages = 0;
     protected long allFound = 0;
     protected int pageSize = 50;
+    protected final Button currentPage = new Button();
+    protected final Button prevPageButton = new Button(new Icon(VaadinIcon.ARROW_LEFT));
+    protected final Button nextPageButton = new Button(new Icon(VaadinIcon.ARROW_RIGHT));
     protected final BaseService<ID, T> service;
     protected Grid<T> grid;
     protected MenuNavigationComponent pageLayout;
-    protected Button addButton;
+    protected final Button addButton = new Button(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
     protected final VerticalLayout contentLayout = new VerticalLayout();
     private final Set<String> currentlySortedColumns = new HashSet<>();
     protected final BervanLogger log;
@@ -62,9 +65,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Text countItemsInfo = new Text("");
     private int amountOfWysiwygEditors = 0;
 
-    protected Button filtersButton;
+    protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected VerticalLayout filtersMenuLayout;
-    protected Button applyFiltersButton;
+    protected final Button applyFiltersButton = new Button(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     private final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
@@ -91,7 +94,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         searchField = getFilter();
 
-        filtersButton = new Button("Filters", e -> toggleFiltersMenu());
         filtersButton.addClassName("option-button");
 
         filtersMenuLayout = new VerticalLayout();
@@ -99,34 +101,25 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         buildFiltersMenu();
 
-        applyFiltersButton = new Button("Apply", e -> applyCombinedFilters());
         applyFiltersButton.addClassName("option-button");
         filtersMenuLayout.add(applyFiltersButton);
 
-        addButton = new Button("Add New Element", e -> newItemButtonClick());
         addButton.addClassName("option-button");
-
-        Button currentPage = new Button();
         currentPage.addClassName("option-button");
         currentPage.addClassName("option-button-warning");
-        currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages + 1));
 
-        Button prevPageButton = new Button("Prev Page");
         prevPageButton.addClassName("option-button");
         prevPageButton.addClickListener(e -> {
             if (pageNumber > 0) {
                 pageNumber--;
-                currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages + 1));
                 refreshData();
             }
         });
 
-        Button nextPageButton = new Button("Next Page");
         nextPageButton.addClassName("option-button");
         nextPageButton.addClickListener(event -> {
             if (pageNumber < maxPages - 1) {
                 pageNumber++;
-                currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages + 1));
                 refreshData();
             }
         });
@@ -137,6 +130,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         add(contentLayout);
 
+    }
+
+    private void updateCurrentPageText() {
+        currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages));
     }
 
     protected void doOnColumnDoubleClick(ItemDoubleClickEvent<T> tItemDoubleClickEvent) {
@@ -180,6 +177,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                         }
                     }
                 }
+                pageNumber = 0;
             }
 
             if (textFilterValue != null && !textFilterValue.isBlank()) {
@@ -189,7 +187,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                         .toList(); //later configure in each class example @VaadinColumn filterable=true
 
                 for (String filterableField : filterableFields) {
-                    request.addCriterion("F1", Operator.OR_OPERATOR, tClass, filterableField, SearchOperation.LIKE_OPERATION, "%" + textFilterValue + "%");
+                    request.addCriterion("TEXT_FILTER_GROUP", Operator.OR_OPERATOR, tClass, filterableField, SearchOperation.LIKE_OPERATION, "%" + textFilterValue + "%");
                 }
             }
 
@@ -200,6 +198,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             maxPages = (int) Math.ceil((double) allFound / pageSize);
 
             reloadItemsCountInfo();
+            updateCurrentPageText();
+
             return collect;
 
         } catch (Exception e) {
@@ -217,10 +217,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         SearchOperation operator;
         if (checkbox.getValue()) {
             operator = SearchOperation.EQUALS_OPERATION;
-        } else {
-            operator = SearchOperation.NOT_EQUALS_OPERATION;
+            request.addCriterion("TABLE_FILTER_CHECKBOXES_FOR_" + field.getName().toUpperCase() + "_GROUP", Operator.OR_OPERATOR, tClass, field.getName(), operator, key);
         }
-        request.addCriterion("C1", Operator.OR_OPERATOR, tClass, field.getName(), operator, key);
     }
 
     protected void reloadItemsCountInfo() {
@@ -234,6 +232,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void filterTable() {
+        textFilterValue = searchField.getValue();
         applyFilters = true;
         refreshData();
         applyFilters = false;
@@ -287,7 +286,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         TextField searchField = new TextField("Filter table...");
         searchField.setWidth("100%");
         searchField.addValueChangeListener(e -> {
-            textFilterValue = e.getValue();
             filterTable();
         });
         return searchField;
