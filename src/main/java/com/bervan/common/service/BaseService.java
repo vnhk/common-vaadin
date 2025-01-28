@@ -14,7 +14,6 @@ import jakarta.persistence.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
@@ -40,7 +39,6 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
 
     public abstract T save(T data);
 
-    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
     public Set<T> load(Pageable pageable) {
         SearchRequest result = buildLoadSearchRequestData();
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
@@ -53,7 +51,6 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return new HashSet<>(search.getResultList());
     }
 
-    @PostFilter("(T(com.bervan.common.service.AuthService).hasAccess(filterObject.owners))")
     public Set<T> load(SearchRequest request, Pageable pageable) {
         SearchRequest result = buildLoadSearchRequestData();
         result.merge(request);

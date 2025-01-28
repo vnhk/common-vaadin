@@ -191,6 +191,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 }
             }
 
+            Set<T> load = this.service.load(request, Pageable.ofSize(pageSize).withPage(pageNumber));
+
             Set<T> collect = this.service.load(request, Pageable.ofSize(pageSize).withPage(pageNumber)).stream().filter(e -> e.getDeleted() == null || !e.getDeleted())
                     .collect(Collectors.toSet());
 
