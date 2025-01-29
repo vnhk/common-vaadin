@@ -1,7 +1,9 @@
 package com.bervan.common;
 
+import com.bervan.common.model.BervanHistoryEntity;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
+import com.bervan.history.model.AbstractBaseHistoryEntity;
 import com.bervan.history.model.BaseRepositoryImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotNull;
@@ -58,6 +60,25 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
             entity.addOwner(user);
         }
         return super.saveWithoutHistory(entity);
+    }
+
+
+    @Override
+    protected void historyPreHistorySave(AbstractBaseHistoryEntity<ID> history) {
+        BervanHistoryEntity entity = (BervanHistoryEntity) history;
+
+        if (entity.getOwners() == null || entity.getOwners().size() == 0) {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            entity.addOwner(user);
+        }
+
+        if (entity.getId() == null) {
+            try {
+                entity.setId((ID) UUID.randomUUID());
+            } catch (Exception ignored) {
+
+            }
+        }
     }
 
     @Override
