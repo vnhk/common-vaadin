@@ -1,5 +1,6 @@
 package com.bervan.common;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -11,6 +12,8 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
     private Div editorDiv;
     private boolean viewMode = false;
     private Button viewEditSwitchButton;
+    private Action postClickSwitchAction = () -> {
+    };
 
     public WysiwygTextArea(String id) {
         this.id = id;
@@ -20,6 +23,16 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
     public WysiwygTextArea(String id, String initValue) {
         this.id = id;
         configure(id, initValue);
+    }
+
+    public WysiwygTextArea(String id, String initValue, boolean isViewModeInitial) {
+        this.id = id;
+        this.viewMode = isViewModeInitial;
+        configure(id, initValue);
+    }
+
+    public boolean isViewMode() {
+        return viewMode;
     }
 
     private void configure(String id, String initValue) {
@@ -34,13 +47,11 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
 
         viewEditSwitchButton = new Button();
         viewEditSwitchButton.addClassName("option-button");
-        setViewEditButtonText();
-        executeViewEditModePropertyChange(id);
-
         viewEditSwitchButton.addClickListener(click -> {
-            viewMode = !viewMode;
+            this.viewMode = !viewMode;
             executeViewEditModePropertyChange(id);
             setViewEditButtonText();
+            this.postClickSwitchAction.run();
         });
 
         add(viewEditSwitchButton, editorDiv);
@@ -64,6 +75,8 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
                         "document.body.appendChild(script);",
                 getElement()
         );
+
+        setViewEditButtonText();
     }
 
     private void executeViewEditModePropertyChange(String id) {
@@ -72,6 +85,15 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
         } else {
             getElement().executeJs("document.querySelector('#" + id + " .ql-editor').setAttribute('contenteditable', 'true');");
         }
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        getElement().executeJs(
+                "setTimeout(function() {" +
+                        "document.querySelector('#" + id + " .ql-editor').setAttribute('contenteditable', $1);" +
+                        "}, 1000)", id, viewMode ? "false" : "true"
+        );
     }
 
     private void setViewEditButtonText() {
@@ -116,5 +138,9 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
     @Override
     public void setId(String id) {
         super.setId(id); //it sets layout id
+    }
+
+    public void setSwitchButtonPostAction(Action postClickSwitchAction) {
+        this.postClickSwitchAction = postClickSwitchAction;
     }
 }
