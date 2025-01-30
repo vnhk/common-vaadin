@@ -85,7 +85,7 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     }
 
     @Override
-    public Boolean getDeleted() {
+    public Boolean isDeleted() {
         return deleted;
     }
 

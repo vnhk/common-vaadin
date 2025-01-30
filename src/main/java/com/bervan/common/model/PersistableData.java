@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface PersistableData<ID> extends Persistable<ID> {
     ID getId();
 
-    default Boolean getDeleted() {
+    default Boolean isDeleted() {
         return false;
     }
 
