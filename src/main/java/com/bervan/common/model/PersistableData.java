@@ -22,4 +22,6 @@ public interface PersistableData<ID> extends Persistable<ID> {
     boolean hasAccess(User user);
 
     boolean hasAccess(UUID loggedUserId);
+
+    void setDeleted(Boolean value);
 }

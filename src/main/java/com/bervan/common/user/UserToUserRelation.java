@@ -3,7 +3,6 @@ package com.bervan.common.user;
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -61,5 +60,10 @@ public class UserToUserRelation extends BervanBaseEntity<UUID> implements Persis
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public void setDeleted(Boolean value) {
+
     }
 }

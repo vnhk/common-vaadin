@@ -35,9 +35,15 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         this.entityType = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
     }
 
-    public abstract void save(List<T> data);
+    public void save(List<T> data) {
+        for (T datum : data) {
+            save(datum);
+        }
+    }
 
-    public abstract T save(T data);
+    public T save(T data) {
+        return repository.save(data);
+    }
 
     public Set<T> load(Pageable pageable) {
         SearchRequest result = buildLoadSearchRequestData();
@@ -63,6 +69,19 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return new HashSet<>(search.getResultList());
     }
 
+    public Optional<T> loadById(ID id) {
+        SearchRequest request = new SearchRequest();
+        request.addIdEqualsCriteria("ID_GROUP", entityType, (UUID) id);
+        Set<T> result = load(request, Pageable.ofSize(1));
+
+        if (result.size() != 1) {
+            logger.error("Element not found by id, expected 1 found: " + result.size());
+            return Optional.empty();
+        } else {
+            return Optional.of(result.iterator().next());
+        }
+    }
+
     public long loadCount(SearchRequest request) {
         SearchRequest result = buildLoadSearchRequestData();
         result.merge(request);
@@ -86,13 +105,16 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.addOwnerAccessCriteria(entityType);
         if (Arrays.stream(entityType.getDeclaredFields()).peek(e -> e.setAccessible(true)).anyMatch(e -> e.getName().equals("deleted"))) {
-            searchRequest.addDeletedFalseCriteria( entityType);
+            searchRequest.addDeletedFalseCriteria(entityType);
         }
 
         return searchRequest;
     }
 
-    public abstract void delete(T item);
+    public void delete(T item) {
+        item.setDeleted(true);
+        save(item);
+    }
 
     @RolesAllowed("USER")
     @Transactional

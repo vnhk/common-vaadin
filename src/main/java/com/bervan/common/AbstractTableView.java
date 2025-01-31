@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -360,6 +359,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         field.setAccessible(true);
         Object value = item == null ? null : field.get(item);
+        value = getInitValueForInput(field, item, config, value);
 
         if (config.getStrValues().size() > 0) {
             BervanComboBox<String> comboBox = new BervanComboBox<>(config.getDisplayName());
@@ -377,7 +377,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             component = buildDateTimeInput(value, config.getDisplayName());
         } else {
             component = new BervanTextField("Not supported yet");
-            component.setValue(value);
+            if (value == null) {
+                component.setValue("");
+            } else {
+                component.setValue(value);
+            }
         }
 
         component.setId(config.getTypeName() + "_id");
@@ -385,6 +389,23 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         field.setAccessible(false);
 
         return component;
+    }
+
+    private Object getInitValueForInput(Field field, Object item, VaadinTableColumnConfig config, Object value) throws IllegalAccessException {
+        if (item == null) {
+            if (!config.getDefaultValue().equals("")) {
+                if (String.class.getTypeName().equals(config.getTypeName())) {
+                    value = config.getDefaultValue();
+                } else if (Integer.class.getTypeName().equals(config.getTypeName())) {
+                    value = Integer.parseInt(config.getDefaultValue());
+                } else if (Double.class.getTypeName().equals(config.getTypeName())) {
+                    value = Double.parseDouble(config.getDefaultValue());
+                }
+            }
+        } else {
+            value = field.get(item);
+        }
+        return value;
     }
 
     protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout, String clickedColumn, T item) {
@@ -625,8 +646,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                     newObject = service.save(newObject);
                     this.data.add(newObject);
                     this.grid.getDataProvider().refreshAll();
-                } catch (IllegalAccessException | NoSuchMethodException | InstantiationException |
-                         InvocationTargetException e) {
+                } catch (Exception e) {
                     log.error("Could not save new item!", e);
                     showErrorNotification("Could not save new item!");
                 }

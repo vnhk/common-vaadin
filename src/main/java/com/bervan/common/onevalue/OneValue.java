@@ -7,7 +7,6 @@ import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import com.bervan.ieentities.ExcelIEEntity;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -28,6 +27,7 @@ public class OneValue extends BervanBaseEntity<UUID> implements BaseOneValue, Pe
     @Lob
     private String content;
     private LocalDateTime modificationDate;
+    private boolean deleted;
 
     @OneToMany(fetch = FetchType.EAGER)
     @HistoryCollection(historyClass = HistoryOneValue.class)
@@ -80,5 +80,14 @@ public class OneValue extends BervanBaseEntity<UUID> implements BaseOneValue, Pe
 
     public void setHistory(Set<HistoryOneValue> history) {
         this.history = history;
+    }
+
+    @Override
+    public Boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

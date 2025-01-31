@@ -39,4 +39,9 @@ public abstract class BervanHistoryEntity<ID extends Serializable> implements Ab
     public boolean hasAccess(UUID loggedUserId) {
         return owners.stream().anyMatch(e -> e.getId().equals(loggedUserId));
     }
+
+    @Override
+    public void setDeleted(Boolean value) {
+
+    }
 }

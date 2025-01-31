@@ -18,6 +18,7 @@ public class TableClassUtils {
         config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
         config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());
         config.setWysiwyg(field.getAnnotation(VaadinTableColumn.class).isWysiwyg());
+        config.setDefaultValue(field.getAnnotation(VaadinTableColumn.class).defaultValue());
 
         config.setStrValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList());
         config.setIntValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList()));

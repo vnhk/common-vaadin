@@ -25,4 +25,6 @@ public @interface VaadinTableColumn {
     boolean isWysiwyg() default false;
 
     boolean inEditForm() default true;
+
+    String defaultValue() default "";
 }
