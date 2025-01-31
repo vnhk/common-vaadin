@@ -67,7 +67,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected VerticalLayout filtersMenuLayout;
     protected final Button applyFiltersButton = new Button(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
-    private final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
+    protected final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -80,7 +80,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     @Override
     public void afterNavigation(AfterNavigationEvent afterNavigationEvent) {
-        data.addAll(loadData());
+//        data.addAll(loadData());
     }
 
     public void renderCommonComponents() {
@@ -129,6 +129,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         add(contentLayout);
 
+        applyFiltersButton.click();
     }
 
     private void updateCurrentPageText() {
@@ -243,7 +244,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         applyFilters = false;
     }
 
-    private void buildFiltersMenu() {
+    protected void buildFiltersMenu() {
         List<Field> fields = getVaadinTableColumns();
         for (Field field : fields) {
             VaadinTableColumnConfig config = buildColumnConfig(field);
