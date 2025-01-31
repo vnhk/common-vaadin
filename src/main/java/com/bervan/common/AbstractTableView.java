@@ -190,6 +190,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 }
             }
 
+            customizePreLoad(request);
+
             Set<T> collect = this.service.load(request, Pageable.ofSize(pageSize).withPage(pageNumber)).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
                     .collect(Collectors.toSet());
 
@@ -206,6 +208,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             showErrorNotification("Unable to load table!");
         }
         return new HashSet<>();
+    }
+
+    protected void customizePreLoad(SearchRequest request) {
+
     }
 
     protected long countAll(SearchRequest request, Set<T> collect) {
