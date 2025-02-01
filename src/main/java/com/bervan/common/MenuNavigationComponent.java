@@ -39,18 +39,34 @@ public abstract class MenuNavigationComponent extends VerticalLayout {
     public void addButtonIfVisible(HorizontalLayout menuRow, String routeName, String buttonText) {
         boolean inNotVisible = notVisibleButtonsRoutes != null && Arrays.asList(notVisibleButtonsRoutes).contains(routeName);
         if (notVisibleButtonsRoutes == null || !inNotVisible) {
-            Button button = new Button(buttonText);
-            button.addClickListener(buttonClickEvent ->
-                    button.getUI().ifPresent(ui -> ui.navigate(routeName)));
-
+            Button button = new BervanButton(buttonText);
             buttons.put(routeName, button);
-
-            button.addClassName("option-button");
 
             if (routeName.equals(CURRENT_ROUTE_NAME)) {
                 button.addClassName("selected-route-button");
+            } else {
+                button.addClickListener(buttonClickEvent ->
+                        button.getUI().ifPresent(ui -> ui.navigateToClient(routeName)));
             }
+
             menuRow.add(button);
         }
+    }
+
+    public void hideButton(String routeName) {
+        buttons.get(routeName).setVisible(false);
+    }
+
+    public void showButton(String routeName) {
+        buttons.get(routeName).setVisible(true);
+    }
+
+    public void updateNavigateToForButton(String buttonRouteName, String newRouteValue) {
+        buttons.get(buttonRouteName).addClickListener(buttonClickEvent ->
+                buttons.get(buttonRouteName).getUI().ifPresent(ui -> ui.navigateToClient(newRouteValue)));
+    }
+
+    public void updateButtonText(String buttonRouteName, String newButtonText) {
+        buttons.get(buttonRouteName).setText(newButtonText);
     }
 }
