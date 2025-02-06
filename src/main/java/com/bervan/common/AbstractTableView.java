@@ -9,7 +9,6 @@ import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -61,7 +60,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final BervanLogger log;
     protected final Class<T> tClass;
     protected TextField searchField;
-    protected Text countItemsInfo = new Text("");
+    protected Span countItemsInfo = new Span("");
     private int amountOfWysiwygEditors = 0;
 
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
@@ -76,6 +75,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         this.tClass = tClass;
 
         addClassName("bervan-table-view");
+        countItemsInfo.addClassName("table-pageable-details");
     }
 
     @Override
