@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,6 +42,8 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
             entity.addOwner(user);
         }
 
+        trimStringValues(entity);
+
         if (entity.getId() == null) {
             try {
                 entity.setId((ID) UUID.randomUUID());
@@ -50,6 +53,24 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
         }
 
         return super.save(entity);
+    }
+
+    private <S extends T> void trimStringValues(S entity) {
+        for (Field field : entity.getClass().getDeclaredFields()) {
+            if (field.getType() == String.class) {
+                field.setAccessible(true);
+                try {
+                    String value = (String) field.get(entity);
+                    if (value != null) {
+                        field.set(entity, value.trim()); // Trim the value and set it back
+                    }
+                } catch (IllegalAccessException e) {
+
+                } finally {
+                    field.setAccessible(false);
+                }
+            }
+        }
     }
 
     @Override

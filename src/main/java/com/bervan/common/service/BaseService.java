@@ -7,6 +7,7 @@ import com.bervan.common.search.SearchQueryOption;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.SearchService;
 import com.bervan.common.search.model.SearchResponse;
+import com.bervan.common.search.model.SortDirection;
 import com.bervan.history.model.BaseRepository;
 import com.bervan.ieentities.ExcelIEEntity;
 import jakarta.annotation.security.RolesAllowed;
@@ -55,6 +56,19 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
 
         SearchResponse<T> search = searchService.search(result, options);
         return new HashSet<>(search.getResultList());
+    }
+
+    public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection) {
+        SearchRequest result = buildLoadSearchRequestData();
+        result.merge(request);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        options.setSortField(sortField);
+        options.setSortDirection(sortDirection);
+        options.setPage(pageable.getPageNumber());
+        options.setPageSize(pageable.getPageSize());
+        options.isCountQuery(false);
+        SearchResponse<T> search = searchService.search(result, options);
+        return search.getResultList();
     }
 
     public Set<T> load(SearchRequest request, Pageable pageable) {

@@ -30,6 +30,7 @@ import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.io.Serializable;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 public abstract class AbstractTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView implements AfterNavigationObserver {
-    protected final Set<T> data = new HashSet<>();
+    protected final List<T> data = new LinkedList<>();
     protected String textFilterValue = "";
     protected boolean applyFilters = false;
     protected int pageNumber = 0;
@@ -67,6 +68,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected VerticalLayout filtersMenuLayout;
     protected final Button applyFiltersButton = new Button(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
+    private SortDirection sortDirection = null;
+    private Grid.Column<T> columnSorted = null;
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -160,7 +163,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         });
     }
 
-    protected Set<T> loadData() {
+    protected List<T> loadData() {
         try {
             SearchRequest request = new SearchRequest();
 
@@ -193,8 +196,20 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
             customizePreLoad(request);
 
-            Set<T> collect = this.service.load(request, Pageable.ofSize(pageSize).withPage(pageNumber)).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
-                    .collect(Collectors.toSet());
+            String sortField;
+            com.bervan.common.search.model.SortDirection sortDir = com.bervan.common.search.model.SortDirection.ASC;
+            if (columnSorted != null && sortDirection != null) {
+                sortField = columnSorted.getKey();
+                if (sortDirection != SortDirection.ASCENDING) {
+                    sortDir = com.bervan.common.search.model.SortDirection.DESC;
+                }
+            } else {
+                sortField = "id";
+            }
+
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            List<T> collect = this.service.load(request, pageable, sortField, sortDir).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
+                    .collect(Collectors.toList());
 
             allFound = countAll(request, collect);
             maxPages = (int) Math.ceil((double) allFound / pageSize);
@@ -208,14 +223,14 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             log.error("Could not load table!", e);
             showErrorNotification("Unable to load table!");
         }
-        return new HashSet<>();
+        return new ArrayList<>();
     }
 
     protected void customizePreLoad(SearchRequest request) {
 
     }
 
-    protected long countAll(SearchRequest request, Set<T> collect) {
+    protected long countAll(SearchRequest request, Collection<T> collect) {
         return this.service.loadCount(request);
     }
 
@@ -300,6 +315,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Grid<T> getGrid() {
         Grid<T> grid = new Grid<>(tClass, false);
         buildGridAutomatically(grid);
+
         return grid;
     }
 
@@ -310,10 +326,23 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             String columnInternalName = config.getInternalName();
             String columnName = config.getDisplayName();
             grid.addColumn(createTextColumnComponent(vaadinTableColumn, config)).setHeader(columnName).setKey(columnInternalName)
-                    .setResizable(true);
+                    .setResizable(true)
+                    .setSortable(true);
         }
 
         grid.getElement().getStyle().set("--lumo-size-m", 10 + "px");
+
+        grid.addSortListener(event -> {
+            List<GridSortOrder<T>> sortOrders = event.getSortOrder();
+            if (!sortOrders.isEmpty()) {
+                GridSortOrder<T> sortOrder = sortOrders.get(0);
+                SortDirection sortDirection = sortOrder.getDirection();
+
+                this.columnSorted = sortOrder.getSorted();
+                this.sortDirection = sortDirection;
+                this.refreshData();
+            }
+        });
     }
 
     private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinTableColumnConfig config) {
