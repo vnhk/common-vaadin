@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class BaseService<ID extends Serializable, T extends PersistableTableData<ID>> {
@@ -33,7 +34,24 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         this.repository = repository;
         this.searchService = searchService;
 
-        this.entityType = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[1];
+        this.entityType = (Class<T>) ((ParameterizedType) getGenericBaseServiceSuperclass()).getActualTypeArguments()[1];
+    }
+
+    private Type getGenericBaseServiceSuperclass() {
+        Class aClass = getClass();
+        Class genericSuperclass = null;
+        do {
+            genericSuperclass = aClass.getSuperclass();
+            if (genericSuperclass == Object.class) {
+                throw new RuntimeException("Class is not an instance of BaseService");
+            }
+
+            if (genericSuperclass == BaseService.class) {
+                return aClass.getGenericSuperclass();
+            }
+
+            aClass = genericSuperclass;
+        } while (true);
     }
 
     public void save(List<T> data) {
