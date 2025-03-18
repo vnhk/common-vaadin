@@ -256,7 +256,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         textFilterValue = searchField.getValue();
         applyFilters = true;
         refreshData();
-        applyFilters = false;
     }
 
     protected void buildFiltersMenu() {
