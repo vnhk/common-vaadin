@@ -67,6 +67,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected VerticalLayout filtersMenuLayout;
     protected final Button applyFiltersButton = new Button(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
+    protected final Button removeFiltersButton = new Button("Reset filters", e -> removeFilters());
     protected final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
     private SortDirection sortDirection = null;
     private Grid.Column<T> columnSorted = null;
@@ -106,6 +107,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         applyFiltersButton.addClassName("option-button");
         filtersMenuLayout.add(applyFiltersButton);
 
+        removeFiltersButton.addClassName("option-button");
+        filtersMenuLayout.add(removeFiltersButton);
+
         addButton.addClassName("option-button");
         currentPage.addClassName("option-button");
         currentPage.addClassName("option-button-warning");
@@ -133,6 +137,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         add(contentLayout);
 
         applyFiltersButton.click();
+        removeFiltersButton.setVisible(false);
     }
 
     private void updateCurrentPageText() {
@@ -255,7 +260,16 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected void filterTable() {
         textFilterValue = searchField.getValue();
         applyFilters = true;
+        removeFiltersButton.setVisible(true);
         refreshData();
+    }
+
+    protected void removeFilters() {
+        textFilterValue = "";
+        applyFilters = false;
+        filtersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
+        refreshData();
+        removeFiltersButton.setVisible(false);
     }
 
     protected void buildFiltersMenu() {
