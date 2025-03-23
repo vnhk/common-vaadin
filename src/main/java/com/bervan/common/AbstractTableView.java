@@ -1,6 +1,7 @@
 package com.bervan.common;
 
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.VaadinImageTableColumn;
 import com.bervan.common.model.VaadinTableColumn;
 import com.bervan.common.model.VaadinTableColumnConfig;
 import com.bervan.common.search.SearchRequest;
@@ -338,9 +339,19 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             VaadinTableColumnConfig config = buildColumnConfig(vaadinTableColumn);
             String columnInternalName = config.getInternalName();
             String columnName = config.getDisplayName();
-            grid.addColumn(createTextColumnComponent(vaadinTableColumn, config)).setHeader(columnName).setKey(columnInternalName)
-                    .setResizable(true)
-                    .setSortable(true);
+            if (config.getExtension() == VaadinImageTableColumn.class) {
+                grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
+                        .setHeader(columnName)
+                        .setKey(columnInternalName)
+                        .setResizable(true)
+                        .setSortable(true);
+            } else {
+                grid.addColumn(createTextColumnComponent(vaadinTableColumn, config))
+                        .setHeader(columnName)
+                        .setKey(columnInternalName)
+                        .setResizable(true)
+                        .setSortable(true);
+            }
         }
 
         grid.getElement().getStyle().set("--lumo-size-m", 10 + "px");
@@ -380,12 +391,37 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         };
     }
 
+    private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinTableColumnConfig config) {
+        return (span, record) -> {
+            try {
+                f.setAccessible(true);
+                Object o = f.get(record);
+                f.setAccessible(false);
+                if (o instanceof Collection<?> && ((Collection<?>) o).size() > 0) {
+                    Icon showEditorIcon = new Icon(VaadinIcon.SCATTER_CHART);
+                    span.add(showEditorIcon);
+                }
+                customizeImageColumnUpdater(span, record, f);
+            } catch (Exception e) {
+                log.error("Could not create column in table!", e);
+                showErrorNotification("Could not create column in table!");
+            }
+        };
+    }
+
+    protected void customizeImageColumnUpdater(Span span, T record, Field f) {
+    }
+
     protected void customizeTextColumnUpdater(Span span, T record, Field f) {
 
     }
 
     protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinTableColumnConfig config) {
         return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
+    }
+
+    protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinTableColumnConfig config) {
+        return new ComponentRenderer<>(Span::new, imageColumnUpdater(f, config));
     }
 
     protected void doOnColumnClick(ItemClickEvent<T> event) {
@@ -410,7 +446,19 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         Object value = item == null ? null : field.get(item);
         value = getInitValueForInput(field, item, config, value);
 
-        if (config.getStrValues().size() > 0) {
+        if (config.getExtension() == VaadinImageTableColumn.class) {
+            List<String> imageSources = new ArrayList<>();
+            //
+            if (String.class.getTypeName().equals(config.getTypeName())) {
+                imageSources.add((String) value);
+                component = new BervanImageViewer(imageSources);
+            } else if (List.class.getTypeName().equals(config.getTypeName())) {
+                if (value != null) {
+                    imageSources.addAll((Collection<String>) value);
+                }
+                component = new BervanImageViewer(imageSources);
+            }
+        } else if (config.getStrValues().size() > 0) {
             BervanComboBox<String> comboBox = new BervanComboBox<>(config.getDisplayName());
             component = buildComponentForComboBox(config.getStrValues(), comboBox, ((String) value));
         } else if (config.getIntValues().size() > 0) {

@@ -9,6 +9,7 @@ public class VaadinTableColumnConfig {
     private String displayName;
     private String internalName;
     private String defaultValue;
+    private Class<?> extension;
     private List<String> strValues;
     private List<Integer> intValues;
     private boolean isSingleValue = true;
@@ -84,5 +85,13 @@ public class VaadinTableColumnConfig {
 
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
+    }
+
+    public Class<?> getExtension() {
+        return extension;
+    }
+
+    public void setExtension(Class<?> extension) {
+        this.extension = extension;
     }
 }

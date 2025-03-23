@@ -14,6 +14,7 @@ public class TableClassUtils {
     public static VaadinTableColumnConfig buildColumnConfig(Field field) {
         VaadinTableColumnConfig config = new VaadinTableColumnConfig();
         config.setField(field);
+        config.setExtension(field.getAnnotation(VaadinTableColumn.class).extension());
         config.setTypeName(field.getType().getTypeName());
         config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
         config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());

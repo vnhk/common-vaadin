@@ -27,4 +27,6 @@ public @interface VaadinTableColumn {
     boolean inEditForm() default true;
 
     String defaultValue() default "";
+
+    Class<?> extension() default VaadinTableColumn.class;
 }
