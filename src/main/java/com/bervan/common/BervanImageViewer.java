@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.dom.Style;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,11 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
     private final Button prevButton;
     private final Button nextButton;
 
+    public void setImageViewerSize(String maxWidth, String maxHeight) {
+        imageComponent.setMaxWidth(maxWidth);
+        imageComponent.setMaxHeight(maxHeight);
+    }
+
     public BervanImageViewer(List<String> imageSources) {
         setSpacing(true);
         setAlignItems(Alignment.CENTER);
@@ -24,7 +30,8 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
         }
 
         imageComponent = new Image();
-        imageComponent.setMaxHeight("500px");
+        imageComponent.setWidth("500px");
+        imageComponent.getStyle().setOverflow(Style.Overflow.HIDDEN);
 
         prevButton = new Button("◀", event -> showPreviousImage());
         nextButton = new Button("▶", event -> showNextImage());
