@@ -451,12 +451,12 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             //
             if (String.class.getTypeName().equals(config.getTypeName())) {
                 imageSources.add((String) value);
-                component = new BervanImageViewer(imageSources);
+                component = new BervanImageController(imageSources);
             } else if (List.class.getTypeName().equals(config.getTypeName())) {
                 if (value != null) {
                     imageSources.addAll((Collection<String>) value);
                 }
-                component = new BervanImageViewer(imageSources);
+                component = new BervanImageController(imageSources);
             }
         } else if (config.getStrValues().size() > 0) {
             BervanComboBox<String> comboBox = new BervanComboBox<>(config.getDisplayName());

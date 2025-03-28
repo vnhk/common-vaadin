@@ -1,5 +1,7 @@
 package com.bervan.common;
 
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 
 public class BervanButton extends Button {
@@ -7,6 +9,11 @@ public class BervanButton extends Button {
 
     public BervanButton(String textValue) {
         this.setText(textValue);
+        addClassName(className);
+    }
+
+    public BervanButton(String textValue, ComponentEventListener<ClickEvent<Button>> clickListener) {
+        super(textValue, clickListener);
         addClassName(className);
     }
 

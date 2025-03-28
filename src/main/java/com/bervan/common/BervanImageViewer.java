@@ -8,6 +8,7 @@ import com.vaadin.flow.dom.Style;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BervanImageViewer extends VerticalLayout implements AutoConfigurableField<List<String>> {
     private List<String> imageSources = new ArrayList<>();
@@ -100,5 +101,26 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
     @Override
     public void setWidthFull() {
         super.setWidthFull();
+    }
+
+    public void removeCurrent() {
+        imageSources.remove(currentIndex);
+        if (currentIndex >= imageSources.size()) {
+            currentIndex = imageSources.size() - 1;
+        }
+        updateView();
+    }
+
+    public Optional<String> getCurrent() {
+        if (!imageSources.isEmpty()) {
+            return Optional.ofNullable(imageSources.get(currentIndex));
+        }
+        return Optional.empty();
+    }
+
+    public void updateCurrent(String newImg) {
+        imageSources.remove(currentIndex);
+        imageSources.add(currentIndex, newImg);
+        updateView();
     }
 }
