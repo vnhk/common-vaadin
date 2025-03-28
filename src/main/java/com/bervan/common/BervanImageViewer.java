@@ -39,7 +39,7 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
         HorizontalLayout navigation = new HorizontalLayout(prevButton, nextButton);
         navigation.setSpacing(true);
 
-        add(imageComponent, navigation);
+        add(navigation, imageComponent);
         updateView();
     }
 
