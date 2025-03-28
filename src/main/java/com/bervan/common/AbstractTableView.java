@@ -72,6 +72,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
     private SortDirection sortDirection = null;
     private Grid.Column<T> columnSorted = null;
+    private AbstractTableAction lastAction;
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -118,6 +119,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         prevPageButton.addClassName("option-button");
         prevPageButton.addClickListener(e -> {
             if (pageNumber > 0) {
+                lastAction = AbstractTableAction.PAGE_CHANGE;
                 pageNumber--;
                 refreshData();
             }
@@ -127,6 +129,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         nextPageButton.addClickListener(event -> {
             if (pageNumber < maxPages - 1) {
                 pageNumber++;
+                lastAction = AbstractTableAction.PAGE_CHANGE;
                 refreshData();
             }
         });
@@ -186,7 +189,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                         }
                     }
                 }
-                pageNumber = 0;
+                if (lastAction != AbstractTableAction.PAGE_CHANGE) {
+                    pageNumber = 0;
+                }
             }
 
             if (textFilterValue != null && !textFilterValue.isBlank()) {
@@ -256,6 +261,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         this.data.removeAll(this.data);
         this.data.addAll(loadData());
         this.grid.getDataProvider().refreshAll();
+        lastAction = null;
     }
 
     protected void filterTable() {
