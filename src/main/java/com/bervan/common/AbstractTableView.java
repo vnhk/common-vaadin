@@ -16,8 +16,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
-import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -34,9 +32,11 @@ import com.vaadin.flow.router.AfterNavigationObserver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.vaadin.olli.ClipboardHelper;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -96,7 +96,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         grid.setItems(data);
         grid.addClassName("bervan-table");
         grid.addItemClickListener(this::doOnColumnClick);
-        grid.addItemDoubleClickListener(this::doOnColumnDoubleClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
         searchField = getFilter();
@@ -148,8 +147,27 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages));
     }
 
-    protected void doOnColumnDoubleClick(ItemDoubleClickEvent<T> tItemDoubleClickEvent) {
-
+    protected String getCopyValue(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
+        try {
+            field.setAccessible(true);
+            Object value = null;
+            value = item == null ? null : field.get(item);
+            field.setAccessible(false);
+            if (value instanceof String) {
+                return ((String) value);
+            } else if (value instanceof Number) {
+                return (value.toString());
+            } else if (value instanceof LocalDateTime) {
+                return (value.toString());
+            } else if (value instanceof LocalDate) {
+                return (value.toString());
+            } else {
+                showWarningNotification("Value cannot be copied!");
+            }
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+        return null;
     }
 
     protected void removeUnSortedState(Grid<T> grid, int columnIndex) {
@@ -539,18 +557,18 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
 
-                Button dialogSaveButton = new Button("Save");
-                dialogSaveButton.addClassName("option-button");
+                Button dialogSaveButton = new BervanButton("Save");
 
-                Button deleteButton = new Button("Delete Item");
+                Button deleteButton = new BervanButton("Delete Item");
                 deleteButton.addClassName("option-button-warning");
-                deleteButton.addClassName("option-button");
+
+                ClipboardHelper clipboardHelper = getClipboardHelper(field, item, clickedColumn, componentWithValue);
 
                 HorizontalLayout buttonsLayout = new HorizontalLayout();
                 buttonsLayout.setWidthFull();
                 buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-                buttonsLayout.add(dialogSaveButton, deleteButton);
+                buttonsLayout.add(new HorizontalLayout(dialogSaveButton, clipboardHelper), deleteButton);
 
                 deleteButton.addClickListener(buttonClickEvent -> {
                     modalDeleteItem(dialog, item);
@@ -585,15 +603,16 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
 
-                Button deleteButton = new Button("Delete Item");
+                Button deleteButton = new BervanButton("Delete Item");
                 deleteButton.addClassName("option-button-warning");
-                deleteButton.addClassName("option-button");
+
+                ClipboardHelper clipboardHelper = getClipboardHelper(field, item, clickedColumn, componentWithValue);
 
                 HorizontalLayout buttonsLayout = new HorizontalLayout();
                 buttonsLayout.setWidthFull();
                 buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-                buttonsLayout.add(new Div(), deleteButton);
+                buttonsLayout.add(new HorizontalLayout(clipboardHelper), deleteButton);
 
                 deleteButton.addClickListener(buttonClickEvent -> {
                     modalDeleteItem(dialog, item);
@@ -610,6 +629,17 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 field.setAccessible(false);
             }
         }
+    }
+
+    private ClipboardHelper getClipboardHelper(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
+        String copyValue = getCopyValue(field, item, clickedColumn, componentWithValue);
+        Button copyButton = new BervanButton(new Icon(VaadinIcon.COPY_O), e -> showPrimaryNotification("Value copied!"));
+        ClipboardHelper clipboardHelper = new ClipboardHelper(copyValue, copyButton);
+
+        if (copyValue == null) {
+            clipboardHelper.setVisible(false);
+        }
+        return clipboardHelper;
     }
 
     protected void customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AutoConfigurableField finalComponentWithValue) {
