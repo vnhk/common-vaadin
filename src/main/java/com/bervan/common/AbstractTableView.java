@@ -162,12 +162,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             } else if (value instanceof LocalDate) {
                 return (value.toString());
             } else {
-                showWarningNotification("Value cannot be copied!");
+                return null;
             }
         } catch (IllegalAccessException e) {
             return null;
         }
-        return null;
     }
 
     protected void removeUnSortedState(Grid<T> grid, int columnIndex) {
