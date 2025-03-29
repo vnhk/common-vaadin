@@ -635,6 +635,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         String copyValue = getCopyValue(field, item, clickedColumn, componentWithValue);
         Button copyButton = new BervanButton(new Icon(VaadinIcon.COPY_O), e -> showPrimaryNotification("Value copied!"));
         ClipboardHelper clipboardHelper = new ClipboardHelper(copyValue, copyButton);
+        clipboardHelper.addClassName("option-button");
 
         if (copyValue == null) {
             clipboardHelper.setVisible(false);
