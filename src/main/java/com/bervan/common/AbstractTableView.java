@@ -349,8 +349,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
                         .setHeader(columnName)
                         .setKey(columnInternalName)
-                        .setResizable(true)
-                        .setSortable(true);
+                        .setResizable(false)
+                        .setSortable(false);
             } else {
                 grid.addColumn(createTextColumnComponent(vaadinTableColumn, config))
                         .setHeader(columnName)
