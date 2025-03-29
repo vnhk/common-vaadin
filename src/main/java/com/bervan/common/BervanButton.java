@@ -3,6 +3,7 @@ package com.bervan.common;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.Icon;
 
 public class BervanButton extends Button {
     private final String className = "option-button";
@@ -20,5 +21,19 @@ public class BervanButton extends Button {
     public BervanButton(String textValue, boolean initialVisibility) {
         this(textValue);
         setVisible(initialVisibility);
+    }
+
+    public BervanButton(Icon icon, ComponentEventListener<ClickEvent<Button>> clickEventComponentEventListener) {
+        super(icon, clickEventComponentEventListener);
+        addClassName(className);
+    }
+
+    public BervanButton() {
+        addClassName(className);
+    }
+
+    public BervanButton(Icon icon) {
+        super(icon);
+        addClassName(className);
     }
 }

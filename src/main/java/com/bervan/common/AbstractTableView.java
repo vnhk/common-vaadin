@@ -51,13 +51,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected int maxPages = 0;
     protected long allFound = 0;
     protected int pageSize = 50;
-    protected final Button currentPage = new Button();
-    protected final Button prevPageButton = new Button(new Icon(VaadinIcon.ARROW_LEFT));
-    protected final Button nextPageButton = new Button(new Icon(VaadinIcon.ARROW_RIGHT));
+    protected final Button currentPage = new BervanButton();
+    protected final Button prevPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_LEFT));
+    protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
     protected final BaseService<ID, T> service;
     protected Grid<T> grid;
     protected MenuNavigationComponent pageLayout;
-    protected final Button addButton = new Button(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
+    protected final Button addButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
     protected final VerticalLayout contentLayout = new VerticalLayout();
     private final Set<String> currentlySortedColumns = new HashSet<>();
     protected final BervanLogger log;
@@ -68,8 +68,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected VerticalLayout filtersMenuLayout;
-    protected final Button applyFiltersButton = new Button(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
-    protected final Button removeFiltersButton = new Button("Reset filters", e -> removeFilters());
+    protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
+    protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
+    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
     protected final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
     private SortDirection sortDirection = null;
     private Grid.Column<T> columnSorted = null;
@@ -107,10 +108,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         buildFiltersMenu();
 
-        applyFiltersButton.addClassName("option-button");
-        filtersMenuLayout.add(applyFiltersButton);
+        filtersMenuLayout.add(new HorizontalLayout(applyFiltersButton, reverseFiltersButton));
 
-        removeFiltersButton.addClassName("option-button");
         filtersMenuLayout.add(removeFiltersButton);
 
         addButton.addClassName("option-button");
@@ -322,6 +321,12 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     private void applyCombinedFilters() {
         filterTable();
+    }
+
+    private void reverseFilters() {
+        for (Map<Object, Checkbox> value : filtersMap.values()) {
+            value.values().forEach(e -> e.setValue(!e.getValue()));
+        }
     }
 
     protected TextField getFilter() {
