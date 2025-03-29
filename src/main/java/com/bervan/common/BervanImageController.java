@@ -61,4 +61,9 @@ public class BervanImageController extends VerticalLayout implements AutoConfigu
         viewer.setWidthFull();
         super.setWidthFull();
     }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        viewer.setReadOnly(readOnly);
+    }
 }

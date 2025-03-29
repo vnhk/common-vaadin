@@ -11,6 +11,7 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
     private final String id;
     private Div editorDiv;
     private boolean viewMode = false;
+    private boolean readOnly = false;
     private Button viewEditSwitchButton;
     private Action postClickSwitchAction = () -> {
     };
@@ -97,6 +98,13 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
     }
 
     private void setViewEditButtonText() {
+        if (readOnly) {
+            viewMode = true;
+            viewEditSwitchButton.setVisible(false);
+        } else {
+            viewEditSwitchButton.setVisible(true);
+        }
+
         if (viewMode) {
             viewEditSwitchButton.setText("Switch to Edit Mode");
         } else {
@@ -126,6 +134,9 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
 
     @Override
     public void setValue(String obj) {
+        if (readOnly) {
+            return;
+        }
         getElement().executeJs("document.querySelector('#" + id + " .ql-editor').innerHTML = '" + value + "'");
         this.value = obj;
     }
@@ -142,5 +153,10 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
 
     public void setSwitchButtonPostAction(Action postClickSwitchAction) {
         this.postClickSwitchAction = postClickSwitchAction;
+    }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
     }
 }

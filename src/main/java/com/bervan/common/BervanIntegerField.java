@@ -18,4 +18,9 @@ public class BervanIntegerField extends IntegerField implements AutoConfigurable
     public void setWidthFull() {
         super.setWidthFull();
     }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        super.setReadOnly(readOnly);
+    }
 }

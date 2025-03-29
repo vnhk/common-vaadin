@@ -22,4 +22,9 @@ public class BervanTextField extends TextField implements AutoConfigurableField<
     public void setWidthFull() {
         super.setWidthFull();
     }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        super.setReadOnly(readOnly);
+    }
 }

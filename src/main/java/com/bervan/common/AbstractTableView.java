@@ -17,6 +17,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -518,11 +519,16 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
             Optional<Field> fieldOptional = declaredFields.stream()
                     .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
+                    .filter(e -> !e.getAnnotation(VaadinTableColumn.class).inEditForm())
+                    .findFirst();
+
+            Optional<Field> editableField = declaredFields.stream()
+                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
                     .filter(e -> e.getAnnotation(VaadinTableColumn.class).inEditForm())
                     .findFirst();
 
-            if (fieldOptional.isPresent()) {
-                field = fieldOptional.get();
+            if (editableField.isPresent()) {
+                field = editableField.get();
                 AutoConfigurableField componentWithValue = buildComponentForField(field, item);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
@@ -566,6 +572,30 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 });
 
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
+            } else if (fieldOptional.isPresent()) {
+                field = fieldOptional.get();
+                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
+                componentWithValue.setReadOnly(true);
+                VerticalLayout layoutForField = new VerticalLayout();
+                layoutForField.add((Component) componentWithValue);
+                customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
+
+                Button deleteButton = new Button("Delete Item");
+                deleteButton.addClassName("option-button-warning");
+                deleteButton.addClassName("option-button");
+
+                HorizontalLayout buttonsLayout = new HorizontalLayout();
+                buttonsLayout.setWidthFull();
+                buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+                buttonsLayout.add(new Div(), deleteButton);
+
+                deleteButton.addClickListener(buttonClickEvent -> {
+                    modalDeleteItem(dialog, item);
+                });
+
+                dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
+
             }
         } catch (Exception e) {
             log.error("Error during using edit modal. Check columns name or create custom modal!", e);

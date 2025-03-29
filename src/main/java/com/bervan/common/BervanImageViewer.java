@@ -13,6 +13,7 @@ import java.util.Optional;
 public class BervanImageViewer extends VerticalLayout implements AutoConfigurableField<List<String>> {
     private List<String> imageSources = new ArrayList<>();
     private int currentIndex = 0;
+    private boolean readOnly = false;
     private final Image imageComponent;
     private final Button prevButton;
     private final Button nextButton;
@@ -84,6 +85,9 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
     }
 
     public void addImage(String imageSource) {
+        if (readOnly) {
+            return;
+        }
         imageSources.add(imageSource);
         updateView();
     }
@@ -95,6 +99,9 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
 
     @Override
     public void setValue(List<String> imageSources) {
+        if (readOnly) {
+            return;
+        }
         this.imageSources = imageSources;
     }
 
@@ -104,6 +111,9 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
     }
 
     public void removeCurrent() {
+        if (readOnly) {
+            return;
+        }
         imageSources.remove(currentIndex);
         if (currentIndex >= imageSources.size()) {
             currentIndex = imageSources.size() - 1;
@@ -119,8 +129,16 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
     }
 
     public void updateCurrent(String newImg) {
+        if (readOnly) {
+            return;
+        }
         imageSources.remove(currentIndex);
         imageSources.add(currentIndex, newImg);
         updateView();
+    }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = (readOnly);
     }
 }

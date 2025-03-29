@@ -18,4 +18,9 @@ public class BervanDoubleField extends NumberField implements AutoConfigurableFi
     public void setWidthFull() {
         super.setWidthFull();
     }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        super.setReadOnly(readOnly);
+    }
 }

@@ -28,4 +28,9 @@ public class BervanComboBox<T> extends ComboBox<T> implements AutoConfigurableFi
     public void setWidthFull() {
         super.setWidthFull();
     }
+
+    @Override
+    public void setReadOnly(boolean readOnly) {
+        super.setReadOnly(readOnly);
+    }
 }

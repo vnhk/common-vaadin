@@ -9,4 +9,6 @@ public interface AutoConfigurableField<T> {
     void setWidthFull();
 
     void setId(String id);
+
+    void setReadOnly(boolean readOnly);
 }
