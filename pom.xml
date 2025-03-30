@@ -80,6 +80,16 @@
             <version>latest</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bervan</groupId>
+            <artifactId>core</artifactId>
+            <version>latest</version>
+        </dependency>
+        <dependency>
             <groupId>com.bervan</groupId>
             <artifactId>ie-entities</artifactId>
             <version>latest</version>
