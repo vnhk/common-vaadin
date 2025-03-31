@@ -18,6 +18,12 @@ public class BervanButton extends Button {
         addClassName(className);
     }
 
+    public BervanButton(String textValue, ComponentEventListener<ClickEvent<Button>> clickListener, BervanButtonStyle bervanButtonStyle) {
+        super(textValue, clickListener);
+        addClassName(className);
+        addClassName(bervanButtonStyle.getClassName());
+    }
+
     public BervanButton(String textValue, boolean initialVisibility) {
         this(textValue);
         setVisible(initialVisibility);

@@ -9,6 +9,7 @@ import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -45,6 +46,7 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 public abstract class AbstractTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView implements AfterNavigationObserver {
     protected final List<T> data = new LinkedList<>();
+    protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
     protected String textFilterValue = "";
     protected boolean applyFilters = false;
     protected int pageNumber = 0;
@@ -65,6 +67,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected TextField searchField;
     protected Span countItemsInfo = new Span("");
     private int amountOfWysiwygEditors = 0;
+
+    protected boolean checkboxesColumnsEnabled = true;
+    protected Checkbox selectAllCheckbox;
+    protected List<Checkbox> checkboxes;
+    protected Button checkboxDeleteButton;
 
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected VerticalLayout filtersMenuLayout;
@@ -133,7 +140,26 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             }
         });
 
-        contentLayout.add(filtersButton, filtersMenuLayout, searchField, countItemsInfo, grid, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton), addButton);
+        HorizontalLayout checkboxActions = new HorizontalLayout();
+        checkboxActions.setVisible(checkboxesColumnsEnabled);
+        checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
+            Set<String> itemsId = checkboxes.stream().filter(AbstractField::getValue).map(Component::getId)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(e -> e.split("checkbox-")[1])
+                    .collect(Collectors.toSet());
+
+            List<T> toBeDeleted = data.stream().filter(e -> e.getId() != null)
+                    .filter(e -> itemsId.contains(e.getId().toString()))
+                    .toList();
+
+            deleteItemsFromGrid(toBeDeleted);
+            showSuccessNotification("Removed " + toBeDeleted.size() + " items");
+        }, BervanButtonStyle.WARNING);
+        checkboxDeleteButton.setEnabled(false);
+        checkboxActions.add(checkboxDeleteButton);
+
+        contentLayout.add(filtersButton, filtersMenuLayout, searchField, countItemsInfo, checkboxActions, grid, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton), addButton);
 
         add(pageLayout);
 
@@ -190,6 +216,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected List<T> loadData() {
+        checkboxes = new ArrayList<>();
         try {
             SearchRequest request = new SearchRequest();
 
@@ -363,6 +390,15 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected final void buildGridAutomatically(Grid<T> grid) {
+        if (checkboxesColumnsEnabled) {
+            buildSelectAllCheckboxesComponent();
+            grid.addColumn(createCheckboxComponent())
+                    .setHeader(selectAllCheckbox)
+                    .setKey(CHECKBOX_COLUMN_KEY)
+                    .setResizable(false)
+                    .setSortable(false);
+        }
+
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         for (Field vaadinTableColumn : vaadinTableColumns) {
             VaadinTableColumnConfig config = buildColumnConfig(vaadinTableColumn);
@@ -394,6 +430,18 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 this.columnSorted = sortOrder.getSorted();
                 this.sortDirection = sortDirection;
                 this.refreshData();
+            }
+        });
+    }
+
+    private void buildSelectAllCheckboxesComponent() {
+        this.selectAllCheckbox = new Checkbox(false);
+        this.selectAllCheckbox.addValueChangeListener(clickEvent -> {
+            if (clickEvent.isFromClient()) {
+                for (Checkbox checkbox : checkboxes) {
+                    checkbox.setValue(selectAllCheckbox.getValue());
+                }
+                checkboxDeleteButton.setEnabled(selectAllCheckbox.getValue());
             }
         });
     }
@@ -438,6 +486,38 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         };
     }
 
+    private SerializableBiConsumer<Checkbox, T> checkboxColumnUpdater() {
+        return (checkbox, record) -> {
+            try {
+                ID id = record.getId();
+                checkbox.setId("checkbox-" + id);
+                checkbox.addValueChangeListener(e -> {
+                    if (e.isFromClient()) {
+                        checkboxDeleteButton.setEnabled(isAtLeastOneCheckboxSelected());
+
+                        boolean flag = checkbox.getValue();
+                        for (Checkbox c : checkboxes) {
+                            if (c.getValue() != flag) {
+                                selectAllCheckbox.setValue(false); //at least one is not selected
+                                return;
+                            }
+                        }
+
+                        selectAllCheckbox.setValue(flag); //all are selected or all are not selected
+                    }
+                });
+                checkboxes.add(checkbox);
+            } catch (Exception e) {
+                log.error("Could not create checkbox column in table!", e);
+                showErrorNotification("Could not checkbox create column in table!");
+            }
+        };
+    }
+
+    private boolean isAtLeastOneCheckboxSelected() {
+        return checkboxes.parallelStream().anyMatch(AbstractField::getValue);
+    }
+
     protected void customizeImageColumnUpdater(Span span, T record, Field f) {
     }
 
@@ -447,6 +527,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinTableColumnConfig config) {
         return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
+    }
+
+    protected ComponentRenderer<Checkbox, T> createCheckboxComponent() {
+        return new ComponentRenderer<>(Checkbox::new, checkboxColumnUpdater());
     }
 
     protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinTableColumnConfig config) {
@@ -534,7 +618,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         return value;
     }
 
-    protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout, String clickedColumn, T item) {
+    protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout,
+                                                   HorizontalLayout headerLayout, String clickedColumn, T item) {
         Field field = null;
         try {
             List<Field> declaredFields = getVaadinTableColumns();
@@ -655,13 +740,19 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void modalDeleteItem(Dialog dialog, T item) {
-        service.delete(item);
-        removeItemFromGrid(item);
+        deleteItemsFromGrid(Collections.singletonList(item));
+        dialog.close();
+        showSuccessNotification("Deleted successfully!");
+    }
+
+    private void deleteItemsFromGrid(List<T> items) {
+        for (T item : items) {
+            service.delete(item);
+            removeItemFromGrid(item);
+        }
+
         this.grid.getDataProvider().refreshAll();
         resetTableResults();
-        dialog.close();
-
-        showSuccessNotification("Deleted successfully!");
     }
 
     protected void resetTableResults() {
