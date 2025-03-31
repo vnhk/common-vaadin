@@ -13,6 +13,7 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
@@ -143,19 +144,40 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         HorizontalLayout checkboxActions = new HorizontalLayout();
         checkboxActions.setVisible(checkboxesColumnsEnabled);
         checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
-            Set<String> itemsId = checkboxes.stream().filter(AbstractField::getValue).map(Component::getId)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(e -> e.split("checkbox-")[1])
-                    .collect(Collectors.toSet());
+            ConfirmDialog confirmDialog = new ConfirmDialog();
+            confirmDialog.setHeader("Confirm Deletion");
+            confirmDialog.setText("Are you sure you want to delete the selected items?");
 
-            List<T> toBeDeleted = data.stream().filter(e -> e.getId() != null)
-                    .filter(e -> itemsId.contains(e.getId().toString()))
-                    .toList();
+            confirmDialog.setConfirmText("Delete");
+            confirmDialog.setConfirmButtonTheme("error primary");
+            confirmDialog.addConfirmListener(event -> {
+                Set<String> itemsId = checkboxes.stream()
+                        .filter(AbstractField::getValue)
+                        .map(Component::getId)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .map(e -> e.split("checkbox-")[1])
+                        .collect(Collectors.toSet());
 
-            deleteItemsFromGrid(toBeDeleted);
-            showSuccessNotification("Removed " + toBeDeleted.size() + " items");
+                List<T> toBeDeleted = data.stream()
+                        .filter(e -> e.getId() != null)
+                        .filter(e -> itemsId.contains(e.getId().toString()))
+                        .toList();
+
+                deleteItemsFromGrid(toBeDeleted);
+                showSuccessNotification("Removed " + toBeDeleted.size() + " items");
+
+                selectAllCheckbox.setValue(false);
+            });
+
+            confirmDialog.setCancelText("Cancel");
+            confirmDialog.setCancelable(true);
+            confirmDialog.addCancelListener(event -> {
+            });
+
+            confirmDialog.open();
         }, BervanButtonStyle.WARNING);
+
         checkboxDeleteButton.setEnabled(false);
         checkboxActions.add(checkboxDeleteButton);
 
@@ -438,6 +460,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         this.selectAllCheckbox = new Checkbox(false);
         this.selectAllCheckbox.addValueChangeListener(clickEvent -> {
             if (clickEvent.isFromClient()) {
+                if (checkboxes.size() == 0) {
+                    selectAllCheckbox.setValue(false);
+                    return;
+                }
+
                 for (Checkbox checkbox : checkboxes) {
                     checkbox.setValue(selectAllCheckbox.getValue());
                 }
@@ -767,6 +794,16 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         if (oldSize == this.data.size()) {
             ID id = item.getId();
             this.data.removeIf(e -> e.getId().equals(id));
+        }
+
+        ID id = item.getId();
+        if (id != null) {
+            List<Checkbox> checkboxesToRemove = checkboxes.stream()
+                    .filter(AbstractField::getValue)
+                    .filter(e -> e.getId().isPresent())
+                    .filter(e -> e.getId().get().equals("checkbox-" + id))
+                    .toList();
+            checkboxes.removeAll(checkboxesToRemove);
         }
     }
 
