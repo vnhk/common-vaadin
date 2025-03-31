@@ -15,6 +15,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
@@ -414,12 +415,17 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final void buildGridAutomatically(Grid<T> grid) {
         if (checkboxesColumnsEnabled) {
             buildSelectAllCheckboxesComponent();
+
             grid.addColumn(createCheckboxComponent())
                     .setHeader(selectAllCheckbox)
                     .setKey(CHECKBOX_COLUMN_KEY)
+                    .setWidth("20px")
+                    .setTextAlign(ColumnTextAlign.CENTER)
                     .setResizable(false)
                     .setSortable(false);
         }
+
+        preColumnAutoCreation(grid);
 
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         for (Field vaadinTableColumn : vaadinTableColumns) {
@@ -454,6 +460,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 this.refreshData();
             }
         });
+    }
+
+    protected void preColumnAutoCreation(Grid<T> grid) {
+
     }
 
     private void buildSelectAllCheckboxesComponent() {
