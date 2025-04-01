@@ -72,7 +72,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     protected boolean checkboxesColumnsEnabled = true;
     protected Checkbox selectAllCheckbox;
-    protected List<Checkbox> checkboxes;
+    protected List<Checkbox> checkboxes = new ArrayList<>();
     protected Button checkboxDeleteButton;
 
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
