@@ -169,6 +169,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 showSuccessNotification("Removed " + toBeDeleted.size() + " items");
 
                 selectAllCheckbox.setValue(false);
+                checkboxDeleteButton.setEnabled(isAtLeastOneCheckboxSelected());
             });
 
             confirmDialog.setCancelText("Cancel");
