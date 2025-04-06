@@ -55,7 +55,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected int maxPages = 0;
     protected long allFound = 0;
     protected int pageSize = 50;
-    protected final Button currentPage = new BervanButton();
+    protected final Button currentPage = new BervanButton(":)");
     protected final Button prevPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_LEFT));
     protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
     protected final BaseService<ID, T> service;
