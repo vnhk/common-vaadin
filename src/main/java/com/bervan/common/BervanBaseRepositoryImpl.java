@@ -37,7 +37,7 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     @Override
     @PreAuthorize("hasRole('USER')")
     public <S extends T> @NotNull S save(S entity) {
-        if (entity.getOwners() == null || entity.getOwners().size() == 0) {
+        if (!(entity instanceof User) && (entity.getOwners() == null || entity.getOwners().size() == 0)) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             entity.addOwner(user);
         }

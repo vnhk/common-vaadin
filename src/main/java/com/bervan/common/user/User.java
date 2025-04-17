@@ -4,7 +4,6 @@ import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,10 +21,19 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     private String password;
     private String role;
     private boolean mainAccount = true;
+    private boolean lockedAccount = false;
     private Boolean deleted = false;
     private LocalDateTime modificationDate;
     @OneToMany(mappedBy = "parent", fetch = FetchType.EAGER)
     private Set<UserToUserRelation> childrenRelations = new HashSet<>();
+
+    public void setLockedAccount(boolean lockedAccount) {
+        this.lockedAccount = lockedAccount;
+    }
+
+    public boolean isLockedAccount() {
+        return lockedAccount;
+    }
 
     @Override
     public UUID getId() {
@@ -43,22 +51,38 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
 
     @Override
     public boolean isAccountNonExpired() {
-        return !deleted;
+        if (deleted || lockedAccount) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !deleted;
+        if (deleted || lockedAccount) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return !deleted;
+        if (deleted || lockedAccount) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return !deleted;
+        if (deleted || lockedAccount) {
+            return false;
+        }
+
+        return true;
     }
 
     public void setUsername(String username) {
