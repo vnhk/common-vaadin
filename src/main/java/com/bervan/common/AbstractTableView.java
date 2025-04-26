@@ -80,7 +80,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
     protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
-    protected final Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
+    protected final Map<Field, Map<Object, Checkbox>> checkboxFiltersMap = new HashMap<>();
+    protected final Map<Field, Map<String, BervanDateTimePicker>> dateTimeFiltersMap = new HashMap<>();
     private SortDirection sortDirection = null;
     private Grid.Column<T> columnSorted = null;
     private AbstractTableAction lastAction;
@@ -245,18 +246,31 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             SearchRequest request = new SearchRequest();
 
             if (applyFilters) {
-                for (Field field : filtersMap.keySet()) {
+                for (Field field : checkboxFiltersMap.keySet()) {
                     VaadinTableColumnConfig config = buildColumnConfig(field);
                     if (config.getStrValues().size() > 0) {
                         for (String key : config.getStrValues()) {
-                            createCriteriaForCheckbox(request, field, filtersMap.get(field).get(key), key);
+                            createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                         }
                     } else if (config.getIntValues().size() > 0) {
                         for (Integer key : config.getIntValues()) {
-                            createCriteriaForCheckbox(request, field, filtersMap.get(field).get(key), key);
+                            createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                         }
                     }
                 }
+
+                for (Field field : dateTimeFiltersMap.keySet()) {
+                    BervanDateTimePicker from = dateTimeFiltersMap.get(field).get("FROM");
+                    BervanDateTimePicker to = dateTimeFiltersMap.get(field).get("TO");
+                    if (from.getValue() != null) {
+                        createCriteriaForDateGreaterEqual(field.getName().toUpperCase() + "_DATE_CRITERIA_GROUP", request, field, from);
+                    }
+
+                    if (to.getValue() != null) {
+                        createCriteriaForDateLessEqual(field.getName().toUpperCase() + "_DATE_CRITERIA_GROUP", request, field, to);
+                    }
+                }
+
                 if (lastAction != AbstractTableAction.PAGE_CHANGE) {
                     pageNumber = 0;
                 }
@@ -305,6 +319,15 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         return new ArrayList<>();
     }
 
+    private void createCriteriaForDateGreaterEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, date.getValue());
+
+    }
+
+    private void createCriteriaForDateLessEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LESS_EQUAL_OPERATION, date.getValue());
+    }
+
     protected void customizePreLoad(SearchRequest request) {
 
     }
@@ -342,7 +365,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected void removeFilters() {
         textFilterValue = "";
         applyFilters = false;
-        filtersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
+        checkboxFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
+        dateTimeFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         refreshData();
         removeFiltersButton.setVisible(false);
     }
@@ -354,14 +378,14 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
                 VerticalLayout fieldLayout = new VerticalLayout();
                 fieldLayout.setWidthFull();
-                filtersMap.putIfAbsent(field, new HashMap<>());
+                checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
                 if (!config.getStrValues().isEmpty()) {
                     H4 label = new H4(config.getDisplayName() + ":");
                     fieldLayout.add(label);
                     for (String val : config.getStrValues()) {
                         Checkbox checkbox = new Checkbox(val);
                         checkbox.setValue(true);
-                        filtersMap.get(field).put(val, checkbox);
+                        checkboxFiltersMap.get(field).put(val, checkbox);
                         fieldLayout.add(checkbox);
                     }
                 } else {
@@ -370,13 +394,16 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                     for (Integer val : config.getIntValues()) {
                         Checkbox checkbox = new Checkbox(val.toString());
                         checkbox.setValue(true);
-                        filtersMap.get(field).put(val, checkbox);
+                        checkboxFiltersMap.get(field).put(val, checkbox);
                         fieldLayout.add(checkbox);
                     }
                 }
                 filtersMenuLayout.add(fieldLayout);
             }
         }
+
+        dateTimeFiltersMap.putAll(TableClassUtils.buildDateTimeFiltersMenu(Collections.singletonList(tClass),
+                filtersMenuLayout));
 
         if (fields.size() == 0) {
             filtersButton.setVisible(false);
@@ -392,7 +419,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     private void reverseFilters() {
-        for (Map<Object, Checkbox> value : filtersMap.values()) {
+        for (Map<Object, Checkbox> value : checkboxFiltersMap.values()) {
             value.values().forEach(e -> e.setValue(!e.getValue()));
         }
     }
@@ -433,6 +460,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             VaadinTableColumnConfig config = buildColumnConfig(vaadinTableColumn);
             String columnInternalName = config.getInternalName();
             String columnName = config.getDisplayName();
+
+            if (!config.isInTable()) {
+                continue;
+            }
+
             if (config.getExtension() == VaadinImageTableColumn.class) {
                 grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
                         .setHeader(columnName)

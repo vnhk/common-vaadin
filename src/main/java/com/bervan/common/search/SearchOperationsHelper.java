@@ -6,8 +6,9 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class SearchOperationsHelper {
 
@@ -22,6 +23,37 @@ public class SearchOperationsHelper {
     public static Predicate equal(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
         return criteriaBuilder.equal(getExpression(root, entityCriterion.getField()), entityCriterion.getValue());
     }
+
+    public static Predicate greaterEqual(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
+        Path expression = getExpression(root, entityCriterion.getField());
+        Object value = entityCriterion.getValue();
+
+        if (value instanceof Number) {
+            return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
+        } else if (value instanceof LocalDate) {
+            return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
+        } else if (value instanceof LocalDateTime) {
+            return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
+        } else {
+            throw new IllegalArgumentException("Unsupported type for greaterEqual operation: " + value.getClass());
+        }
+    }
+
+    public static Predicate lessEqual(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
+        Path expression = getExpression(root, entityCriterion.getField());
+        Object value = entityCriterion.getValue();
+
+        if (value instanceof Number) {
+            return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);
+        } else if (value instanceof LocalDate) {
+            return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);
+        } else if (value instanceof LocalDateTime) {
+            return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);
+        } else {
+            throw new IllegalArgumentException("Unsupported type for lessEqual operation: " + value.getClass());
+        }
+    }
+
 
     public static Predicate isNull(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
         return criteriaBuilder.isNull(getExpression(root, entityCriterion.getField()));

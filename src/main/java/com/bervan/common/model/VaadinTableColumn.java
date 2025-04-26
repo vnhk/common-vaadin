@@ -29,4 +29,6 @@ public @interface VaadinTableColumn {
     String defaultValue() default "";
 
     Class<?> extension() default VaadinTableColumn.class;
+
+    boolean inTable() default true;
 }

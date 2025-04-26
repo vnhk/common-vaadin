@@ -181,6 +181,10 @@ public class SearchService {
             case IS_NULL_OPERATION -> predicate = SearchOperationsHelper.isNull(root, criteriaBuilder, entityCriterion);
             case IS_NOT_NULL_OPERATION -> predicate = SearchOperationsHelper.isNotNull(root, criteriaBuilder, entityCriterion);
             case EQUALS_OPERATION -> predicate = SearchOperationsHelper.equal(root, criteriaBuilder, entityCriterion);
+            case GREATER_EQUAL_OPERATION ->
+                    predicate = SearchOperationsHelper.greaterEqual(root, criteriaBuilder, entityCriterion);
+            case LESS_EQUAL_OPERATION ->
+                    predicate = SearchOperationsHelper.lessEqual(root, criteriaBuilder, entityCriterion);
             case LIKE_OPERATION -> predicate = SearchOperationsHelper.contains(root, criteriaBuilder, entityCriterion);
             case NOT_EQUALS_OPERATION ->
                     predicate = SearchOperationsHelper.notEqual(root, criteriaBuilder, entityCriterion);

@@ -65,7 +65,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     }
 
     public Set<T> load(Pageable pageable) {
-        SearchRequest result = buildLoadSearchRequestData();
+        SearchRequest result = buildLoadSearchRequestData(new SearchRequest());
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
         options.setSortField("id");
         options.setPage(pageable.getPageNumber());
@@ -77,7 +77,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     }
 
     public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection) {
-        SearchRequest result = buildLoadSearchRequestData();
+        SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
         options.setSortField(sortField);
@@ -90,7 +90,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     }
 
     public Set<T> load(SearchRequest request, Pageable pageable) {
-        SearchRequest result = buildLoadSearchRequestData();
+        SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
         options.setSortField("id");
@@ -115,7 +115,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     }
 
     public long loadCount(SearchRequest request) {
-        SearchRequest result = buildLoadSearchRequestData();
+        SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
         options.isCountQuery(true);
@@ -125,7 +125,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     }
 
     public long loadCount() {
-        SearchRequest result = buildLoadSearchRequestData();
+        SearchRequest result = buildLoadSearchRequestData(new SearchRequest());
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
         options.isCountQuery(true);
 
@@ -133,9 +133,13 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return search.getAllFound();
     }
 
-    private SearchRequest buildLoadSearchRequestData() {
+    private SearchRequest buildLoadSearchRequestData(SearchRequest request) {
         SearchRequest searchRequest = new SearchRequest();
-        searchRequest.addOwnerAccessCriteria(entityType);
+
+        if (!request.containsGroup(SearchRequest.OWNER_ACCESS_GROUP)) {
+            searchRequest.addOwnerAccessCriteria(entityType);
+        }
+
         if (Arrays.stream(entityType.getDeclaredFields()).peek(e -> e.setAccessible(true)).anyMatch(e -> e.getName().equals("deleted"))) {
             searchRequest.addDeletedFalseCriteria(entityType);
         }

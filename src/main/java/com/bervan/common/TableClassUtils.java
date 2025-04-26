@@ -4,9 +4,11 @@ import com.bervan.common.model.VaadinTableColumn;
 import com.bervan.common.model.VaadinTableColumnConfig;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,6 +17,7 @@ public class TableClassUtils {
         VaadinTableColumnConfig config = new VaadinTableColumnConfig();
         config.setField(field);
         config.setExtension(field.getAnnotation(VaadinTableColumn.class).extension());
+        config.setInTable(field.getAnnotation(VaadinTableColumn.class).inTable());
         config.setTypeName(field.getType().getTypeName());
         config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
         config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());
@@ -27,8 +30,7 @@ public class TableClassUtils {
         return config;
     }
 
-
-    public static Map<Field, Map<Object, Checkbox>> buildFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, Map<Object, Checkbox>> buildCheckboxFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
         Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
 
@@ -48,7 +50,7 @@ public class TableClassUtils {
                             filtersMap.get(field).put(val, checkbox);
                             fieldLayout.add(checkbox);
                         }
-                    } else {
+                    } else if (!config.getIntValues().isEmpty()) {
                         H4 label = new H4(config.getDisplayName() + ":");
                         fieldLayout.add(label);
                         for (Integer val : config.getIntValues()) {
@@ -62,6 +64,33 @@ public class TableClassUtils {
                 }
             }
 
+        }
+
+        return filtersMap;
+    }
+
+    public static Map<Field, Map<String, BervanDateTimePicker>> buildDateTimeFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+        Map<Field, Map<String, BervanDateTimePicker>> filtersMap = new HashMap<>();
+        Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
+
+        for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
+            for (Field field : fields.getValue()) {
+                VaadinTableColumnConfig config = buildColumnConfig(field);
+                if (field.getType().equals(LocalDateTime.class)) {
+                    VerticalLayout fieldLayout = new VerticalLayout();
+                    fieldLayout.setWidthFull();
+                    filtersMap.putIfAbsent(field, new HashMap<>());
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    BervanDateTimePicker from = new BervanDateTimePicker();
+                    BervanDateTimePicker to = new BervanDateTimePicker();
+                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    filtersMap.get(field).put("FROM", from);
+                    filtersMap.get(field).put("TO", to);
+
+                    filtersMenuLayout.add(fieldLayout);
+                }
+            }
         }
 
         return filtersMap;

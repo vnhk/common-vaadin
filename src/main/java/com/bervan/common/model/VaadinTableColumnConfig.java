@@ -14,6 +14,7 @@ public class VaadinTableColumnConfig {
     private List<Integer> intValues;
     private boolean isSingleValue = true;
     private boolean isWysiwyg = false;
+    private boolean inTable;
 
     public String getTypeName() {
         return typeName;
@@ -93,5 +94,13 @@ public class VaadinTableColumnConfig {
 
     public void setExtension(Class<?> extension) {
         this.extension = extension;
+    }
+
+    public void setInTable(boolean b) {
+        this.inTable = b;
+    }
+
+    public boolean isInTable() {
+        return inTable;
     }
 }

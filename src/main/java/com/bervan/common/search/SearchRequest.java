@@ -12,6 +12,7 @@ import java.util.UUID;
 public class SearchRequest {
     public final List<Group> groups = new ArrayList<>();
     public final List<Criterion> criteria = new ArrayList<>();
+    public static final String OWNER_ACCESS_GROUP = "OWNER_ACCESS_GROUP";
 
     public void addCriterion(String groupId, Operator groupOperatorForNewGroup, Class<?> objectType, String fieldPath, SearchOperation fieldValueOperator, Object value) {
         Group groupToUpdate;
@@ -60,7 +61,15 @@ public class SearchRequest {
     }
 
     public void addOwnerAccessCriteria(Class<?> objectType) {
-        addCriterion("OWNER_ACCESS_GROUP", objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
+        addCriterion(OWNER_ACCESS_GROUP, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
+    }
+
+    public void addOwnerAccessCriteria(Class<?> objectType, UUID userId) {
+        addCriterion(OWNER_ACCESS_GROUP, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, userId);
+    }
+
+    public boolean containsGroup(String groupId) {
+        return criteria.stream().anyMatch(e->e.id.equals(groupId));
     }
 
     public void addIdEqualsCriteria(String groupId, Class<?> objectType, UUID id) {

@@ -27,7 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.bervan.common.TableClassUtils.buildFiltersMenu;
+import static com.bervan.common.TableClassUtils.buildCheckboxFiltersMenu;
+import static com.bervan.common.TableClassUtils.buildDateTimeFiltersMenu;
 
 public abstract class AbstractDataIEView<ID extends Serializable> extends AbstractPageView {
     public static final String ROUTE_NAME = "interview-app/import-export-data";
@@ -39,7 +40,7 @@ public abstract class AbstractDataIEView<ID extends Serializable> extends Abstra
     private String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     private String globalTmpDir;
-    private final Map<Field, Map<Object, Checkbox>> filtersMap;
+    private final Map<Field, Map<Object, Checkbox>> checkboxFilterMap;
     private final VerticalLayout filtersLayout = new VerticalLayout();
 
     public AbstractDataIEView(List<BaseService<ID, ? extends PersistableTableData<?>>> dataServices,
@@ -50,7 +51,7 @@ public abstract class AbstractDataIEView<ID extends Serializable> extends Abstra
         this.pageLayout = pageLayout;
         this.classesToExport = classesToExport;
 
-        filtersMap = buildFiltersMenu(classesToExport, filtersLayout);
+        checkboxFilterMap = buildCheckboxFiltersMenu(classesToExport, filtersLayout);
         add(pageLayout);
 
         Button prepareExportButton = new Button("Prepare data for export");
@@ -145,7 +146,7 @@ public abstract class AbstractDataIEView<ID extends Serializable> extends Abstra
             for (Object t : loaded) {
                 if (t instanceof ExcelIEEntity<?>) {
                     for (Field declaredField : t.getClass().getDeclaredFields()) {
-                        Set<Object> selectedObjects = TableClassUtils.getSelectedObjects(filtersMap, declaredField);
+                        Set<Object> selectedObjects = TableClassUtils.getSelectedObjects(checkboxFilterMap, declaredField);
                         if (selectedObjects != null && selectedObjects.size() > 0) {
                             declaredField.setAccessible(true);
                             if (!selectedObjects.contains(declaredField.get(t))) {
