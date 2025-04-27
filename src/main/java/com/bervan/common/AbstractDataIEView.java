@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.bervan.common.TableClassUtils.buildCheckboxFiltersMenu;
-import static com.bervan.common.TableClassUtils.buildDateTimeFiltersMenu;
 
 public abstract class AbstractDataIEView<ID extends Serializable> extends AbstractPageView {
     public static final String ROUTE_NAME = "interview-app/import-export-data";
@@ -118,7 +117,9 @@ public abstract class AbstractDataIEView<ID extends Serializable> extends Abstra
     public StreamResource prepareDownloadResource() {
         try {
             BaseExcelExport baseExcelExport = new BaseExcelExport();
-            Workbook workbook = baseExcelExport.exportExcel(getDataToExport(), null);
+            List<ExcelIEEntity<?>> dataToExport = getDataToExport();
+            logger.info("Found " + dataToExport.size() + " to be exported!");
+            Workbook workbook = baseExcelExport.exportExcel(dataToExport, null);
             File saved = baseExcelExport.save(workbook, pathToFileStorage + globalTmpDir, "export" + LocalDateTime.now() + ".xlsx");
             String filename = saved.getName();
 
