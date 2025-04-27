@@ -4,6 +4,7 @@ package com.bervan.logging;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.core.AppenderBase;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -34,8 +35,20 @@ public class QueueAppender extends AppenderBase<ILoggingEvent> implements SmartL
         if (rabbitTemplate == null || applicationName == null) {
             return;
         }
+
         LogMessage logMessage;
-        if (eventObject.getCallerData() != null && eventObject.getCallerData().length > 0) {
+        if (eventObject.getThrowableProxy() != null) {
+            StackTraceElement callerData = eventObject.getCallerData()[0];
+            logMessage = new LogMessage(
+                    applicationName,
+                    eventObject.getLevel().toString(),
+                    getExceptionFormattedMessage(eventObject),
+                    LocalDateTime.now(),
+                    callerData.getClassName(),
+                    callerData.getMethodName(),
+                    callerData.getLineNumber()
+            );
+        } else if (eventObject.getCallerData() != null && eventObject.getCallerData().length > 0) {
             StackTraceElement callerData = eventObject.getCallerData()[0];
             logMessage = new LogMessage(
                     applicationName,
@@ -58,12 +71,24 @@ public class QueueAppender extends AppenderBase<ILoggingEvent> implements SmartL
             );
         }
 
-
         try {
             rabbitTemplate.convertAndSend("LOGS_DIRECT_EXCHANGE", "LOGS_ROUTING_KEY", logMessage);
         } catch (Exception e) {
             addError("Failed to send log to RabbitMQ", e);
         }
+    }
+
+    private static String getExceptionFormattedMessage(ILoggingEvent eventObject) {
+        StringBuilder stringBuilder = new StringBuilder(eventObject.getFormattedMessage());
+
+        IThrowableProxy throwableProxy = eventObject.getThrowableProxy();
+        while (throwableProxy != null) {
+            stringBuilder.append("\n");
+            stringBuilder.append(throwableProxy.getMessage());
+            throwableProxy = throwableProxy.getCause();
+        }
+
+        return stringBuilder.toString();
     }
 
     @Override
