@@ -304,9 +304,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
             if (textFilterValue != null && !textFilterValue.isBlank()) {
                 List<Field> vaadinTableColumns = getVaadinTableColumns();
-                List<String> filterableFields = vaadinTableColumns.stream().filter(e -> e.getType().equals(String.class))
-                        .map(Field::getName)
-                        .toList(); //later configure in each class example @VaadinColumn filterable=true
+                List<String> filterableFields = getFilterableFields(vaadinTableColumns); //later configure in each class example @VaadinColumn filterable=true
 
                 for (String filterableField : filterableFields) {
                     request.addCriterion("TEXT_FILTER_GROUP", Operator.OR_OPERATOR, tClass, filterableField, SearchOperation.LIKE_OPERATION, "%" + textFilterValue + "%");
@@ -343,6 +341,12 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             showErrorNotification("Unable to load table!");
         }
         return new ArrayList<>();
+    }
+
+    protected List<String> getFilterableFields(List<Field> vaadinTableColumns) {
+        return new ArrayList<>(vaadinTableColumns.stream().filter(e -> e.getType().equals(String.class))
+                .map(Field::getName)
+                .toList());
     }
 
     private void createCriteriaForDateGreaterEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
