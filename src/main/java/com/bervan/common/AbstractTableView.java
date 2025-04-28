@@ -58,6 +58,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected final Button currentPage = new BervanButton(":)");
     protected final Button prevPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_LEFT));
     protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
+    protected final BervanComboBox<Integer> goToPage = new BervanComboBox<>();
     protected final BaseService<ID, T> service;
     protected Grid<T> grid;
     protected MenuNavigationComponent pageLayout;
@@ -74,7 +75,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Checkbox selectAllCheckbox;
     protected List<Checkbox> checkboxes = new ArrayList<>();
     protected Button checkboxDeleteButton;
-
+    protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
+        lastAction = AbstractTableAction.REFRESH_TABLE;
+        refreshData();
+    });
     protected final Button filtersButton = new Button(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected VerticalLayout filtersMenuLayout;
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
@@ -143,6 +147,20 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             }
         });
 
+        goToPage.addValueChangeListener(event -> {
+            if (event.getValue() == null || !event.isFromClient()) {
+                return;
+            }
+            pageNumber = event.getValue() - 1;
+            lastAction = AbstractTableAction.PAGE_CHANGE;
+            refreshData();
+        });
+
+        goToPage.setMaxWidth("100px");
+
+        HorizontalLayout topTableActions = new HorizontalLayout();
+        topTableActions.add(refreshTable);
+
         HorizontalLayout checkboxActions = new HorizontalLayout();
         checkboxActions.setVisible(checkboxesColumnsEnabled);
         checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
@@ -183,8 +201,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         checkboxDeleteButton.setEnabled(false);
         checkboxActions.add(checkboxDeleteButton);
+        topTableActions.add(checkboxActions);
 
-        contentLayout.add(filtersButton, filtersMenuLayout, searchField, countItemsInfo, checkboxActions, grid, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton), addButton);
+        contentLayout.add(filtersButton, filtersMenuLayout, searchField, countItemsInfo, topTableActions, grid, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
 
         add(pageLayout);
 
@@ -196,6 +215,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     private void updateCurrentPageText() {
         currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages));
+        List<Integer> items = new ArrayList<>();
+        items.add(maxPages);
+        for (int i = 1; i < maxPages; i++) {
+            items.add(i + 1);
+        }
+        goToPage.setItems(items);
+        goToPage.setValue(pageNumber + 1);
     }
 
     protected String getCopyValue(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
@@ -271,7 +297,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                     }
                 }
 
-                if (lastAction != AbstractTableAction.PAGE_CHANGE) {
+                if (lastAction != AbstractTableAction.PAGE_CHANGE && lastAction != AbstractTableAction.REFRESH_TABLE) {
                     pageNumber = 0;
                 }
             }

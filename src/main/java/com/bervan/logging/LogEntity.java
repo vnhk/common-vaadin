@@ -4,6 +4,7 @@ import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinTableColumn;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import java.time.format.DateTimeFormatter;
 @Setter
 @AllArgsConstructor
 public class LogEntity extends BervanBaseEntity<Long> implements PersistableTableData<Long> {
-    public static final int MAX_LOG_MESSAGE_LENGTH = 2000;
+    public static final int MAX_LOG_MESSAGE_LENGTH = 20000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +38,8 @@ public class LogEntity extends BervanBaseEntity<Long> implements PersistableTabl
     @VaadinTableColumn(internalName = "timestamp", displayName = "Timestamp", inEditForm = false, inSaveForm = false, inTable = false)
     private LocalDateTime timestamp;
 
-    @Column(length = MAX_LOG_MESSAGE_LENGTH)
+    @Size(max = MAX_LOG_MESSAGE_LENGTH)
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String message;
 
     @Transient

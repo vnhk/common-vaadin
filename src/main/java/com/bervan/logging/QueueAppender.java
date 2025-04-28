@@ -3,19 +3,22 @@ package com.bervan.logging;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.IThrowableProxy;
-import ch.qos.logback.core.AppenderBase;
+import ch.qos.logback.core.ConsoleAppender;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Component
-public class QueueAppender extends AppenderBase<ILoggingEvent> implements SmartLifecycle {
+public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements SmartLifecycle {
 
     private final RabbitTemplate rabbitTemplate;
     private final String applicationName;
@@ -36,25 +39,20 @@ public class QueueAppender extends AppenderBase<ILoggingEvent> implements SmartL
             return;
         }
 
+        byte[] encodedMessage = encoder.encode(eventObject);
+        String decodedString = new String(encodedMessage, StandardCharsets.UTF_8);
+
         LogMessage logMessage;
-        if (eventObject.getThrowableProxy() != null) {
+        if (eventObject.getCallerData() != null && eventObject.getCallerData().length > 0) {
             StackTraceElement callerData = eventObject.getCallerData()[0];
             logMessage = new LogMessage(
                     applicationName,
                     eventObject.getLevel().toString(),
-                    getExceptionFormattedMessage(eventObject),
-                    LocalDateTime.now(),
-                    callerData.getClassName(),
-                    callerData.getMethodName(),
-                    callerData.getLineNumber()
-            );
-        } else if (eventObject.getCallerData() != null && eventObject.getCallerData().length > 0) {
-            StackTraceElement callerData = eventObject.getCallerData()[0];
-            logMessage = new LogMessage(
-                    applicationName,
-                    eventObject.getLevel().toString(),
-                    eventObject.getFormattedMessage(),
-                    LocalDateTime.now(),
+                    decodedString,
+                    LocalDateTime.ofInstant(
+                            Instant.ofEpochMilli(eventObject.getTimeStamp()),
+                            ZoneId.systemDefault()
+                    ),
                     callerData.getClassName(),
                     callerData.getMethodName(),
                     callerData.getLineNumber()
@@ -63,8 +61,11 @@ public class QueueAppender extends AppenderBase<ILoggingEvent> implements SmartL
             logMessage = new LogMessage(
                     applicationName,
                     eventObject.getLevel().toString(),
-                    eventObject.getFormattedMessage(),
-                    LocalDateTime.now(),
+                    decodedString,
+                    LocalDateTime.ofInstant(
+                            Instant.ofEpochMilli(eventObject.getTimeStamp()),
+                            ZoneId.systemDefault()
+                    ),
                     "",
                     "",
                     -1
@@ -78,23 +79,16 @@ public class QueueAppender extends AppenderBase<ILoggingEvent> implements SmartL
         }
     }
 
-    private static String getExceptionFormattedMessage(ILoggingEvent eventObject) {
-        StringBuilder stringBuilder = new StringBuilder(eventObject.getFormattedMessage());
-
-        IThrowableProxy throwableProxy = eventObject.getThrowableProxy();
-        while (throwableProxy != null) {
-            stringBuilder.append("\n");
-            stringBuilder.append(throwableProxy.getMessage());
-            throwableProxy = throwableProxy.getCause();
-        }
-
-        return stringBuilder.toString();
-    }
-
     @Override
     public void start() {
-        super.start();
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+        encoder.setContext(loggerContext);
+        encoder.setPattern("%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n");
+        encoder.start();
+
+        this.encoder = encoder;
+        super.start();
         Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
         AppenderDelegator<ILoggingEvent> delegate = (AppenderDelegator<ILoggingEvent>) rootLogger.getAppender("DELEGATOR");
         delegate.setDelegateAndReplayBuffer(this);
