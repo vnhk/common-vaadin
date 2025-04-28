@@ -78,6 +78,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Grid.Column<T> columnSorted = null;
     protected AbstractTableAction lastAction;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
+    protected HorizontalLayout checkboxActions;
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -93,6 +94,16 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     @Override
     public void afterNavigation(AfterNavigationEvent afterNavigationEvent) {
 //        data.addAll(loadData());
+    }
+
+    protected Set<String> getSelectedItemsByCheckbox() {
+        return checkboxes.stream()
+                .filter(AbstractField::getValue)
+                .map(Component::getId)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(e -> e.split("checkbox-")[1])
+                .collect(Collectors.toSet());
     }
 
     public void renderCommonComponents() {
@@ -138,7 +149,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         HorizontalLayout topTableActions = new HorizontalLayout();
         topTableActions.add(refreshTable);
 
-        HorizontalLayout checkboxActions = new HorizontalLayout();
+        checkboxActions = new HorizontalLayout();
         checkboxActions.setVisible(checkboxesColumnsEnabled);
         checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
             ConfirmDialog confirmDialog = new ConfirmDialog();
@@ -148,13 +159,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             confirmDialog.setConfirmText("Delete");
             confirmDialog.setConfirmButtonTheme("error primary");
             confirmDialog.addConfirmListener(event -> {
-                Set<String> itemsId = checkboxes.stream()
-                        .filter(AbstractField::getValue)
-                        .map(Component::getId)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .map(e -> e.split("checkbox-")[1])
-                        .collect(Collectors.toSet());
+                Set<String> itemsId = getSelectedItemsByCheckbox();
 
                 List<T> toBeDeleted = data.stream()
                         .filter(e -> e.getId() != null)
@@ -540,6 +545,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             component = buildDoubleInput(value, config.getDisplayName());
         } else if (LocalDateTime.class.getTypeName().equals(config.getTypeName())) {
             component = buildDateTimeInput(value, config.getDisplayName());
+        } else if (boolean.class.getTypeName().equals(config.getTypeName())) {
+            component = buildBooleanInput(value, config.getDisplayName());
         } else {
             component = new BervanTextField("Not supported yet");
             if (value == null) {
@@ -554,6 +561,14 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         field.setAccessible(false);
 
         return component;
+    }
+
+    private AutoConfigurableField buildBooleanInput(Object value, String displayName) {
+        BervanBooleanField checkbox = new BervanBooleanField();
+        if (value != null) {
+            checkbox.setValue((Boolean) value);
+        }
+        return checkbox;
     }
 
     private Object getInitValueForInput(Field field, Object item, VaadinTableColumnConfig config, Object value) throws IllegalAccessException {
