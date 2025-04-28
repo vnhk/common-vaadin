@@ -30,7 +30,6 @@ import java.util.Set;
 import static com.bervan.common.TableClassUtils.buildCheckboxFiltersMenu;
 
 public abstract class AbstractDataIEView<ID extends Serializable> extends AbstractPageView {
-    public static final String ROUTE_NAME = "interview-app/import-export-data";
     protected final List<BaseService<ID, ? extends PersistableTableData<?>>> dataServices;
     protected final MenuNavigationComponent pageLayout;
     protected final BervanLogger logger;
@@ -39,8 +38,8 @@ public abstract class AbstractDataIEView<ID extends Serializable> extends Abstra
     private String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     private String globalTmpDir;
-    private final Map<Field, Map<Object, Checkbox>> checkboxFilterMap;
-    private final VerticalLayout filtersLayout = new VerticalLayout();
+    protected final Map<Field, Map<Object, Checkbox>> checkboxFilterMap;
+    protected final VerticalLayout filtersLayout = new VerticalLayout();
 
     public AbstractDataIEView(List<BaseService<ID, ? extends PersistableTableData<?>>> dataServices,
                               MenuNavigationComponent pageLayout,
