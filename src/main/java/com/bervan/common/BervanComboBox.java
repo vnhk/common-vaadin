@@ -20,6 +20,11 @@ public class BervanComboBox<T> extends ComboBox<T> implements AutoConfigurableFi
         super(label, items);
     }
 
+    public BervanComboBox(Collection<T> items) {
+        super();
+        setItems(items);
+    }
+
     public BervanComboBox(String label, T... items) {
         super(label, items);
     }

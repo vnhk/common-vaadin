@@ -8,6 +8,7 @@ import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -21,7 +22,7 @@ import java.util.*;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
-public class AbstractFiltersLayout<ID extends Serializable, T extends PersistableTableData<ID>> extends VerticalLayout {
+public class AbstractFiltersLayout<ID extends Serializable, T extends PersistableTableData<ID>> extends Div {
     protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected final VerticalLayout filtersMenuLayout = new VerticalLayout();
     protected final Button applyFiltersButton;

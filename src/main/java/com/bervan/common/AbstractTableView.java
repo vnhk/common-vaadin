@@ -79,6 +79,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Grid.Column<T> columnSorted = null;
     protected AbstractTableAction lastAction;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
+    protected HorizontalLayout topLayout = new HorizontalLayout();
     protected HorizontalLayout checkboxActions;
     protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
 
@@ -192,7 +193,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         buttonsForCheckboxesForVisibilityChange.add(checkboxDeleteButton);
 
-        contentLayout.add(filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
+        topLayout.add(filtersLayout.filtersButton);
+        contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
 
         add(pageLayout);
 
