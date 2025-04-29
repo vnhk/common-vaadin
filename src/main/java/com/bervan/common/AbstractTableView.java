@@ -69,6 +69,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Checkbox selectAllCheckbox;
     protected List<Checkbox> checkboxes = new ArrayList<>();
     protected Button checkboxDeleteButton;
+    protected List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
         lastAction = AbstractTableAction.REFRESH_TABLE;
         refreshData();
@@ -173,7 +174,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 showSuccessNotification("Removed " + toBeDeleted.size() + " items");
 
                 selectAllCheckbox.setValue(false);
-                checkboxDeleteButton.setEnabled(isAtLeastOneCheckboxSelected());
+                for (Button button : buttonsForCheckboxesForVisibilityChange) {
+                    button.setEnabled(isAtLeastOneCheckboxSelected());
+                }
             });
 
             confirmDialog.setCancelText("Cancel");
@@ -184,9 +187,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             confirmDialog.open();
         }, BervanButtonStyle.WARNING);
 
-        checkboxDeleteButton.setEnabled(false);
         checkboxActions.add(checkboxDeleteButton);
         topTableActions.add(checkboxActions);
+
+        buttonsForCheckboxesForVisibilityChange.add(checkboxDeleteButton);
 
         contentLayout.add(filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
 
@@ -195,6 +199,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         add(contentLayout);
 
         refreshData();
+
+        for (Button button : buttonsForCheckboxesForVisibilityChange) {
+            button.setEnabled(false);
+        }
     }
 
     private void updateCurrentPageText() {
@@ -405,7 +413,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 for (Checkbox checkbox : checkboxes) {
                     checkbox.setValue(selectAllCheckbox.getValue());
                 }
-                checkboxDeleteButton.setEnabled(selectAllCheckbox.getValue());
+                for (Button button : buttonsForCheckboxesForVisibilityChange) {
+                    button.setEnabled(selectAllCheckbox.getValue());
+                }
             }
 
             updateSelectedItemsLabel();
@@ -463,7 +473,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 checkbox.setId("checkbox-" + id);
                 checkbox.addValueChangeListener(e -> {
                     if (e.isFromClient()) {
-                        checkboxDeleteButton.setEnabled(isAtLeastOneCheckboxSelected());
+                        for (Button button : buttonsForCheckboxesForVisibilityChange) {
+                            button.setEnabled(isAtLeastOneCheckboxSelected());
+                        }
                         updateSelectedItemsLabel();
 
                         boolean flag = checkbox.getValue();
@@ -485,7 +497,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         };
     }
 
-    private boolean isAtLeastOneCheckboxSelected() {
+    public boolean isAtLeastOneCheckboxSelected() {
         return checkboxes.parallelStream().anyMatch(AbstractField::getValue);
     }
 
