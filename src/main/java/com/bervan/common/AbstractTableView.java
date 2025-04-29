@@ -17,6 +17,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -45,7 +46,6 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 public abstract class AbstractTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView implements AfterNavigationObserver {
     protected final List<T> data = new LinkedList<>();
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
-    //    protected boolean applyFilters = false;
     protected int pageNumber = 0;
     protected int maxPages = 0;
     protected long allFound = 0;
@@ -79,6 +79,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected AbstractTableAction lastAction;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
     protected HorizontalLayout checkboxActions;
+    protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -151,6 +152,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         checkboxActions = new HorizontalLayout();
         checkboxActions.setVisible(checkboxesColumnsEnabled);
+        selectedItemsCountLabel.setVisible(checkboxesColumnsEnabled);
+
         checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
             ConfirmDialog confirmDialog = new ConfirmDialog();
             confirmDialog.setHeader("Confirm Deletion");
@@ -185,7 +188,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         checkboxActions.add(checkboxDeleteButton);
         topTableActions.add(checkboxActions);
 
-        contentLayout.add(filtersLayout, countItemsInfo, topTableActions, grid, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
+        contentLayout.add(filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
 
         add(pageLayout);
 
@@ -249,6 +252,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     protected List<T> loadData() {
         checkboxes = new ArrayList<>();
+        updateSelectedItemsLabel();
         try {
             SearchRequest request = new SearchRequest();
 
@@ -403,7 +407,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 }
                 checkboxDeleteButton.setEnabled(selectAllCheckbox.getValue());
             }
+
+            updateSelectedItemsLabel();
         });
+    }
+
+    private void updateSelectedItemsLabel() {
+        selectedItemsCountLabel.setText("Selected " + checkboxes.stream().filter(AbstractField::getValue).count() + " item(s)");
     }
 
     private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinTableColumnConfig config) {
@@ -454,6 +464,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 checkbox.addValueChangeListener(e -> {
                     if (e.isFromClient()) {
                         checkboxDeleteButton.setEnabled(isAtLeastOneCheckboxSelected());
+                        updateSelectedItemsLabel();
 
                         boolean flag = checkbox.getValue();
                         for (Checkbox c : checkboxes) {
