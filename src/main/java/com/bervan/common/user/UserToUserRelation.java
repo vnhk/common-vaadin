@@ -46,6 +46,14 @@ public class UserToUserRelation extends BervanBaseEntity<UUID> implements Persis
         this.id = uuid;
     }
 
+    public void setChild(User child) {
+        this.child = child;
+    }
+
+    public void setParent(User parent) {
+        this.parent = parent;
+    }
+
     public User getParent() {
         return parent;
     }

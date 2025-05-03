@@ -431,6 +431,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinTableColumnConfig config) {
         return (span, record) -> {
             try {
+                span.setClassName("bervan-cell-component");
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
@@ -453,6 +454,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinTableColumnConfig config) {
         return (span, record) -> {
             try {
+                span.setClassName("bervan-cell-component");
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
@@ -473,6 +475,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             try {
                 ID id = record.getId();
                 checkbox.setId("checkbox-" + id);
+                checkbox.setClassName("bervan-cell-component");
                 checkbox.addValueChangeListener(e -> {
                     if (e.isFromClient()) {
                         for (Button button : buttonsForCheckboxesForVisibilityChange) {
@@ -881,8 +884,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
             customFieldInCreateLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
 
-            Button dialogSaveButton = new Button("Save");
-            dialogSaveButton.addClassName("option-button");
+            Button dialogSaveButton = new BervanButton("Save");
 
             HorizontalLayout buttonsLayout = new HorizontalLayout();
             buttonsLayout.setWidthFull();
@@ -901,9 +903,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
                     newObject = customizeSavingInCreateForm(newObject);
 
-                    newObject = service.save(newObject);
-                    this.data.add(newObject);
-                    this.grid.getDataProvider().refreshAll();
+                    service.save(newObject);
+                    refreshData();
                 } catch (Exception e) {
                     log.error("Could not save new item!", e);
                     showErrorNotification("Could not save new item!");

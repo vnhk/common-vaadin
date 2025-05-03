@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Component
+@Profile("!test && !it")
 public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements SmartLifecycle {
 
     private final RabbitTemplate rabbitTemplate;
