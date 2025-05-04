@@ -670,12 +670,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
                         T changed = service.save(item);
 
-                        refreshDataAfterUpdate(changed);
                     } catch (IllegalAccessException e) {
                         log.error("Could not update field value!", e);
                         showErrorNotification("Could not update value!");
                     }
                     dialog.close();
+                    refreshTable.clickInClient();
+                    refreshTable.click();
                 });
 
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
@@ -780,6 +781,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void refreshDataAfterUpdate(T item) {
+        lastAction = AbstractTableAction.REFRESH_TABLE;
         removeItemFromGrid(item);
         filterTable();
     }
