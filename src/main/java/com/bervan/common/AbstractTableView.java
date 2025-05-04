@@ -178,6 +178,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 for (Button button : buttonsForCheckboxesForVisibilityChange) {
                     button.setEnabled(isAtLeastOneCheckboxSelected());
                 }
+
+                refreshData();
             });
 
             confirmDialog.setCancelText("Cancel");
