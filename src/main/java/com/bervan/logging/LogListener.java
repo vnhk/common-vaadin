@@ -23,21 +23,26 @@ public class LogListener {
 
     @RabbitListener(queues = "LOGS_QUEUE", concurrency = "1")
     public void receiveLog(LogMessage logMessage) {
-        LogEntity entity = new LogEntity();
-        entity.setApplicationName(logMessage.getApplicationName());
-        entity.setLogLevel(logMessage.getLogLevel());
-        entity.setMessage(logMessage.getMessage());
-        entity.setTimestamp(logMessage.getTimestamp());
-        entity.setClassName(logMessage.getClassName());
-        entity.setLineNumber(logMessage.getLineNumber());
-        entity.setMethodName(logMessage.getMethodName());
+        try {
+            LogEntity entity = new LogEntity();
+            entity.setApplicationName(logMessage.getApplicationName());
+            entity.setLogLevel(logMessage.getLogLevel());
+            entity.setMessage(logMessage.getMessage());
+            entity.setTimestamp(logMessage.getTimestamp());
+            entity.setClassName(logMessage.getClassName());
+            entity.setLineNumber(logMessage.getLineNumber());
+            entity.setMethodName(logMessage.getMethodName());
 
-        if (entity.getMessage().length() > MAX_LOG_MESSAGE_LENGTH) {
-            entity.setMessage(truncateLogMessage(entity.getMessage()));
+            if (entity.getMessage().length() > MAX_LOG_MESSAGE_LENGTH) {
+                entity.setMessage(truncateLogMessage(entity.getMessage()));
+            }
+
+            entity.addOwner(commonUser);
+            logRepository.save(entity);
+        } catch (Throwable e) {
+            //don't do anything, we don't want to have infinite loop of logs
         }
 
-        entity.addOwner(commonUser);
-        logRepository.save(entity);
     }
 
     private String truncateLogMessage(String logMessage) {
