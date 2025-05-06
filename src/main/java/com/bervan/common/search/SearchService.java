@@ -59,8 +59,23 @@ public class SearchService {
             Integer page = options.getPage();
             Integer pageSize = options.getPageSize();
 
-            CriteriaQuery<? extends BervanBaseEntity> mainQuery = criteriaBuilder.createQuery(entityToFind);
-            Root<? extends BervanBaseEntity> root = mainQuery.from(entityToFind);
+            CriteriaQuery mainQuery;
+            Root<? extends BervanBaseEntity> root;
+
+            if (options.getColumnsToFetch() != null && !options.getColumnsToFetch().isEmpty()) {
+                mainQuery = criteriaBuilder.createQuery(Object[].class);
+                root = mainQuery.from(entityToFind);
+
+                List<String> columnsToFetch = options.getColumnsToFetch();
+                Selection<?>[] selections = columnsToFetch.stream()
+                        .map(root::get)
+                        .toArray(Selection[]::new);
+
+                mainQuery.select(criteriaBuilder.array(selections));
+            } else {
+                mainQuery = criteriaBuilder.createQuery(entityToFind);
+                root = mainQuery.from(entityToFind);
+            }
 
             Predicate predicates = null;
             if (searchRequest != null && searchRequest.groups.size() > 0) {
@@ -71,13 +86,30 @@ public class SearchService {
 
             mainQuery.orderBy(createOrder(criteriaBuilder, root, sortField, isAscendingSortDirection(sortDirection)));
 
-            List<? extends BervanBaseEntity> resultList = new ArrayList<>();
+            List resultList = new ArrayList<>();
             if (!options.isCountQuery()) {
-                TypedQuery<? extends BervanBaseEntity> resultQuery = entityManager.createQuery(mainQuery);
+                TypedQuery resultQuery = entityManager.createQuery(mainQuery);
                 resultQuery.setFirstResult(pageSize * (page));
                 resultQuery.setMaxResults(pageSize);
                 resultList = resultQuery.getResultList();
             }
+
+            if (options.getColumnsToFetch() != null && !options.getColumnsToFetch().isEmpty()) {
+                resultList = resultList.stream().map(row -> {
+                    try {
+                        T instance = (T) entityToFind.getDeclaredConstructor().newInstance();
+                        for (int i = 0; i < options.getColumnsToFetch().size(); i++) {
+                            Field field = entityToFind.getDeclaredField(options.getColumnsToFetch().get(i));
+                            field.setAccessible(true);
+                            field.set(instance, ((Object[]) row)[i]);
+                        }
+                        return instance;
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error mapping row to entity", e);
+                    }
+                }).toList();
+            }
+
             Long allFound = getHowManyItemsExist(searchRequest, entityToFind);
 
             return new SearchResponse(resultList, resultList.size(), page, allFound);

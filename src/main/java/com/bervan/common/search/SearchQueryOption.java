@@ -4,6 +4,8 @@ import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.search.model.SortDirection;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.List;
+
 public class SearchQueryOption {
     @NotNull
     private SortDirection sortDirection = SortDirection.ASC;
@@ -14,6 +16,7 @@ public class SearchQueryOption {
     @NotNull
     private Integer pageSize = 50;
     private Class<? extends BervanBaseEntity> entityToFind;
+    private List<String> columnsToFetch;
     private boolean countQuery;
 
     public SearchQueryOption() {
@@ -70,5 +73,13 @@ public class SearchQueryOption {
 
     public boolean isCountQuery() {
         return countQuery;
+    }
+
+    public List<String> getColumnsToFetch() {
+        return columnsToFetch;
+    }
+
+    public void setColumnsToFetch(List<String> columnsToFetch) {
+        this.columnsToFetch = columnsToFetch;
     }
 }

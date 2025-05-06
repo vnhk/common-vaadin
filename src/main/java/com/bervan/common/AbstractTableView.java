@@ -286,8 +286,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             }
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
-            List<T> collect = this.service.load(request, pageable, sortField, sortDir).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
+            List<String> columnsToFetch = getColumnsToFetchForTable();
+            List<T> collect = this.service.load(request, pageable, sortField, sortDir, columnsToFetch).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
                     .collect(Collectors.toList());
+
+            postSearchUpdate(collect);
 
             allFound = countAll(request, collect);
             maxPages = (int) Math.ceil((double) allFound / pageSize);
@@ -302,6 +305,23 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             showErrorNotification("Unable to load table!");
         }
         return new ArrayList<>();
+    }
+
+    protected void postSearchUpdate(List<T> collect) {
+
+    }
+
+    protected List<String> getColumnsToFetchForTable() {
+        List<String> result = new ArrayList<>();
+        for (Field vaadinTableColumn : getVaadinTableColumns()) {
+            if (Collection.class.isAssignableFrom(vaadinTableColumn.getType()) ||
+                    Map.class.isAssignableFrom(vaadinTableColumn.getType())) {
+                continue;
+            }
+            result.add(vaadinTableColumn.getName());
+        }
+        result.add("id");
+        return result;
     }
 
     protected void customizePreLoad(SearchRequest request) {

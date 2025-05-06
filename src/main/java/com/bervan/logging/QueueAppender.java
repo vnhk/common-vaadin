@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Component
-@Profile("!test && !it")
+@Profile("!test && !it && !debug")
 public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements SmartLifecycle {
 
     private final RabbitTemplate rabbitTemplate;

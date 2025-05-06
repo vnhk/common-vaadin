@@ -76,11 +76,12 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return new HashSet<>(search.getResultList());
     }
 
-    public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection) {
+    public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection, List<String> columnsToFetch) {
         SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
         SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
         options.setSortField(sortField);
+        options.setColumnsToFetch(columnsToFetch);
         options.setSortDirection(sortDirection);
         options.setPage(pageable.getPageNumber());
         options.setPageSize(pageable.getPageSize());
@@ -107,7 +108,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         Set<T> result = load(request, Pageable.ofSize(1));
 
         if (result.size() != 1) {
-            logger.error("Element not found by id, expected 1 found: " + result.size());
+            logger.error("Element not found by id, expected 1 found: {}", result.size());
             return Optional.empty();
         } else {
             return Optional.of(result.iterator().next());
@@ -156,8 +157,6 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     @Transactional
     public void saveIfValid(List<? extends ExcelIEEntity<ID>> objects) {
         try {
-
-
             List<? extends ExcelIEEntity<ID>> list = objects.stream()
                     .filter(e -> entityType.isInstance(e))
                     .toList();
