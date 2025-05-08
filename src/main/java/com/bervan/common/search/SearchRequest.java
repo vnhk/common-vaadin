@@ -12,6 +12,7 @@ import java.util.UUID;
 public class SearchRequest {
     public final List<Group> groups = new ArrayList<>();
     public final List<Criterion> criteria = new ArrayList<>();
+    private boolean addOwnerCriterion = true;
     public static final String OWNER_ACCESS_GROUP = "OWNER_ACCESS_GROUP";
 
     public void addCriterion(String groupId, Operator groupOperatorForNewGroup, Class<?> objectType, String fieldPath, SearchOperation fieldValueOperator, Object value) {
@@ -61,11 +62,15 @@ public class SearchRequest {
     }
 
     public void addOwnerAccessCriteria(Class<?> objectType) {
-        addCriterion(OWNER_ACCESS_GROUP, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
+        if (addOwnerCriterion) {
+            addCriterion(OWNER_ACCESS_GROUP, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, AuthService.getLoggedUserId());
+        }
     }
 
     public void addOwnerAccessCriteria(Class<?> objectType, UUID userId) {
-        addCriterion(OWNER_ACCESS_GROUP, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, userId);
+        if (addOwnerCriterion) {
+            addCriterion(OWNER_ACCESS_GROUP, objectType, "[owners].id", SearchOperation.EQUALS_OPERATION, userId);
+        }
     }
 
     public boolean containsGroup(String groupId) {
@@ -79,5 +84,9 @@ public class SearchRequest {
     public void merge(SearchRequest request) {
         groups.addAll(request.groups);
         criteria.addAll(request.criteria);
+    }
+
+    public void setAddOwnerCriterion(boolean addOwnerCriterion) {
+        this.addOwnerCriterion = addOwnerCriterion;
     }
 }
