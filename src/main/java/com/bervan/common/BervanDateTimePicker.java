@@ -48,8 +48,10 @@ public class BervanDateTimePicker extends HorizontalLayout implements AutoConfig
 
     @Override
     public void setValue(LocalDateTime obj) {
-        datePicker.setValue(obj.toLocalDate());
-        timePicker.setValue(obj.toLocalTime());
+        if (obj != null) {
+            datePicker.setValue(obj.toLocalDate());
+            timePicker.setValue(obj.toLocalTime());
+        }
     }
 
     @Override

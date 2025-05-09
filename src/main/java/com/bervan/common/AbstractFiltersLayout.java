@@ -98,11 +98,24 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     private void createCriteriaForCheckboxFilters(SearchRequest request) {
         for (Field field : checkboxFiltersMap.keySet()) {
             VaadinTableColumnConfig config = buildColumnConfig(field);
+
             if (config.getStrValues().size() > 0) {
+                //are all checkbox selected? if so does not make sense create criteria
+                if (checkboxFiltersMap.get(field).entrySet().stream().filter(e -> e.getValue().getValue()).count()
+                        == config.getStrValues().size()) {
+                    continue;
+                }
+
                 for (String key : config.getStrValues()) {
                     createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                 }
             } else if (config.getIntValues().size() > 0) {
+                //are all checkbox selected? if so does not make sense create criteria
+                if (checkboxFiltersMap.get(field).entrySet().stream().filter(e -> e.getValue().getValue()).count()
+                        == config.getIntValues().size()) {
+                    continue;
+                }
+
                 for (Integer key : config.getIntValues()) {
                     createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                 }
