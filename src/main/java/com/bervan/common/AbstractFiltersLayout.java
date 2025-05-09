@@ -71,6 +71,10 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         return checkboxFiltersMap;
     }
 
+    public Map<Field, Map<String, BervanDateTimePicker>> getDateTimeFiltersMap() {
+        return dateTimeFiltersMap;
+    }
+
     public SearchRequest buildCombinedFilters() {
         removeFiltersButton.setVisible(true);
 

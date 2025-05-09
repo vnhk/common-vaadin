@@ -71,13 +71,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected Button checkboxDeleteButton;
     protected List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
-        lastAction = AbstractTableAction.REFRESH_TABLE;
         refreshData();
     });
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected SortDirection sortDirection = null;
     protected Grid.Column<T> columnSorted = null;
-    protected AbstractTableAction lastAction;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
     protected HorizontalLayout topLayout = new HorizontalLayout();
     protected HorizontalLayout checkboxActions;
@@ -124,7 +122,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         prevPageButton.addClassName("option-button");
         prevPageButton.addClickListener(e -> {
             if (pageNumber > 0) {
-                lastAction = AbstractTableAction.PAGE_CHANGE;
                 pageNumber--;
                 refreshData();
             }
@@ -134,7 +131,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         nextPageButton.addClickListener(event -> {
             if (pageNumber < maxPages - 1) {
                 pageNumber++;
-                lastAction = AbstractTableAction.PAGE_CHANGE;
                 refreshData();
             }
         });
@@ -144,7 +140,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 return;
             }
             pageNumber = event.getValue() - 1;
-            lastAction = AbstractTableAction.PAGE_CHANGE;
             refreshData();
         });
 
@@ -283,10 +278,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             } else {
                 sortField = "id";
             }
+            customizePreLoad(request); //must be before pageable to be able to modify it
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
             List<String> columnsToFetch = getColumnsToFetchForTable();
-            customizePreLoad(request);
             List<T> collect = this.service.load(request, pageable, sortField, sortDir, columnsToFetch).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
                     .collect(Collectors.toList());
 
@@ -340,7 +335,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         this.data.removeAll(this.data);
         this.data.addAll(loadData());
         this.grid.getDataProvider().refreshAll();
-        lastAction = null;
     }
 
     protected void filterTable() {
@@ -801,7 +795,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void refreshDataAfterUpdate(T item) {
-        lastAction = AbstractTableAction.REFRESH_TABLE;
         removeItemFromGrid(item);
         filterTable();
     }
