@@ -16,7 +16,7 @@ public interface LogRepository extends BaseRepository<LogEntity, Long> {
     @Query(value = """
             DELETE FROM logs_owners
             WHERE log_entity_id IN (
-                SELECT id FROM my_tools_db.logs WHERE timestamp < :cutoff
+                SELECT id FROM logs WHERE timestamp < :cutoff
             )
             """, nativeQuery = true)
     void deleteOwnersByOldLogs(@Param("cutoff") LocalDateTime cutoff);
