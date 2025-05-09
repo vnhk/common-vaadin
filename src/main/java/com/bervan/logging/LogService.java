@@ -17,7 +17,7 @@ public class LogService extends BaseService<Long, LogEntity> {
 
     @Scheduled(cron = "0 0 2 * * *")
     public void cleanOldLogs() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(1); //change to 7 once server be better
         ((LogRepository) repository).deleteOwnersByOldLogs(cutoff);
         ((LogRepository) repository).deleteOldLogs(cutoff);
     }
