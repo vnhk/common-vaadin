@@ -56,6 +56,10 @@ public class SearchRequest {
         }
     }
 
+    public boolean isAddOwnerCriterion() {
+        return addOwnerCriterion;
+    }
+
     public void addDeletedFalseCriteria(Class<?> objectType) {
         addCriterion("DELETED_FALSE_CRITERIA_GROUP", Operator.OR_OPERATOR, objectType, "deleted", SearchOperation.EQUALS_OPERATION, false);
         addCriterion("DELETED_FALSE_CRITERIA_GROUP", Operator.OR_OPERATOR, objectType, "deleted", SearchOperation.IS_NULL_OPERATION, null);

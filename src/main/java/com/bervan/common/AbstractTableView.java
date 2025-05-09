@@ -82,6 +82,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected HorizontalLayout topLayout = new HorizontalLayout();
     protected HorizontalLayout checkboxActions;
     protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
+    protected String sortField;
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -272,9 +273,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             request = filtersLayout.buildCombinedFilters();
 //            }
 
-            customizePreLoad(request);
 
-            String sortField;
             com.bervan.common.search.model.SortDirection sortDir = com.bervan.common.search.model.SortDirection.ASC;
             if (columnSorted != null && sortDirection != null) {
                 sortField = columnSorted.getKey();
@@ -287,6 +286,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
             List<String> columnsToFetch = getColumnsToFetchForTable();
+            customizePreLoad(request);
             List<T> collect = this.service.load(request, pageable, sortField, sortDir, columnsToFetch).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
                     .collect(Collectors.toList());
 

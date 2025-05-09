@@ -137,7 +137,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     private SearchRequest buildLoadSearchRequestData(SearchRequest request) {
         SearchRequest searchRequest = new SearchRequest();
 
-        if (!request.containsGroup(SearchRequest.OWNER_ACCESS_GROUP)) {
+        if (!request.containsGroup(SearchRequest.OWNER_ACCESS_GROUP) && request.isAddOwnerCriterion()) {
             searchRequest.addOwnerAccessCriteria(entityType);
         }
 
