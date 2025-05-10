@@ -153,6 +153,10 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         save(item);
     }
 
+    public void deleteById(ID id) {
+        delete(repository.findById(id).get());
+    }
+
     @RolesAllowed("USER")
     @Transactional
     public void saveIfValid(List<? extends ExcelIEEntity<ID>> objects) {
@@ -212,4 +216,5 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     private boolean isEntityClass(Class<?> type) {
         return type.isAnnotationPresent(Entity.class);
     }
+
 }

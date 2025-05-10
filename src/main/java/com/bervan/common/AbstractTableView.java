@@ -778,7 +778,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     private void deleteItemsFromGrid(List<T> items) {
         for (T item : items) {
-            service.delete(item);
+            service.deleteById(item.getId()); //for deleting original
             removeItemFromGrid(item);
         }
 
