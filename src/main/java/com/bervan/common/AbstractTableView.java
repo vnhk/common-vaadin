@@ -281,7 +281,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             customizePreLoad(request); //must be before pageable to be able to modify it
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
-            List<String> columnsToFetch = getColumnsToFetchForTable();
+            List<String> columnsToFetch = getFieldsToFetchForTable();
             List<T> collect = this.service.load(request, pageable, sortField, sortDir, columnsToFetch).stream().filter(e -> e.isDeleted() == null || !e.isDeleted())
                     .collect(Collectors.toList());
 
@@ -306,9 +306,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     }
 
-    protected List<String> getColumnsToFetchForTable() {
+    protected List<String> getFieldsToFetchForTable() {
         List<String> result = new ArrayList<>();
-        for (Field vaadinTableColumn : getVaadinTableColumns()) {
+        for (Field vaadinTableColumn : getVaadinTableFields()) {
             if (Collection.class.isAssignableFrom(vaadinTableColumn.getType()) ||
                     Map.class.isAssignableFrom(vaadinTableColumn.getType())) {
                 continue;
@@ -375,7 +375,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         preColumnAutoCreation(grid);
 
-        List<Field> vaadinTableColumns = getVaadinTableColumns();
+        List<Field> vaadinTableColumns = getVaadinTableFields();
         for (Field vaadinTableColumn : vaadinTableColumns) {
             VaadinTableColumnConfig config = buildColumnConfig(vaadinTableColumn);
             String columnInternalName = config.getInternalName();
@@ -636,7 +636,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                                                    HorizontalLayout headerLayout, String clickedColumn, T item) {
         Field field = null;
         try {
-            List<Field> declaredFields = getVaadinTableColumns();
+            List<Field> declaredFields = getVaadinTableFields();
 
             Optional<Field> fieldOptional = declaredFields.stream()
                     .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
@@ -680,9 +680,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                         finalField.set(item, finalComponentWithValue.getValue());
                         finalField.setAccessible(false);
 
-                        customPreUpdate(clickedColumn, layoutForField, item, finalField, finalComponentWithValue);
+                        T toBeSaved = customPreUpdate(clickedColumn, layoutForField, item, finalField, finalComponentWithValue);
 
-                        T changed = service.save(item);
+                        T changed = service.save(toBeSaved);
 
                     } catch (IllegalAccessException e) {
                         log.error("Could not update field value!", e);
@@ -741,8 +741,24 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         return clipboardHelper;
     }
 
-    protected void customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AutoConfigurableField finalComponentWithValue) {
+    protected T customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AutoConfigurableField finalComponentWithValue) {
+        Optional<Field> editedField = getVaadinTableField(clickedColumn);
+        if (editedField.isPresent()) {
+            ID id = item.getId();
+            T itemInDB = service.loadById(id).get();
+            Field field = editedField.get();
 
+            field.setAccessible(true);
+            try {
+                field.set(itemInDB, field.get(item));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            field.setAccessible(false);
+            return itemInDB;
+        }
+
+        return item;
     }
 
     private static <X> AutoConfigurableField buildComponentForComboBox(List<X> values, BervanComboBox<X> comboBox, X initVal) {
@@ -799,10 +815,17 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         filterTable();
     }
 
-    private List<Field> getVaadinTableColumns() {
+    protected List<Field> getVaadinTableFields() {
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
                 .toList();
+    }
+
+    protected Optional<Field> getVaadinTableField(String clickedColumnKey) {
+        return Arrays.stream(tClass.getDeclaredFields())
+                .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
+                .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumnKey))
+                .findFirst();
     }
 
     protected void customFieldInEditLayout(VerticalLayout layoutForField, AutoConfigurableField
@@ -883,7 +906,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             VerticalLayout formLayout = new VerticalLayout();
-            List<Field> declaredFields = getVaadinTableColumns().stream()
+            List<Field> declaredFields = getVaadinTableFields().stream()
                     .filter(e -> e.getAnnotation(VaadinTableColumn.class).inSaveForm())
                     .toList();
 
