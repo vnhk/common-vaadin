@@ -140,7 +140,7 @@ public class SearchService {
         }
     }
 
-    public Class<? extends BervanBaseEntity> getEntityToFind(SearchQueryOption options) {
+    private Class<? extends BervanBaseEntity> getEntityToFind(SearchQueryOption options) {
         return options.getEntityToFind();
     }
 

@@ -104,7 +104,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
 
     public Optional<T> loadById(ID id) {
         SearchRequest request = new SearchRequest();
-        request.addIdEqualsCriteria("ID_GROUP", entityType, (UUID) id);
+        request.addIdEqualsCriteria("ID_GROUP", entityType, id);
         Set<T> result = load(request, Pageable.ofSize(1));
 
         if (result.size() != 1) {

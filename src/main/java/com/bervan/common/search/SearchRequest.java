@@ -4,6 +4,7 @@ import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.AuthService;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -81,7 +82,7 @@ public class SearchRequest {
         return criteria.stream().anyMatch(e->e.id.equals(groupId));
     }
 
-    public void addIdEqualsCriteria(String groupId, Class<?> objectType, UUID id) {
+    public void addIdEqualsCriteria(String groupId, Class<?> objectType, Serializable id) {
         addCriterion(groupId, objectType, "id", SearchOperation.EQUALS_OPERATION, id);
     }
 
