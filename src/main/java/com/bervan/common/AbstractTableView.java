@@ -980,6 +980,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                     newObject = customizeSavingInCreateForm(newObject);
 
                     service.save(newObject);
+
+                    postSaveActions();
+
                     refreshData();
                 } catch (Exception e) {
                     log.error("Could not save new item!", e);
@@ -993,6 +996,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             log.error("Error during using creation modal. Check columns name or create custom modal!", e);
             showErrorNotification("Error during using creation modal. Check columns name or create custom modal!");
         }
+    }
+
+    protected void postSaveActions() {
+
     }
 
     protected Object getFieldValueForNewItemDialog(Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry) {
