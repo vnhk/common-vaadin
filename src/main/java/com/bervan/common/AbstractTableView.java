@@ -1,9 +1,6 @@
 package com.bervan.common;
 
-import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinImageTableColumn;
-import com.bervan.common.model.VaadinTableColumn;
-import com.bervan.common.model.VaadinTableColumnConfig;
+import com.bervan.common.model.*;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
@@ -38,6 +35,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,6 +79,9 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     protected HorizontalLayout checkboxActions;
     protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
     protected String sortField;
+
+    protected final Map<String, List<String>> dynamicMultiDropdownAllValues = new HashMap<>();
+    protected final Map<String, List<String>> dynamicDropdownAllValues = new HashMap<>();
 
     public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
         this.service = service;
@@ -262,12 +263,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         checkboxes = new ArrayList<>();
         updateSelectedItemsLabel();
         try {
-            SearchRequest request = new SearchRequest();
-
-//            if (applyFilters) {
-            request = filtersLayout.buildCombinedFilters();
-//            }
-
+            SearchRequest request = filtersLayout.buildCombinedFilters();
 
             com.bervan.common.search.model.SortDirection sortDir = com.bervan.common.search.model.SortDirection.ASC;
             if (columnSorted != null && sortDirection != null) {
@@ -555,7 +551,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
 
-    protected AutoConfigurableField buildComponentForField(Field field, Object item) throws IllegalAccessException {
+    protected AutoConfigurableField buildComponentForField(Field field, T item) throws IllegalAccessException {
         AutoConfigurableField component = null;
         VaadinTableColumnConfig config = buildColumnConfig(field);
 
@@ -575,6 +571,19 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 }
                 component = new BervanImageController(imageSources);
             }
+        } else if (config.getExtension() == VaadinDynamicDropdownTableColumn.class) {
+            String key = config.getInternalName();
+            dynamicDropdownAllValues.put(key, getAllValuesForDynamicDropdowns(key, item));
+            String initialSelectedValue = getInitialSelectedValueForDynamicDropdown(key, item);
+
+            component = new BervanDynamicDropdownController(key, config.getDisplayName(), dynamicDropdownAllValues.get(key), initialSelectedValue);
+        } else if (config.getExtension() == VaadinDynamicMultiDropdownTableColumn.class) {
+            String key = config.getInternalName();
+            dynamicMultiDropdownAllValues.put(key, getAllValuesForDynamicMultiDropdowns(key, item));
+            List<String> initialSelectedValues = getInitialSelectedValueForDynamicMultiDropdown(key, item);
+
+            component = new BervanDynamicMultiDropdownController(config.getInternalName(), config.getDisplayName(), dynamicMultiDropdownAllValues.get(key),
+                    initialSelectedValues);
         } else if (config.getStrValues().size() > 0) {
             BervanComboBox<String> comboBox = new BervanComboBox<>(config.getDisplayName());
             component = buildComponentForComboBox(config.getStrValues(), comboBox, ((String) value));
@@ -589,6 +598,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             component = buildDoubleInput(value, config.getDisplayName());
         } else if (LocalDateTime.class.getTypeName().equals(config.getTypeName())) {
             component = buildDateTimeInput(value, config.getDisplayName());
+        } else if (LocalTime.class.getTypeName().equals(config.getTypeName())) {
+            component = buildTimeInput(value, config.getDisplayName());
         } else if (boolean.class.getTypeName().equals(config.getTypeName())) {
             component = buildBooleanInput(value, config.getDisplayName());
         } else {
@@ -606,6 +617,27 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         return component;
     }
+
+    protected List<String> getInitialSelectedValueForDynamicMultiDropdown(String key, T item) {
+        log.warn("getInitialSelectedValueForDynamicMultiDropdown has been not overridden");
+        return new ArrayList<>();
+    }
+
+    protected List<String> getAllValuesForDynamicMultiDropdowns(String key, T item) {
+        log.warn("getAllValuesForDynamicMultiDropdowns has been not overridden");
+        return new ArrayList<>();
+    }
+
+    protected String getInitialSelectedValueForDynamicDropdown(String key, T item) {
+        log.warn("getInitialSelectedValueForDynamicDropdown has been not overridden");
+        return null;
+    }
+
+    protected List<String> getAllValuesForDynamicDropdowns(String key, T item) {
+        log.warn("getAllValuesForDynamicDropdowns has been not overridden");
+        return new ArrayList<>();
+    }
+
 
     private AutoConfigurableField buildBooleanInput(Object value, String displayName) {
         BervanBooleanField checkbox = new BervanBooleanField();
@@ -810,11 +842,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         }
     }
 
-    protected void refreshDataAfterUpdate(T item) {
-        removeItemFromGrid(item);
-        filterTable();
-    }
-
     protected List<Field> getVaadinTableFields() {
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
@@ -844,6 +871,15 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         if (value != null)
             dateTimePicker.setValue((LocalDateTime) value);
         return dateTimePicker;
+    }
+
+    private AutoConfigurableField<LocalTime> buildTimeInput(Object value, String displayName) {
+        BervanTimePicker timePicker = new BervanTimePicker(displayName);
+        timePicker.setLabel("Select Time");
+
+        if (value != null)
+            timePicker.setValue((LocalTime) value);
+        return timePicker;
     }
 
     private AutoConfigurableField<Integer> buildIntegerInput(Object value, String displayName) {
@@ -937,7 +973,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                     T newObject = tClass.getConstructor().newInstance();
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
-                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, fieldAutoConfigurableFieldEntry.getValue().getValue());
+                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 
@@ -957,6 +993,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             log.error("Error during using creation modal. Check columns name or create custom modal!", e);
             showErrorNotification("Error during using creation modal. Check columns name or create custom modal!");
         }
+    }
+
+    protected Object getFieldValueForNewItemDialog(Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry) {
+        return fieldAutoConfigurableFieldEntry.getValue().getValue();
     }
 
     protected void customFieldInCreateLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
