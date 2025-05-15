@@ -275,6 +275,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 sortField = "id";
             }
             customizePreLoad(request); //must be before pageable to be able to modify it
+            //maybe move it before sorting? now its not working
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
             List<String> columnsToFetch = getFieldsToFetchForTable();
