@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.Predicate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 
 public class SearchOperationsHelper {
@@ -32,6 +33,8 @@ public class SearchOperationsHelper {
             return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
         } else if (value instanceof LocalDate) {
             return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
+        } else if (value instanceof LocalTime) {
+            return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
         } else if (value instanceof LocalDateTime) {
             return criteriaBuilder.greaterThanOrEqualTo(expression, (Comparable) value);
         } else {
@@ -46,6 +49,8 @@ public class SearchOperationsHelper {
         if (value instanceof Number) {
             return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);
         } else if (value instanceof LocalDate) {
+            return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);
+        }else if (value instanceof LocalTime) {
             return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);
         } else if (value instanceof LocalDateTime) {
             return criteriaBuilder.lessThanOrEqualTo(expression, (Comparable) value);

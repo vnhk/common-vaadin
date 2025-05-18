@@ -231,6 +231,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 return (value.toString());
             } else if (value instanceof LocalDate) {
                 return (value.toString());
+            } else if (value instanceof LocalTime) {
+                return (value.toString());
             } else {
                 return null;
             }
