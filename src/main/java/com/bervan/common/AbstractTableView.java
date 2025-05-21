@@ -33,6 +33,7 @@ import org.vaadin.olli.ClipboardHelper;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -597,6 +598,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
             component = buildTextArea(value, config.getDisplayName(), config.isWysiwyg());
         } else if (Integer.class.getTypeName().equals(config.getTypeName())) {
             component = buildIntegerInput(value, config.getDisplayName());
+        } else if (BigDecimal.class.getTypeName().equals(config.getTypeName())) {
+            component = buildBigDecimalInput(value, config.getDisplayName());
         } else if (Double.class.getTypeName().equals(config.getTypeName())) {
             component = buildDoubleInput(value, config.getDisplayName());
         } else if (LocalDateTime.class.getTypeName().equals(config.getTypeName())) {
@@ -719,6 +722,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
                         T changed = service.save(toBeSaved);
 
+                        customPostUpdate(changed);
+
                     } catch (IllegalAccessException e) {
                         log.error("Could not update field value!", e);
                         showErrorNotification("Could not update value!");
@@ -763,6 +768,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 field.setAccessible(false);
             }
         }
+    }
+
+    protected void customPostUpdate(T changed) {
+
     }
 
     private ClipboardHelper getClipboardHelper(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
@@ -890,6 +899,14 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         field.setWidthFull();
         if (value != null)
             field.setValue((Integer) value);
+        return field;
+    }
+
+    private AutoConfigurableField<BigDecimal> buildBigDecimalInput(Object value, String displayName) {
+        BervanBigDecimalField field = new BervanBigDecimalField(displayName);
+        field.setWidthFull();
+        if (value != null)
+            field.setValue((BigDecimal) value);
         return field;
     }
 
