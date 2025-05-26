@@ -566,10 +566,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         if (config.getExtension() == VaadinImageTableColumn.class) {
             List<String> imageSources = new ArrayList<>();
             //
-            if (String.class.getTypeName().equals(config.getTypeName())) {
+            if (hasTypMatch(config, String.class.getTypeName())) {
                 imageSources.add((String) value);
                 component = new BervanImageController(imageSources);
-            } else if (List.class.getTypeName().equals(config.getTypeName())) {
+            } else if (hasTypMatch(config, List.class.getTypeName())) {
                 if (value != null) {
                     imageSources.addAll((Collection<String>) value);
                 }
@@ -594,19 +594,23 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         } else if (config.getIntValues().size() > 0) {
             BervanComboBox<Integer> comboBox = new BervanComboBox<>(config.getDisplayName());
             component = buildComponentForComboBox(config.getIntValues(), comboBox, ((Integer) value));
-        } else if (String.class.getTypeName().equals(config.getTypeName())) {
+        } else if (hasTypMatch(config, String.class.getTypeName())) {
             component = buildTextArea(value, config.getDisplayName(), config.isWysiwyg());
-        } else if (Integer.class.getTypeName().equals(config.getTypeName())) {
+        } else if (hasTypMatch(config, Integer.class.getTypeName())) {
             component = buildIntegerInput(value, config.getDisplayName());
-        } else if (BigDecimal.class.getTypeName().equals(config.getTypeName())) {
+        } else if (hasTypMatch(config, Long.class.getTypeName())) {
+            component = buildLongInput(value, config.getDisplayName());
+        } else if (hasTypMatch(config, BigDecimal.class.getTypeName())) {
             component = buildBigDecimalInput(value, config.getDisplayName());
-        } else if (Double.class.getTypeName().equals(config.getTypeName())) {
+        } else if (hasTypMatch(config, Double.class.getTypeName())) {
             component = buildDoubleInput(value, config.getDisplayName());
-        } else if (LocalDateTime.class.getTypeName().equals(config.getTypeName())) {
-            component = buildDateTimeInput(value, config.getDisplayName());
-        } else if (LocalTime.class.getTypeName().equals(config.getTypeName())) {
+        } else if (hasTypMatch(config, LocalTime.class.getTypeName())) {
             component = buildTimeInput(value, config.getDisplayName());
-        } else if (boolean.class.getTypeName().equals(config.getTypeName())) {
+        } else if (hasTypMatch(config, LocalDate.class.getTypeName())) {
+            component = buildDateInput(value, config.getDisplayName());
+        } else if (hasTypMatch(config, LocalDateTime.class.getTypeName())) {
+            component = buildDateTimeInput(value, config.getDisplayName());
+        } else if (hasTypMatch(config, boolean.class.getTypeName())) {
             component = buildBooleanInput(value, config.getDisplayName());
         } else {
             component = new BervanTextField("Not supported yet");
@@ -622,6 +626,10 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         field.setAccessible(false);
 
         return component;
+    }
+
+    private boolean hasTypMatch(VaadinTableColumnConfig config, String typeName) {
+        return typeName.toLowerCase().contains(config.getTypeName().toLowerCase());
     }
 
     protected List<String> getInitialSelectedValueForDynamicMultiDropdown(String key, T item) {
@@ -656,11 +664,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     private Object getInitValueForInput(Field field, Object item, VaadinTableColumnConfig config, Object value) throws IllegalAccessException {
         if (item == null) {
             if (!config.getDefaultValue().equals("")) {
-                if (String.class.getTypeName().equals(config.getTypeName())) {
+                if (hasTypMatch(config, String.class.getTypeName())) {
                     value = config.getDefaultValue();
-                } else if (Integer.class.getTypeName().equals(config.getTypeName())) {
+                } else if (hasTypMatch(config, Integer.class.getTypeName())) {
                     value = Integer.parseInt(config.getDefaultValue());
-                } else if (Double.class.getTypeName().equals(config.getTypeName())) {
+                } else if (hasTypMatch(config, Double.class.getTypeName())) {
                     value = Double.parseDouble(config.getDefaultValue());
                 }
             }
@@ -894,11 +902,30 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         return timePicker;
     }
 
+    private AutoConfigurableField<LocalDate> buildDateInput(Object value, String displayName) {
+        BervanDatePicker datePicker = new BervanDatePicker(displayName);
+        datePicker.setLabel("Select date");
+
+        if (value != null)
+            datePicker.setValue((LocalDate) value);
+        return datePicker;
+    }
+
     private AutoConfigurableField<Integer> buildIntegerInput(Object value, String displayName) {
         BervanIntegerField field = new BervanIntegerField(displayName);
         field.setWidthFull();
         if (value != null)
             field.setValue((Integer) value);
+        return field;
+    }
+
+    private AutoConfigurableField<Double> buildLongInput(Object value, String displayName) {
+        BervanLongField field = new BervanLongField(displayName);
+        field.setWidthFull();
+        if (value != null) {
+            Long value1 = (Long) value;
+            field.setValue(Double.valueOf(value1));
+        }
         return field;
     }
 
