@@ -31,4 +31,6 @@ public @interface VaadinTableColumn {
     Class<?> extension() default VaadinTableColumn.class;
 
     boolean inTable() default true;
+
+    boolean sortable() default true;
 }

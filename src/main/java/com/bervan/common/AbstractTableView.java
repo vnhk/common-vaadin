@@ -396,7 +396,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                         .setHeader(columnName)
                         .setKey(columnInternalName)
                         .setResizable(true)
-                        .setSortable(true);
+                        .setSortable(config.isSortable());
             }
         }
 

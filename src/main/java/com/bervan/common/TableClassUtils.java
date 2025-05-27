@@ -20,6 +20,7 @@ public class TableClassUtils {
         config.setField(field);
         config.setExtension(field.getAnnotation(VaadinTableColumn.class).extension());
         config.setInTable(field.getAnnotation(VaadinTableColumn.class).inTable());
+        config.setSortable(field.getAnnotation(VaadinTableColumn.class).sortable());
         config.setTypeName(field.getType().getTypeName());
         config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
         config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());

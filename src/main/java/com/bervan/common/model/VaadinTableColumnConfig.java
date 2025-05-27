@@ -15,6 +15,7 @@ public class VaadinTableColumnConfig {
     private boolean isSingleValue = true;
     private boolean isWysiwyg = false;
     private boolean inTable;
+    private boolean sortable;
 
     public String getTypeName() {
         return typeName;
@@ -102,5 +103,13 @@ public class VaadinTableColumnConfig {
 
     public boolean isInTable() {
         return inTable;
+    }
+
+    public void setSortable(boolean sortable) {
+        this.sortable = sortable;
+    }
+
+    public boolean isSortable() {
+        return sortable;
     }
 }
