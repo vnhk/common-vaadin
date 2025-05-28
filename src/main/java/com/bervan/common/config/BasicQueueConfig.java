@@ -50,6 +50,7 @@ public class BasicQueueConfig {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter());
+        factory.setPrefetchCount(1);
 
         factory.setReceiveTimeout(3600000 * 10L); // 5h
 
