@@ -29,6 +29,9 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
     protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
     protected final Map<Field, Map<Object, Checkbox>> checkboxFiltersMap = new HashMap<>();
+    protected final Map<Field, BervanTextField> textFieldFiltersMap = new HashMap<>();
+    protected final Map<Field, Map<String, BervanIntegerField>> integerFieldHashMap = new HashMap<>();
+    protected final Map<Field, Map<String, BervanDoubleField>> doubleFieldHashMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanDateTimePicker>> dateTimeFiltersMap = new HashMap<>();
     protected final Class<T> tClass;
     protected final TextField allFieldsTextSearch;
@@ -75,6 +78,10 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         return dateTimeFiltersMap;
     }
 
+    public Map<Field, BervanTextField> getTextFieldFiltersMap() {
+        return textFieldFiltersMap;
+    }
+
     public SearchRequest buildCombinedFilters() {
         removeFiltersButton.setVisible(true);
 
@@ -82,6 +89,8 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         createCriteriaForCheckboxFilters(request);
         createCriteriaForDateTimeFilters(request);
         createCriteriaForTextInputs(request);
+        createCriteriaForIntegerFilters(request);
+        createCriteriaForDoubleFilters(request);
 
         return request;
     }
@@ -93,6 +102,8 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 request.addCriterion("TEXT_FILTER_GROUP", Operator.OR_OPERATOR, tClass, filterableField, SearchOperation.LIKE_OPERATION, "%" + value + "%");
             }
         }
+
+        createCriteriaTextFilters(request);
     }
 
     private void createCriteriaForCheckboxFilters(SearchRequest request) {
@@ -137,6 +148,63 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
     }
 
+    private void createCriteriaTextFilters(SearchRequest request) {
+        for (Field field : textFieldFiltersMap.keySet()) {
+            BervanTextField textField = textFieldFiltersMap.get(field);
+            if (textField.getValue() != null && !textField.getValue().isBlank()) {
+                createCriteriaForTextContaining(field.getName().toUpperCase() + "_TEXT_FIELD_GROUP", request, field, textField);
+            }
+        }
+    }
+
+    protected void createCriteriaForTextContaining(String groupId, SearchRequest request, Field field, BervanTextField textField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LIKE_OPERATION, "%" + textField.getValue() + "%");
+    }
+
+    private void createCriteriaForIntegerFilters(SearchRequest request) {
+        for (Field field : integerFieldHashMap.keySet()) {
+            BervanIntegerField bervanFieldFrom = integerFieldHashMap.get(field).get("FROM");
+            BervanIntegerField bervanFieldTo = integerFieldHashMap.get(field).get("TO");
+            if (bervanFieldFrom.getValue() != null) {
+                createCriteriaIntegerGreaterOrEqual(field.getName().toUpperCase() + "_INTEGER_FIELD_GROUP", request, field, bervanFieldFrom);
+            }
+
+            if (bervanFieldTo.getValue() != null) {
+                createCriteriaIntegerLessOrEqual(field.getName().toUpperCase() + "_INTEGER_FIELD_GROUP", request, field, bervanFieldTo);
+            }
+        }
+    }
+
+    private void createCriteriaForDoubleFilters(SearchRequest request) {
+        for (Field field : doubleFieldHashMap.keySet()) {
+            BervanDoubleField bervanFieldFrom = doubleFieldHashMap.get(field).get("FROM");
+            BervanDoubleField bervanFieldTo = doubleFieldHashMap.get(field).get("TO");
+            if (bervanFieldFrom.getValue() != null) {
+                createCriteriaDoubleGreaterOrEqual(field.getName().toUpperCase() + "_INTEGER_FIELD_GROUP", request, field, bervanFieldFrom);
+            }
+
+            if (bervanFieldTo.getValue() != null) {
+                createCriteriaDoubleLessOrEqual(field.getName().toUpperCase() + "_INTEGER_FIELD_GROUP", request, field, bervanFieldTo);
+            }
+        }
+    }
+
+    protected void createCriteriaDoubleGreaterOrEqual(String groupId, SearchRequest request, Field field, BervanDoubleField bervanField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, bervanField.getValue());
+    }
+
+    protected void createCriteriaDoubleLessOrEqual(String groupId, SearchRequest request, Field field, BervanDoubleField bervanField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LESS_EQUAL_OPERATION, bervanField.getValue());
+    }
+
+    protected void createCriteriaIntegerGreaterOrEqual(String groupId, SearchRequest request, Field field, BervanIntegerField bervanField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, bervanField.getValue());
+    }
+
+    protected void createCriteriaIntegerLessOrEqual(String groupId, SearchRequest request, Field field, BervanIntegerField bervanField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LESS_EQUAL_OPERATION, bervanField.getValue());
+    }
+
     protected void createCriteriaForCheckbox(SearchRequest request, Field field, Checkbox checkbox, Object key) {
         SearchOperation operator;
         if (checkbox.getValue()) {
@@ -147,7 +215,6 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     protected void createCriteriaForDateGreaterEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, date.getValue());
-
     }
 
     protected void createCriteriaForDateLessEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
@@ -164,6 +231,9 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         checkboxFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
         dateTimeFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setNullValue()));
         allFieldsTextSearch.setValue("");
+        textFieldFiltersMap.values().forEach(e -> e.setValue(null));
+        integerFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
+        doubleFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         removeFiltersButton.setVisible(false);
     }
 
@@ -210,6 +280,15 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
 
         dateTimeFiltersMap.putAll(TableClassUtils.buildDateTimeFiltersMenu(Collections.singletonList(tClass),
+                filtersMenuLayout));
+
+        textFieldFiltersMap.putAll(TableClassUtils.buildTextFieldFiltersMenu(Collections.singletonList(tClass),
+                filtersMenuLayout));
+
+        integerFieldHashMap.putAll(TableClassUtils.buildIntegerFieldFiltersMenu(Collections.singletonList(tClass),
+                filtersMenuLayout));
+
+        doubleFieldHashMap.putAll(TableClassUtils.buildDoubleFieldFiltersMenu(Collections.singletonList(tClass),
                 filtersMenuLayout));
 
         if (fields.isEmpty()) {

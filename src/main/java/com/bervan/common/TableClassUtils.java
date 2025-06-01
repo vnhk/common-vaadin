@@ -125,6 +125,88 @@ public class TableClassUtils {
         return filtersMap;
     }
 
+
+    public static Map<Field, ? extends BervanTextField> buildTextFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+        Map<Field, BervanTextField> filtersMap = new HashMap<>();
+
+        Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
+
+        for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
+            for (Field field : fields.getValue()) {
+                VaadinTableColumnConfig config = buildColumnConfig(field);
+                if (field.getType().equals(String.class)) {
+                    VerticalLayout fieldLayout = new VerticalLayout();
+                    fieldLayout.setWidthFull();
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    BervanTextField bervanField = new BervanTextField();
+                    fieldLayout.add(bervanField);
+                    filtersMap.put(field, bervanField);
+
+                    filtersMenuLayout.add(fieldLayout);
+                }
+            }
+        }
+
+        return filtersMap;
+    }
+
+    public static Map<Field, Map<String, BervanIntegerField>> buildIntegerFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+        Map<Field, Map<String, BervanIntegerField>> filtersMap = new HashMap<>();
+
+        Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
+
+        for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
+            for (Field field : fields.getValue()) {
+                VaadinTableColumnConfig config = buildColumnConfig(field);
+                if (field.getType().equals(Integer.class) || field.getType().equals(Long.class) || field.getType().getName().equals("long")) {
+                    VerticalLayout fieldLayout = new VerticalLayout();
+                    fieldLayout.setWidthFull();
+                    filtersMap.putIfAbsent(field, new HashMap<>());
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    BervanIntegerField from = new BervanIntegerField();
+                    BervanIntegerField to = new BervanIntegerField();
+                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    filtersMap.get(field).put("FROM", from);
+                    filtersMap.get(field).put("TO", to);
+
+                    filtersMenuLayout.add(fieldLayout);
+                }
+            }
+        }
+
+        return filtersMap;
+    }
+
+    public static Map<Field, Map<String, BervanDoubleField>> buildDoubleFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+        Map<Field, Map<String, BervanDoubleField>> filtersMap = new HashMap<>();
+
+        Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
+
+        for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
+            for (Field field : fields.getValue()) {
+                VaadinTableColumnConfig config = buildColumnConfig(field);
+                if (field.getType().equals(Double.class) || field.getType().equals(Float.class) || field.getType().getName().equals("double") || field.getType().getName().equals("float")) {
+                    VerticalLayout fieldLayout = new VerticalLayout();
+                    fieldLayout.setWidthFull();
+                    filtersMap.putIfAbsent(field, new HashMap<>());
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    BervanDoubleField from = new BervanDoubleField();
+                    BervanDoubleField to = new BervanDoubleField();
+                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    filtersMap.get(field).put("FROM", from);
+                    filtersMap.get(field).put("TO", to);
+
+                    filtersMenuLayout.add(fieldLayout);
+                }
+            }
+        }
+
+        return filtersMap;
+    }
+
     public static Set<Object> getSelectedObjects(Map<Field, Map<Object, Checkbox>> filtersMap, Field field) {
         Map<Object, Checkbox> objectCheckboxMap = filtersMap.get(field);
         if (objectCheckboxMap == null) {
@@ -146,5 +228,4 @@ public class TableClassUtils {
         }
         return res;
     }
-
 }
