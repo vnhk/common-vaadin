@@ -231,7 +231,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         checkboxFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
         dateTimeFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setNullValue()));
         allFieldsTextSearch.setValue("");
-        textFieldFiltersMap.values().forEach(e -> e.setValue(null));
+        textFieldFiltersMap.values().forEach(e -> e.setValue(""));
         integerFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         doubleFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         removeFiltersButton.setVisible(false);
