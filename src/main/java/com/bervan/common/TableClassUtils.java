@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -195,6 +196,34 @@ public class TableClassUtils {
                     fieldLayout.add(label);
                     BervanDoubleField from = new BervanDoubleField();
                     BervanDoubleField to = new BervanDoubleField();
+                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    filtersMap.get(field).put("FROM", from);
+                    filtersMap.get(field).put("TO", to);
+
+                    filtersMenuLayout.add(fieldLayout);
+                }
+            }
+        }
+
+        return filtersMap;
+    }
+
+    public static Map<Field, Map<String, BervanBigDecimalField>> buildBigDecimalFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+        Map<Field, Map<String, BervanBigDecimalField>> filtersMap = new HashMap<>();
+
+        Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
+
+        for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
+            for (Field field : fields.getValue()) {
+                VaadinTableColumnConfig config = buildColumnConfig(field);
+                if (field.getType().equals(BigDecimal.class)) {
+                    VerticalLayout fieldLayout = new VerticalLayout();
+                    fieldLayout.setWidthFull();
+                    filtersMap.putIfAbsent(field, new HashMap<>());
+                    H4 label = new H4(config.getDisplayName() + ":");
+                    fieldLayout.add(label);
+                    BervanBigDecimalField from = new BervanBigDecimalField();
+                    BervanBigDecimalField to = new BervanBigDecimalField();
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);

@@ -32,6 +32,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Map<Field, BervanTextField> textFieldFiltersMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanIntegerField>> integerFieldHashMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanDoubleField>> doubleFieldHashMap = new HashMap<>();
+    protected final Map<Field, Map<String, BervanBigDecimalField>> bigDecimalHasMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanDateTimePicker>> dateTimeFiltersMap = new HashMap<>();
     protected final Class<T> tClass;
     protected final TextField allFieldsTextSearch;
@@ -91,6 +92,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         createCriteriaForTextInputs(request);
         createCriteriaForIntegerFilters(request);
         createCriteriaForDoubleFilters(request);
+        createCriteriaForBigDecimalFilters(request);
 
         return request;
     }
@@ -180,13 +182,35 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             BervanDoubleField bervanFieldFrom = doubleFieldHashMap.get(field).get("FROM");
             BervanDoubleField bervanFieldTo = doubleFieldHashMap.get(field).get("TO");
             if (bervanFieldFrom.getValue() != null) {
-                createCriteriaDoubleGreaterOrEqual(field.getName().toUpperCase() + "_INTEGER_FIELD_GROUP", request, field, bervanFieldFrom);
+                createCriteriaDoubleGreaterOrEqual(field.getName().toUpperCase() + "_DOUBLE_FIELD_GROUP", request, field, bervanFieldFrom);
             }
 
             if (bervanFieldTo.getValue() != null) {
-                createCriteriaDoubleLessOrEqual(field.getName().toUpperCase() + "_INTEGER_FIELD_GROUP", request, field, bervanFieldTo);
+                createCriteriaDoubleLessOrEqual(field.getName().toUpperCase() + "_DOUBLE_FIELD_GROUP", request, field, bervanFieldTo);
             }
         }
+    }
+
+    private void createCriteriaForBigDecimalFilters(SearchRequest request) {
+        for (Field field : bigDecimalHasMap.keySet()) {
+            BervanBigDecimalField bervanFieldFrom = bigDecimalHasMap.get(field).get("FROM");
+            BervanBigDecimalField bervanFieldTo = bigDecimalHasMap.get(field).get("TO");
+            if (bervanFieldFrom.getValue() != null) {
+                createCriteriaBigDecimalGreaterOrEqual(field.getName().toUpperCase() + "_BIG_DECIMAL_FIELD_GROUP", request, field, bervanFieldFrom);
+            }
+
+            if (bervanFieldTo.getValue() != null) {
+                createCriteriaBigDecimalLessOrEqual(field.getName().toUpperCase() + "_BIG_DECIMAL_FIELD_GROUP", request, field, bervanFieldTo);
+            }
+        }
+    }
+
+    protected void createCriteriaBigDecimalGreaterOrEqual(String groupId, SearchRequest request, Field field, BervanBigDecimalField bervanField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, bervanField.getValue());
+    }
+
+    protected void createCriteriaBigDecimalLessOrEqual(String groupId, SearchRequest request, Field field, BervanBigDecimalField bervanField) {
+        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LESS_EQUAL_OPERATION, bervanField.getValue());
     }
 
     protected void createCriteriaDoubleGreaterOrEqual(String groupId, SearchRequest request, Field field, BervanDoubleField bervanField) {
@@ -234,6 +258,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         textFieldFiltersMap.values().forEach(e -> e.setValue(""));
         integerFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         doubleFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
+        bigDecimalHasMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         removeFiltersButton.setVisible(false);
     }
 
@@ -289,6 +314,9 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 filtersMenuLayout));
 
         doubleFieldHashMap.putAll(TableClassUtils.buildDoubleFieldFiltersMenu(Collections.singletonList(tClass),
+                filtersMenuLayout));
+
+        bigDecimalHasMap.putAll(TableClassUtils.buildBigDecimalFieldFiltersMenu(Collections.singletonList(tClass),
                 filtersMenuLayout));
 
         if (fields.isEmpty()) {
