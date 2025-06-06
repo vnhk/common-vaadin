@@ -4,6 +4,7 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class BervanDynamicMultiDropdownController extends VerticalLayout implements AutoConfigurableField<List<String>> {
@@ -11,14 +12,14 @@ public class BervanDynamicMultiDropdownController extends VerticalLayout impleme
     public final String key;
     private final MultiSelectComboBox<String> multiSelectComboBox;
 
-    public BervanDynamicMultiDropdownController(String key, String label, List<String> availableCategories, List<String> selectedValues) {
+    public BervanDynamicMultiDropdownController(String key, String label, Collection<String> availableValues, Collection<String> selectedValues) {
         this.key = key;
         this.multiSelectComboBox = new MultiSelectComboBox<>(label);
         setSpacing(false);
         multiSelectComboBox.setMinWidth("200px");
         multiSelectComboBox.setMaxWidth("600px");
 
-        multiSelectComboBox.setItems(availableCategories);
+        multiSelectComboBox.setItems(availableValues);
         multiSelectComboBox.setAllowCustomValue(true);
 
         if (selectedValues != null) {

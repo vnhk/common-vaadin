@@ -69,8 +69,15 @@ public abstract class AbstractPageView extends VerticalLayout {
         return atLeastOneParameter;
     }
 
+    protected static String getString(String value) {
+        if (value != null && StringUtils.isBlank(value.trim())) {
+            value = null;
+        }
+        return value;
+    }
+
     protected Double getDoubleParam(QueryParameters queryParameters, String name) {
-        String singleParam = getSingleParam(queryParameters, name);
+        String singleParam = (String) getParams(queryParameters, name);
         if (singleParam == null) {
             return null;
         }
@@ -78,24 +85,23 @@ public abstract class AbstractPageView extends VerticalLayout {
     }
 
     protected Integer getIntegerParam(QueryParameters queryParameters, String name) {
-        String singleParam = getSingleParam(queryParameters, name);
+        String singleParam = (String) getParams(queryParameters, name);
         if (singleParam == null) {
             return null;
         }
         return Integer.valueOf(singleParam);
     }
 
-    protected static String getString(String shop) {
-        if (shop != null && StringUtils.isBlank(shop.trim())) {
-            shop = null;
-        }
-        return shop;
-    }
-
-
-    protected String getSingleParam(QueryParameters queryParameters, String name) {
+    protected Object getParams(QueryParameters queryParameters, String name) {
         List<String> values = queryParameters.getParameters().get(name);
-        return (values != null && !values.isEmpty()) ? values.get(0) : null;
+        if (values == null) {
+            return null;
+        }
+        if (values.size() == 1) {
+            return values.get(0);
+        } else if (values.isEmpty()) {
+            return null;
+        }
+        return values;
     }
-
 }
