@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import static com.bervan.common.search.SearchRequest.FINAL_GROUP_CONSTANT;
+
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SearchService {
@@ -79,8 +81,7 @@ public class SearchService {
 
             Predicate predicates = null;
             if (searchRequest != null && searchRequest.groups.size() > 0) {
-                Collection<Predicate> allPredicates = buildMainPredicate(searchRequest, root, entityToFind).values();
-                predicates = criteriaBuilder.and(allPredicates.toArray(allPredicates.toArray(new Predicate[0])));
+                predicates = buildMainPredicate(searchRequest, root, entityToFind);
                 mainQuery.where(predicates);
             }
 
@@ -148,8 +149,7 @@ public class SearchService {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<? extends BervanBaseEntity> newR = countQuery.from(entityToFind);
-        Collection<Predicate> allPredicates = buildMainPredicate(searchRequest, newR, entityToFind).values();
-        Predicate predicate = criteriaBuilder.and(allPredicates.toArray(allPredicates.toArray(new Predicate[0])));
+        Predicate predicate = buildMainPredicate(searchRequest, newR, entityToFind);
         if (predicate != null) {
             countQuery.select(cb.count(newR)).where(predicate);
         } else {
@@ -163,7 +163,7 @@ public class SearchService {
         return sortDirection.equals(SortDirection.ASC);
     }
 
-    private Map<String, Predicate> buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Predicate buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
         Map<String, Predicate> groupPredicate = new HashMap<>();
 
         Group lastProcessed = null;
@@ -201,7 +201,47 @@ public class SearchService {
                 }
             }
         }
-        return groupPredicate;
+
+
+        boolean mergedGroupExists = false;
+
+        for (Map.Entry<String, Map<Operator, List<String>>> mergedGroups : searchRequest.mergedGroups.entrySet()) {
+            String groupId = mergedGroups.getKey();
+            Map<Operator, List<String>> value = mergedGroups.getValue();
+            List<Predicate> innerGroupsPredicates = new ArrayList<>();
+            List<String> innerGroups;
+            Operator groupsOperator;
+
+            if (value.get(Operator.AND_OPERATOR) != null) {
+                innerGroups = value.get(Operator.AND_OPERATOR);
+                groupsOperator = Operator.AND_OPERATOR;
+            } else {
+                innerGroups = value.get(Operator.OR_OPERATOR);
+                groupsOperator = Operator.OR_OPERATOR;
+            }
+
+            for (String innerGroup : innerGroups) {
+                innerGroupsPredicates.add(groupPredicate.get(innerGroup));
+            }
+
+            if (groupsOperator == Operator.AND_OPERATOR) {
+                groupPredicate.put(groupId, criteriaBuilder.and(innerGroupsPredicates.toArray(Predicate[]::new)));
+            } else {
+                groupPredicate.put(groupId, criteriaBuilder.or(innerGroupsPredicates.toArray(Predicate[]::new)));
+            }
+            mergedGroupExists = true;
+        }
+
+        if (groupPredicate.containsKey(FINAL_GROUP_CONSTANT)) {
+            return groupPredicate.get(FINAL_GROUP_CONSTANT);
+        }
+
+        if (mergedGroupExists) {
+            throw new RuntimeException("You've created group(s) with other groups predicate. Final group must be created with: " + FINAL_GROUP_CONSTANT + " group ID!!");
+        }
+
+        //create predicate with default operator for all groups
+        return criteriaBuilder.and(groupPredicate.values().toArray(Predicate[]::new));
     }
 
     private Predicate buildPredicateForNotCollection(From root, Class<? extends BervanBaseEntity> entityToFind, Criterion queryCriterion) throws NoSuchFieldException {
@@ -211,7 +251,8 @@ public class SearchService {
         Predicate predicate = null;
         switch (queryCriterion.operator) {
             case IS_NULL_OPERATION -> predicate = SearchOperationsHelper.isNull(root, criteriaBuilder, entityCriterion);
-            case IS_NOT_NULL_OPERATION -> predicate = SearchOperationsHelper.isNotNull(root, criteriaBuilder, entityCriterion);
+            case IS_NOT_NULL_OPERATION ->
+                    predicate = SearchOperationsHelper.isNotNull(root, criteriaBuilder, entityCriterion);
             case EQUALS_OPERATION -> predicate = SearchOperationsHelper.equal(root, criteriaBuilder, entityCriterion);
             case GREATER_EQUAL_OPERATION ->
                     predicate = SearchOperationsHelper.greaterEqual(root, criteriaBuilder, entityCriterion);

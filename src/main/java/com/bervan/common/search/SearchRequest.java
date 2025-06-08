@@ -5,15 +5,14 @@ import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.AuthService;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class SearchRequest {
     public static final String OWNER_ACCESS_GROUP = "OWNER_ACCESS_GROUP";
+    public static String FINAL_GROUP_CONSTANT = "FINAL_GROUP";
     public final List<Group> groups = new ArrayList<>();
     public final List<Criterion> criteria = new ArrayList<>();
+    public final Map<String, Map<Operator, List<String>>> mergedGroups = new HashMap<>();
     private boolean addOwnerCriterion = true;
 
     public void addCriterion(String groupId, Operator groupOperatorForNewGroup, Class<?> objectType, String fieldPath, SearchOperation fieldValueOperator, Object value) {
@@ -92,5 +91,11 @@ public class SearchRequest {
     public void merge(SearchRequest request) {
         groups.addAll(request.groups);
         criteria.addAll(request.criteria);
+    }
+
+    public void mergeGroup(String newGroup, Operator operator, String... groups) {
+        Map<Operator, List<String>> innerMap = new HashMap<>();
+        innerMap.put(operator, List.of(groups));
+        mergedGroups.put(newGroup, innerMap);
     }
 }
