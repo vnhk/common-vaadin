@@ -15,13 +15,10 @@ public class SearchRequestQueryTranslator {
 
         Expression parsedExpression = parseExpression(query);
 
-        // budujemy tylko jedno "rootGroupId"
         String rootGroupId = buildSearchRequestFromExpression(parsedExpression, entityToFind, searchRequest, criterionCounter, groupCounter);
 
-        // dodajemy tylko ten jeden root jako final
         if (!SearchRequest.FINAL_GROUP_CONSTANT.equals(rootGroupId)) {
-            Operator op = parsedExpression instanceof GroupExpression ge ? ge.operator : Operator.AND_OPERATOR;
-            searchRequest.mergeGroup(SearchRequest.FINAL_GROUP_CONSTANT, op, rootGroupId);
+            searchRequest.renameMergeGroup(rootGroupId, SearchRequest.FINAL_GROUP_CONSTANT);
         }
 
         return searchRequest;
@@ -95,7 +92,7 @@ public class SearchRequestQueryTranslator {
     ) {
         if (expr instanceof Condition cond) {
             String cid = "C" + criterionIdCounter.getAndIncrement();
-            Criterion criterion = new Criterion(cid, entityClass.getTypeName(), cond.attribute, cond.operation, cond.value);
+            Criterion criterion = new Criterion(cid, entityClass.getSimpleName(), cond.attribute, cond.operation, cond.value);
             String gid = "G" + groupIdCounter.getAndIncrement();
             request.addCriterion(gid, Operator.AND_OPERATOR, criterion);
             return gid;

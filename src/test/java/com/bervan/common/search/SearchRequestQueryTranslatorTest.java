@@ -19,13 +19,13 @@ class SearchRequestQueryTranslatorTest {
         Assertions.assertNotNull(searchRequest);
         Assertions.assertEquals(2, searchRequest.criteria.size());
         Assertions.assertEquals("C1", searchRequest.criteria.get(0).id);
-        Assertions.assertEquals(LogEntity.class.getTypeName(), searchRequest.criteria.get(0).type);
+        Assertions.assertEquals(LogEntity.class.getSimpleName(), searchRequest.criteria.get(0).type);
         Assertions.assertEquals("logLevel", searchRequest.criteria.get(0).attr);
         Assertions.assertEquals(SearchOperation.EQUALS_OPERATION, searchRequest.criteria.get(0).operator);
         Assertions.assertEquals("ERROR", searchRequest.criteria.get(0).value);
 
         Assertions.assertEquals("C2", searchRequest.criteria.get(1).id);
-        Assertions.assertEquals(LogEntity.class.getTypeName(), searchRequest.criteria.get(1).type);
+        Assertions.assertEquals(LogEntity.class.getSimpleName(), searchRequest.criteria.get(1).type);
         Assertions.assertEquals("methodName", searchRequest.criteria.get(1).attr);
         Assertions.assertEquals(SearchOperation.EQUALS_OPERATION, searchRequest.criteria.get(1).operator);
         Assertions.assertEquals("translate", searchRequest.criteria.get(1).value);
@@ -83,6 +83,6 @@ class SearchRequestQueryTranslatorTest {
 
         Assertions.assertEquals(true, searchRequest.mergedGroups.containsKey(SearchRequest.FINAL_GROUP_CONSTANT));
         Assertions.assertEquals(true, searchRequest.mergedGroups.get(SearchRequest.FINAL_GROUP_CONSTANT).containsKey(Operator.OR_OPERATOR));
-        Assertions.assertEquals(1, searchRequest.mergedGroups.get(SearchRequest.FINAL_GROUP_CONSTANT).get(Operator.OR_OPERATOR).size());
+        Assertions.assertEquals(2, searchRequest.mergedGroups.get(SearchRequest.FINAL_GROUP_CONSTANT).get(Operator.OR_OPERATOR).size());
     }
 }

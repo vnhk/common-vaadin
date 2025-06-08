@@ -98,4 +98,14 @@ public class SearchRequest {
         innerMap.put(operator, List.of(groups));
         mergedGroups.put(newGroup, innerMap);
     }
+
+    public void renameMergeGroup(String oldId, String newId) {
+        if (!mergedGroups.containsKey(oldId)) {
+            throw new IllegalArgumentException("Group with id " + oldId + " does not exist");
+        }
+        if (mergedGroups.containsKey(newId)) {
+            throw new IllegalArgumentException("Group with id " + newId + " already exists");
+        }
+        mergedGroups.put(newId, mergedGroups.remove(oldId));
+    }
 }

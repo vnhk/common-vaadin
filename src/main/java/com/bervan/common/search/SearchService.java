@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.bervan.common.search.SearchRequest.FINAL_GROUP_CONSTANT;
 
@@ -205,9 +206,19 @@ public class SearchService {
 
         boolean mergedGroupExists = false;
 
-        for (Map.Entry<String, Map<Operator, List<String>>> mergedGroups : searchRequest.mergedGroups.entrySet()) {
-            String groupId = mergedGroups.getKey();
-            Map<Operator, List<String>> value = mergedGroups.getValue();
+        List<String> mergedGroupsSorted = searchRequest.mergedGroups.keySet().stream().toList()
+                .stream().sorted((a, b) -> {
+                    if (a.equals(FINAL_GROUP_CONSTANT)) return 1;
+                    if (b.equals(FINAL_GROUP_CONSTANT)) return -1;
+
+                    int numA = Integer.parseInt(a.substring(1));
+                    int numB = Integer.parseInt(b.substring(1));
+                    return Integer.compare(numA, numB);
+                })
+                .toList();
+
+        for (String groupId : mergedGroupsSorted) {
+            Map<Operator, List<String>> value = searchRequest.mergedGroups.get(groupId);
             List<Predicate> innerGroupsPredicates = new ArrayList<>();
             List<String> innerGroups;
             Operator groupsOperator;
