@@ -24,10 +24,23 @@ public class SearchRequestQueryTranslator {
         return searchRequest;
     }
 
+    private static boolean isWrappingParentheses(String input) {
+        int parens = 0;
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '(') parens++;
+            else if (c == ')') parens--;
+            if (parens == 0 && i < input.length() - 1) {
+                return false;
+            }
+        }
+        return parens == 0;
+    }
+
     private static Expression parseExpression(String input) {
         input = input.trim();
-        if (input.startsWith("(") && input.endsWith(")")) {
-            return parseExpression(input.substring(1, input.length() - 1));
+        while (input.startsWith("(") && input.endsWith(")") && isWrappingParentheses(input)) {
+            input = input.substring(1, input.length() - 1).trim();
         }
 
         int parens = 0;
@@ -45,7 +58,7 @@ public class SearchRequestQueryTranslator {
                 tokens.add(current.toString().trim());
                 current.setLength(0);
                 ops.add(c == '&' ? Operator.AND_OPERATOR : Operator.OR_OPERATOR);
-                i++; // skip next char if it's part of &&
+                continue;
             } else {
                 current.append(c);
             }
