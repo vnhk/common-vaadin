@@ -11,10 +11,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class SearchRequest {
+    public static final String OWNER_ACCESS_GROUP = "OWNER_ACCESS_GROUP";
     public final List<Group> groups = new ArrayList<>();
     public final List<Criterion> criteria = new ArrayList<>();
     private boolean addOwnerCriterion = true;
-    public static final String OWNER_ACCESS_GROUP = "OWNER_ACCESS_GROUP";
 
     public void addCriterion(String groupId, Operator groupOperatorForNewGroup, Class<?> objectType, String fieldPath, SearchOperation fieldValueOperator, Object value) {
         Group groupToUpdate;
@@ -35,11 +35,7 @@ public class SearchRequest {
         addCriterion(groupId, Operator.AND_OPERATOR, objectType, fieldPath, fieldValueOperator, value);
     }
 
-    public void addCriterion(String groupId, Criterion criterion) {
-        addCriterion(groupId, Operator.AND_OPERATOR, criterion);
-    }
-
-    public void addCriterion(String groupId, Operator groupOperatorForNewGroup, Criterion criterion) {
+    public void addCriterion(String groupId, Operator groupOperatorForNewGroup, Criterion... criteria) {
         Group groupToUpdate;
         Optional<Group> group = groups.stream().filter(e -> e.id.equals(groupId)).findFirst();
         if (group.isEmpty()) {
@@ -49,16 +45,23 @@ public class SearchRequest {
             groupToUpdate = group.get();
         }
 
-        if (criterion.id == null) {
-            String criteriaId = UUID.randomUUID().toString();
-            groupToUpdate.criteriaIds.add(criteriaId);
-        } else {
-            groupToUpdate.criteriaIds.add(criterion.id);
+        for (Criterion criterion : criteria) {
+            if (criterion.id == null) {
+                String criteriaId = UUID.randomUUID().toString();
+                groupToUpdate.criteriaIds.add(criteriaId);
+            } else {
+                groupToUpdate.criteriaIds.add(criterion.id);
+            }
+            this.criteria.add(criterion);
         }
     }
 
     public boolean isAddOwnerCriterion() {
         return addOwnerCriterion;
+    }
+
+    public void setAddOwnerCriterion(boolean addOwnerCriterion) {
+        this.addOwnerCriterion = addOwnerCriterion;
     }
 
     public void addDeletedFalseCriteria(Class<?> objectType) {
@@ -79,7 +82,7 @@ public class SearchRequest {
     }
 
     public boolean containsGroup(String groupId) {
-        return criteria.stream().anyMatch(e->e.id.equals(groupId));
+        return criteria.stream().anyMatch(e -> e.id.equals(groupId));
     }
 
     public void addIdEqualsCriteria(String groupId, Class<?> objectType, Serializable id) {
@@ -89,9 +92,5 @@ public class SearchRequest {
     public void merge(SearchRequest request) {
         groups.addAll(request.groups);
         criteria.addAll(request.criteria);
-    }
-
-    public void setAddOwnerCriterion(boolean addOwnerCriterion) {
-        this.addOwnerCriterion = addOwnerCriterion;
     }
 }
