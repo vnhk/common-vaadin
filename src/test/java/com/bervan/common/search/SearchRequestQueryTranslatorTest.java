@@ -46,15 +46,6 @@ class SearchRequestQueryTranslatorTest {
                 logLevel = 'ERROR' | (methodName = 'translate' & className != 'Main')
                 """, LogEntity.class);
 
-//        SearchRequest request = new SearchRequest();
-//        Criterion criterion1 = new Criterion("C1", LogEntity.class.getTypeName(), "logLevel", SearchOperation.EQUALS_OPERATION, "ERROR");
-//        Criterion criterion2 = new Criterion("C2", LogEntity.class.getTypeName(), "methodName", SearchOperation.EQUALS_OPERATION, "translate");
-//        Criterion criterion3 = new Criterion("C3", LogEntity.class.getTypeName(), "className", SearchOperation.NOT_EQUALS_OPERATION, "Main");
-//        request.addCriterion("G1", Operator.AND_OPERATOR, criterion1);
-//        request.addCriterion("G2", Operator.OR_OPERATOR, criterion2, criterion3);
-//        request.mergeGroup(SearchRequest.FINAL_GROUP_CONSTANT, Operator.OR_OPERATOR, "G1", "G2");
-        //mergeGroup(String newGroup, Operator operator, String... groups) {
-
 //        FINAL_GROUP (OR)
 // └── G5 (OR)
 //     ├── G1 (logLevel = 'ERROR')
