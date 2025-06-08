@@ -89,21 +89,9 @@ class SearchRequestQueryTranslatorTest {
     @Test
     void translateQuery_3() {
         SearchRequest request = SearchRequestQueryTranslator.translateQuery("""
-                (logLevel = 'ERROR' & methodName = 'validate') | (methodName = 'translate' & (className = 'Main' | className = 'Validator'))
+                    (logLevel = 'ERROR' & methodName = 'validate') | (methodName = 'translate' & (className = 'Main' | className = 'Validator'))
                 """, LogEntity.class);
 
-//
-//        FINAL_GROUP (OR)
-//├── G3 (AND)
-//│   ├── G1 → C1: logLevel = 'ERROR'
-//│   └── G2 → C2: methodName = 'validate'
-//└── G8 (AND)
-//    ├── G4 → C3: methodName = 'translate'
-//    └── G7 (OR)
-//        ├── G5 → C4: className = 'Main'
-//        └── G6 → C5: className = 'Validator'
-
-        Assertions.assertNotNull(request);
         Assertions.assertNotNull(request);
         Assertions.assertEquals(5, request.criteria.size());
 
@@ -139,32 +127,53 @@ class SearchRequestQueryTranslatorTest {
 
         Assertions.assertEquals(5, request.groups.size());
 
-        // G1: C1 AND C2
-        var g1 = request.groups.get(0);
-        Assertions.assertEquals("G1", g1.id);
+        // G1: logLevel = 'ERROR'
+        var g1 = request.groups.stream().filter(g -> g.id.equals("G1")).findFirst().orElseThrow();
+        Assertions.assertEquals(List.of("C1"), g1.criteriaIds);
         Assertions.assertEquals(Operator.AND_OPERATOR, g1.operator);
-        Assertions.assertEquals(List.of("C1", "C2"), g1.criteriaIds);
 
-        // G3: C4 OR C5
-        var g3 = request.groups.get(1);
-        Assertions.assertEquals("G3", g3.id);
-        Assertions.assertEquals(Operator.OR_OPERATOR, g3.operator);
-        Assertions.assertEquals(List.of("C4", "C5"), g3.criteriaIds);
+        // G2: methodName = 'validate'
+        var g2 = request.groups.stream().filter(g -> g.id.equals("G2")).findFirst().orElseThrow();
+        Assertions.assertEquals(List.of("C2"), g2.criteriaIds);
+        Assertions.assertEquals(Operator.AND_OPERATOR, g2.operator);
 
-        // G4: C3 AND G3
-        var g4 = request.groups.get(2);
-        Assertions.assertEquals("G4", g4.id);
-        Assertions.assertEquals(Operator.AND_OPERATOR, g4.operator);
+        // G3 = G1 AND G2
+        Assertions.assertTrue(request.mergedGroups.containsKey("G3"));
+        var g3OpMap = request.mergedGroups.get("G3");
+        Assertions.assertTrue(g3OpMap.containsKey(Operator.AND_OPERATOR));
+        Assertions.assertEquals(List.of("G1", "G2"), g3OpMap.get(Operator.AND_OPERATOR));
+
+        // G4: methodName = 'translate'
+        var g4 = request.groups.stream().filter(g -> g.id.equals("G4")).findFirst().orElseThrow();
         Assertions.assertEquals(List.of("C3"), g4.criteriaIds);
+        Assertions.assertEquals(Operator.AND_OPERATOR, g4.operator);
 
-        // G5: G1 OR G4
-        var g5 = request.groups.get(3);
-        Assertions.assertEquals("G5", g5.id);
-        Assertions.assertEquals(Operator.OR_OPERATOR, g5.operator);
+        // G5: className = 'Main'
+        var g5 = request.groups.stream().filter(g -> g.id.equals("G5")).findFirst().orElseThrow();
+        Assertions.assertEquals(List.of("C4"), g5.criteriaIds);
+        Assertions.assertEquals(Operator.AND_OPERATOR, g5.operator);
 
-        // FINAL_GROUP: alias G5
-        var finalGroup = request.groups.get(4);
-        Assertions.assertEquals(SearchRequest.FINAL_GROUP_CONSTANT, finalGroup.id);
-        Assertions.assertEquals(Operator.OR_OPERATOR, finalGroup.operator);
+        // G6: className = 'Validator'
+        var g6 = request.groups.stream().filter(g -> g.id.equals("G6")).findFirst().orElseThrow();
+        Assertions.assertEquals(List.of("C5"), g6.criteriaIds);
+        Assertions.assertEquals(Operator.AND_OPERATOR, g6.operator);
+
+        // G7 = G5 OR G6
+        Assertions.assertTrue(request.mergedGroups.containsKey("G7"));
+        var g7OpMap = request.mergedGroups.get("G7");
+        Assertions.assertTrue(g7OpMap.containsKey(Operator.OR_OPERATOR));
+        Assertions.assertEquals(List.of("G5", "G6"), g7OpMap.get(Operator.OR_OPERATOR));
+
+        // G8 = G4 AND G7
+        Assertions.assertTrue(request.mergedGroups.containsKey("G8"));
+        var g8OpMap = request.mergedGroups.get("G8");
+        Assertions.assertTrue(g8OpMap.containsKey(Operator.AND_OPERATOR));
+        Assertions.assertEquals(List.of("G4", "G7"), g8OpMap.get(Operator.AND_OPERATOR));
+
+        // FINAL_GROUP = G3 OR G8
+        Assertions.assertTrue(request.mergedGroups.containsKey(SearchRequest.FINAL_GROUP_CONSTANT));
+        var finalGroupOpMap = request.mergedGroups.get(SearchRequest.FINAL_GROUP_CONSTANT);
+        Assertions.assertTrue(finalGroupOpMap.containsKey(Operator.OR_OPERATOR));
+        Assertions.assertEquals(List.of("G3", "G8"), finalGroupOpMap.get(Operator.OR_OPERATOR));
     }
 }
