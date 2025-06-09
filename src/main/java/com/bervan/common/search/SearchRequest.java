@@ -100,6 +100,9 @@ public class SearchRequest {
     }
 
     public void renameMergeGroup(String oldId, String newId) {
+        if (groups.size() == 1) {
+            return;
+        }
         if (!mergedGroups.containsKey(oldId)) {
             throw new IllegalArgumentException("Group with id " + oldId + " does not exist");
         }

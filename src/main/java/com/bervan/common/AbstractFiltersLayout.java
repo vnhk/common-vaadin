@@ -4,14 +4,19 @@ import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinTableColumn;
 import com.bervan.common.model.VaadinTableColumnConfig;
 import com.bervan.common.search.SearchRequest;
+import com.bervan.common.search.SearchRequestQueryTranslator;
 import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -23,12 +28,11 @@ import java.util.*;
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 public class AbstractFiltersLayout<ID extends Serializable, T extends PersistableTableData<ID>> extends Div {
-    protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected final VerticalLayout filtersMenuLayout = new VerticalLayout();
+    protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected final Button applyFiltersButton;
-    protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
-    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
     protected final Map<Field, Map<Object, Checkbox>> checkboxFiltersMap = new HashMap<>();
+    protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
     protected final Map<Field, BervanTextField> textFieldFiltersMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanIntegerField>> integerFieldHashMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanDoubleField>> doubleFieldHashMap = new HashMap<>();
@@ -36,8 +40,8 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Map<Field, Map<String, BervanDateTimePicker>> dateTimeFiltersMap = new HashMap<>();
     protected final Class<T> tClass;
     protected final TextField allFieldsTextSearch;
+    protected final TextField stringQuerySearch;
     protected final Set<String> filterableFields = new HashSet<>();
-
     public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton) {
         this.tClass = tClass;
         filtersMenuLayout.setVisible(false);
@@ -46,15 +50,40 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         filterableFields.addAll(getFilterableFields(vaadinTableColumns)); //later configure in each class example @VaadinColumn filterable=true
 
-        allFieldsTextSearch = getFilter();
+        allFieldsTextSearch = getFilter("Search in all field: ");
+
+        stringQuerySearch = getFilter("Custom query (overrides other filters)");
+        Icon questionIcon = VaadinIcon.QUESTION_CIRCLE.create();
+        Button helpButton = new Button(questionIcon);
+        helpButton.getElement().setAttribute("title", "Click");
+        helpButton.addClickListener(e -> showHelpDialog());
+
+        HorizontalLayout queryWithHelp = new HorizontalLayout(stringQuerySearch, helpButton);
+        queryWithHelp.setWidth("100%");
+        queryWithHelp.setAlignItems(FlexComponent.Alignment.END);
+
         buildFiltersMenu();
         filtersMenuLayout.add(allFieldsTextSearch);
+        filtersMenuLayout.add(new Hr(), queryWithHelp);
         filtersMenuLayout.add(new HorizontalLayout(applyFiltersButton, reverseFiltersButton));
         filtersMenuLayout.add(removeFiltersButton);
 
         removeFiltersButton.setVisible(false);
 
         add(filtersButton, filtersMenuLayout);
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+
+    private void showHelpDialog() {
+        Dialog helpDialog = new Dialog();
+        helpDialog.setWidth("50%");
+        helpDialog.setHeaderTitle("Available fields");
+        for (Field declaredField : tClass.getDeclaredFields()) {
+            helpDialog.add(new H5(declaredField.getName()));
+            helpDialog.add(new Hr());
+        }
+        Button closeButton = new Button("Close", e -> helpDialog.close());
+        helpDialog.getFooter().add(closeButton);
+        helpDialog.open();
     }
 
     public void addFilterableFields(String fieldName) {
@@ -86,7 +115,12 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     public SearchRequest buildCombinedFilters() {
         removeFiltersButton.setVisible(true);
 
-        SearchRequest request = new SearchRequest();
+        SearchRequest request = stringQuerySearch();
+        if (request != null) {
+            return request;
+        }
+
+        request = new SearchRequest();
         createCriteriaForCheckboxFilters(request);
         createCriteriaForDateTimeFilters(request);
         createCriteriaForTextInputs(request);
@@ -106,6 +140,19 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
 
         createCriteriaTextFilters(request);
+    }
+
+    private SearchRequest stringQuerySearch() {
+        String value = stringQuerySearch.getValue();
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        if (Arrays.stream(tClass.getDeclaredFields()).anyMatch(e -> e.getName().equals("deleted"))) {
+            value += " & deleted != true";
+        }
+
+        return SearchRequestQueryTranslator.translateQuery(value, tClass);
     }
 
     private void createCriteriaForCheckboxFilters(SearchRequest request) {
@@ -255,13 +302,13 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         checkboxFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
         dateTimeFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setNullValue()));
         allFieldsTextSearch.setValue("");
+        stringQuerySearch.setValue("");
         textFieldFiltersMap.values().forEach(e -> e.setValue(""));
         integerFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         doubleFieldHashMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         bigDecimalHasMap.values().forEach(e -> e.values().forEach(c -> c.setValue(null)));
         removeFiltersButton.setVisible(false);
     }
-
 
     protected void toggleFiltersMenu() {
         filtersMenuLayout.setVisible(!filtersMenuLayout.isVisible());
@@ -324,9 +371,13 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
     }
 
-    protected TextField getFilter() {
-        TextField searchField = new TextField("Search in all field: ");
+    protected TextField getFilter(String label) {
+        TextField searchField = new TextField(label);
         searchField.setWidth("100%");
         return searchField;
     }
+
+
+
+
 }
