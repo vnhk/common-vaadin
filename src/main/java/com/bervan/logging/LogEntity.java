@@ -13,7 +13,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Entity
-@Table(name = "logs")
+@Table(
+        name = "logs",
+        indexes = {
+                @Index(name = "idx_application_name", columnList = "applicationName"),
+                @Index(name = "idx_line_number", columnList = "lineNumber"),
+                @Index(name = "idx_log_level", columnList = "logLevel"),
+                @Index(name = "idx_class_name", columnList = "className"),
+                @Index(name = "idx_method_name", columnList = "methodName"),
+                @Index(name = "idx_timestamp", columnList = "timestamp")
+        }
+)
 @Getter
 @Setter
 @AllArgsConstructor
