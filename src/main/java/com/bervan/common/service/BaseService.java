@@ -2,6 +2,7 @@ package com.bervan.common.service;
 
 
 import com.bervan.common.model.BervanBaseEntity;
+import com.bervan.common.model.PersistableData;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchQueryOption;
 import com.bervan.common.search.SearchRequest;
@@ -23,7 +24,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public abstract class BaseService<ID extends Serializable, T extends PersistableTableData<ID>> {
+public abstract class BaseService<ID extends Serializable, T extends PersistableData<ID>> {
     private final Logger logger = LoggerFactory.getLogger(BaseService.class);
     private final Class<T> entityType;
 

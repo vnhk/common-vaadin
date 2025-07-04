@@ -3,7 +3,7 @@ package com.bervan.common.model;
 import java.lang.reflect.Field;
 import java.util.List;
 
-public class VaadinTableColumnConfig {
+public class VaadinBervanColumnConfig {
     private Field field;
     private String typeName;
     private String displayName;

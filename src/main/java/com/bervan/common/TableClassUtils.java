@@ -1,7 +1,7 @@
 package com.bervan.common;
 
-import com.bervan.common.model.VaadinTableColumn;
-import com.bervan.common.model.VaadinTableColumnConfig;
+import com.bervan.common.model.VaadinBervanColumn;
+import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -16,20 +16,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class TableClassUtils {
-    public static VaadinTableColumnConfig buildColumnConfig(Field field) {
-        VaadinTableColumnConfig config = new VaadinTableColumnConfig();
+    public static VaadinBervanColumnConfig buildColumnConfig(Field field) {
+        VaadinBervanColumnConfig config = new VaadinBervanColumnConfig();
         config.setField(field);
-        config.setExtension(field.getAnnotation(VaadinTableColumn.class).extension());
-        config.setInTable(field.getAnnotation(VaadinTableColumn.class).inTable());
-        config.setSortable(field.getAnnotation(VaadinTableColumn.class).sortable());
+        config.setExtension(field.getAnnotation(VaadinBervanColumn.class).extension());
+        config.setInTable(field.getAnnotation(VaadinBervanColumn.class).inTable());
+        config.setSortable(field.getAnnotation(VaadinBervanColumn.class).sortable());
         config.setTypeName(field.getType().getTypeName());
-        config.setDisplayName(field.getAnnotation(VaadinTableColumn.class).displayName());
-        config.setInternalName(field.getAnnotation(VaadinTableColumn.class).internalName());
-        config.setWysiwyg(field.getAnnotation(VaadinTableColumn.class).isWysiwyg());
-        config.setDefaultValue(field.getAnnotation(VaadinTableColumn.class).defaultValue());
+        config.setDisplayName(field.getAnnotation(VaadinBervanColumn.class).displayName());
+        config.setInternalName(field.getAnnotation(VaadinBervanColumn.class).internalName());
+        config.setWysiwyg(field.getAnnotation(VaadinBervanColumn.class).isWysiwyg());
+        config.setDefaultValue(field.getAnnotation(VaadinBervanColumn.class).defaultValue());
 
-        config.setStrValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).strValues()).toList());
-        config.setIntValues(Arrays.stream(field.getAnnotation(VaadinTableColumn.class).intValues()).boxed().collect(Collectors.toList()));
+        config.setStrValues(Arrays.stream(field.getAnnotation(VaadinBervanColumn.class).strValues()).toList());
+        config.setIntValues(Arrays.stream(field.getAnnotation(VaadinBervanColumn.class).intValues()).boxed().collect(Collectors.toList()));
 
         return config;
     }
@@ -40,7 +40,7 @@ public class TableClassUtils {
 
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
-                VaadinTableColumnConfig config = buildColumnConfig(field);
+                VaadinBervanColumnConfig config = buildColumnConfig(field);
                 if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
@@ -79,7 +79,7 @@ public class TableClassUtils {
 
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
-                VaadinTableColumnConfig config = buildColumnConfig(field);
+                VaadinBervanColumnConfig config = buildColumnConfig(field);
                 if (field.getType().equals(LocalDateTime.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
@@ -134,7 +134,7 @@ public class TableClassUtils {
 
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
-                VaadinTableColumnConfig config = buildColumnConfig(field);
+                VaadinBervanColumnConfig config = buildColumnConfig(field);
                 if (field.getType().equals(String.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
@@ -159,7 +159,7 @@ public class TableClassUtils {
 
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
-                VaadinTableColumnConfig config = buildColumnConfig(field);
+                VaadinBervanColumnConfig config = buildColumnConfig(field);
                 if (field.getType().equals(Integer.class) || field.getType().equals(Long.class) || field.getType().getName().equals("long")) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
@@ -187,7 +187,7 @@ public class TableClassUtils {
 
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
-                VaadinTableColumnConfig config = buildColumnConfig(field);
+                VaadinBervanColumnConfig config = buildColumnConfig(field);
                 if (field.getType().equals(Double.class) || field.getType().equals(Float.class) || field.getType().getName().equals("double") || field.getType().getName().equals("float")) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
@@ -215,7 +215,7 @@ public class TableClassUtils {
 
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
-                VaadinTableColumnConfig config = buildColumnConfig(field);
+                VaadinBervanColumnConfig config = buildColumnConfig(field);
                 if (field.getType().equals(BigDecimal.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
@@ -252,7 +252,7 @@ public class TableClassUtils {
         Map<Class<?>, List<Field>> res = new HashMap<>();
         for (Class<?> aClass : classes) {
             res.put(aClass, Arrays.stream(aClass.getDeclaredFields())
-                    .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
+                    .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
                     .toList());
         }
         return res;

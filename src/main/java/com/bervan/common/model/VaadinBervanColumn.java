@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface VaadinTableColumn {
+public @interface VaadinBervanColumn {
     String internalName();
 
     String displayName();
@@ -28,7 +28,7 @@ public @interface VaadinTableColumn {
 
     String defaultValue() default "";
 
-    Class<?> extension() default VaadinTableColumn.class;
+    Class<?> extension() default VaadinBervanColumn.class;
 
     boolean inTable() default true;
 

@@ -1,6 +1,9 @@
 package com.bervan.common;
 
-import com.bervan.common.model.*;
+import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.VaadinBervanColumn;
+import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.model.VaadinImageBervanColumn;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
@@ -26,72 +29,53 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.vaadin.olli.ClipboardHelper;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
-public abstract class AbstractTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView implements AfterNavigationObserver {
-    protected final List<T> data = new LinkedList<>();
+@Slf4j
+public abstract class AbstractBervanTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractBervanEntityView<ID, T> implements AfterNavigationObserver {
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
-    protected int pageNumber = 0;
-    protected int maxPages = 0;
-    protected long allFound = 0;
-    protected int pageSize = 50;
     protected final Button currentPage = new BervanButton(":)");
     protected final Button prevPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_LEFT));
     protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
     protected final BervanComboBox<Integer> goToPage = new BervanComboBox<>();
-    protected final BaseService<ID, T> service;
-    protected Grid<T> grid;
-    protected MenuNavigationComponent pageLayout;
-    protected final Button addButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
-    protected final VerticalLayout contentLayout = new VerticalLayout();
+    protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
     private final Set<String> currentlySortedColumns = new HashSet<>();
-    protected final BervanLogger log;
-    protected final Class<T> tClass;
+    protected int pageNumber = 0;
+    protected int maxPages = 0;
+    protected long allFound = 0;
+    protected int pageSize = 50;
+    protected Grid<T> grid;
+    protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected Span countItemsInfo = new Span("");
-    private int amountOfWysiwygEditors = 0;
-
     protected boolean checkboxesColumnsEnabled = true;
     protected Checkbox selectAllCheckbox;
     protected List<Checkbox> checkboxes = new ArrayList<>();
     protected Button checkboxDeleteButton;
     protected List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
-    protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
-        refreshData();
-    });
-    protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected SortDirection sortDirection = null;
     protected Grid.Column<T> columnSorted = null;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
-    protected HorizontalLayout topLayout = new HorizontalLayout();
     protected HorizontalLayout checkboxActions;
-    protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
     protected String sortField;
+    protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
+        refreshData();
+    });
 
-    protected final Map<String, List<String>> dynamicMultiDropdownAllValues = new HashMap<>();
-    protected final Map<String, List<String>> dynamicDropdownAllValues = new HashMap<>();
-
-    public AbstractTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
-        this.service = service;
-        this.pageLayout = pageLayout;
-        this.log = log;
-        this.tClass = tClass;
+    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
+        super(pageLayout, service, tClass);
         this.filtersLayout = new AbstractFiltersLayout<>(tClass, applyFiltersButton);
 
-        addClassName("bervan-table-view");
+        addClassName("bervan-entity-view");
         countItemsInfo.addClassName("table-pageable-details");
     }
 
@@ -110,6 +94,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 .collect(Collectors.toSet());
     }
 
+    @Override
     public void renderCommonComponents() {
         grid = getGrid();
         grid.setItems(data);
@@ -218,29 +203,6 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         goToPage.setValue(pageNumber + 1);
     }
 
-    protected String getCopyValue(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
-        try {
-            field.setAccessible(true);
-            Object value = null;
-            value = item == null ? null : field.get(item);
-            field.setAccessible(false);
-            if (value instanceof String) {
-                return ((String) value);
-            } else if (value instanceof Number) {
-                return (value.toString());
-            } else if (value instanceof LocalDateTime) {
-                return (value.toString());
-            } else if (value instanceof LocalDate) {
-                return (value.toString());
-            } else if (value instanceof LocalTime) {
-                return (value.toString());
-            } else {
-                return null;
-            }
-        } catch (IllegalAccessException e) {
-            return null;
-        }
-    }
 
     protected void removeUnSortedState(Grid<T> grid, int columnIndex) {
         grid.addSortListener(e -> {
@@ -377,7 +339,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
         List<Field> vaadinTableColumns = getVaadinTableFields();
         for (Field vaadinTableColumn : vaadinTableColumns) {
-            VaadinTableColumnConfig config = buildColumnConfig(vaadinTableColumn);
+            VaadinBervanColumnConfig config = buildColumnConfig(vaadinTableColumn);
             String columnInternalName = config.getInternalName();
             String columnName = config.getDisplayName();
 
@@ -385,7 +347,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
                 continue;
             }
 
-            if (config.getExtension() == VaadinImageTableColumn.class) {
+            if (config.getExtension() == VaadinImageBervanColumn.class) {
                 grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
                         .setHeader(columnName)
                         .setKey(columnInternalName)
@@ -444,7 +406,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         selectedItemsCountLabel.setText("Selected " + checkboxes.stream().filter(AbstractField::getValue).count() + " item(s)");
     }
 
-    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinTableColumnConfig config) {
+    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinBervanColumnConfig config) {
         return (span, record) -> {
             try {
                 span.setClassName("bervan-cell-component");
@@ -467,7 +429,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         };
     }
 
-    private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinTableColumnConfig config) {
+    private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinBervanColumnConfig config) {
         return (span, record) -> {
             try {
                 span.setClassName("bervan-cell-component");
@@ -529,7 +491,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
 
     }
 
-    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinTableColumnConfig config) {
+    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinBervanColumnConfig config) {
         return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
     }
 
@@ -537,7 +499,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         return new ComponentRenderer<>(Checkbox::new, checkboxColumnUpdater());
     }
 
-    protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinTableColumnConfig config) {
+    protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinBervanColumnConfig config) {
         return new ComponentRenderer<>(Span::new, imageColumnUpdater(f, config));
     }
 
@@ -554,243 +516,11 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         dialog.open();
     }
 
-
-    protected AutoConfigurableField buildComponentForField(Field field, T item) throws IllegalAccessException {
-        AutoConfigurableField component = null;
-        VaadinTableColumnConfig config = buildColumnConfig(field);
-
-        field.setAccessible(true);
-        Object value = item == null ? null : field.get(item);
-        value = getInitValueForInput(field, item, config, value);
-
-        if (config.getExtension() == VaadinImageTableColumn.class) {
-            List<String> imageSources = new ArrayList<>();
-            //
-            if (hasTypMatch(config, String.class.getTypeName())) {
-                imageSources.add((String) value);
-                component = new BervanImageController(imageSources);
-            } else if (hasTypMatch(config, List.class.getTypeName())) {
-                if (value != null) {
-                    imageSources.addAll((Collection<String>) value);
-                }
-                component = new BervanImageController(imageSources);
-            }
-        } else if (config.getExtension() == VaadinDynamicDropdownTableColumn.class) {
-            String key = config.getInternalName();
-            dynamicDropdownAllValues.put(key, getAllValuesForDynamicDropdowns(key, item));
-            String initialSelectedValue = getInitialSelectedValueForDynamicDropdown(key, item);
-
-            component = new BervanDynamicDropdownController(key, config.getDisplayName(), dynamicDropdownAllValues.get(key), initialSelectedValue);
-        } else if (config.getExtension() == VaadinDynamicMultiDropdownTableColumn.class) {
-            String key = config.getInternalName();
-            dynamicMultiDropdownAllValues.put(key, getAllValuesForDynamicMultiDropdowns(key, item));
-            List<String> initialSelectedValues = getInitialSelectedValueForDynamicMultiDropdown(key, item);
-
-            component = new BervanDynamicMultiDropdownController(config.getInternalName(), config.getDisplayName(), dynamicMultiDropdownAllValues.get(key),
-                    initialSelectedValues);
-        } else if (config.getStrValues().size() > 0) {
-            BervanComboBox<String> comboBox = new BervanComboBox<>(config.getDisplayName());
-            component = buildComponentForComboBox(config.getStrValues(), comboBox, ((String) value));
-        } else if (config.getIntValues().size() > 0) {
-            BervanComboBox<Integer> comboBox = new BervanComboBox<>(config.getDisplayName());
-            component = buildComponentForComboBox(config.getIntValues(), comboBox, ((Integer) value));
-        } else if (hasTypMatch(config, String.class.getTypeName())) {
-            component = buildTextArea(value, config.getDisplayName(), config.isWysiwyg());
-        } else if (hasTypMatch(config, Integer.class.getTypeName())) {
-            component = buildIntegerInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, Long.class.getTypeName())) {
-            component = buildLongInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, BigDecimal.class.getTypeName())) {
-            component = buildBigDecimalInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, Double.class.getTypeName())) {
-            component = buildDoubleInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, LocalTime.class.getTypeName())) {
-            component = buildTimeInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, LocalDate.class.getTypeName())) {
-            component = buildDateInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, LocalDateTime.class.getTypeName())) {
-            component = buildDateTimeInput(value, config.getDisplayName());
-        } else if (hasTypMatch(config, boolean.class.getTypeName())) {
-            component = buildBooleanInput(value, config.getDisplayName());
-        } else {
-            component = new BervanTextField("Not supported yet");
-            if (value == null) {
-                component.setValue("");
-            } else {
-                component.setValue(value);
-            }
-        }
-
-        component.setId(config.getTypeName() + "_id");
-
-        field.setAccessible(false);
-
-        return component;
-    }
-
-    private boolean hasTypMatch(VaadinTableColumnConfig config, String typeName) {
-        return typeName.toLowerCase().contains(config.getTypeName().toLowerCase());
-    }
-
-    protected List<String> getInitialSelectedValueForDynamicMultiDropdown(String key, T item) {
-        log.warn("getInitialSelectedValueForDynamicMultiDropdown has been not overridden");
-        return new ArrayList<>();
-    }
-
-    protected List<String> getAllValuesForDynamicMultiDropdowns(String key, T item) {
-        log.warn("getAllValuesForDynamicMultiDropdowns has been not overridden");
-        return new ArrayList<>();
-    }
-
-    protected String getInitialSelectedValueForDynamicDropdown(String key, T item) {
-        log.warn("getInitialSelectedValueForDynamicDropdown has been not overridden");
-        return null;
-    }
-
-    protected List<String> getAllValuesForDynamicDropdowns(String key, T item) {
-        log.warn("getAllValuesForDynamicDropdowns has been not overridden");
-        return new ArrayList<>();
-    }
-
-
-    private AutoConfigurableField buildBooleanInput(Object value, String displayName) {
-        BervanBooleanField checkbox = new BervanBooleanField();
-        if (value != null) {
-            checkbox.setValue((Boolean) value);
-        }
-        return checkbox;
-    }
-
-    private Object getInitValueForInput(Field field, Object item, VaadinTableColumnConfig config, Object value) throws IllegalAccessException {
-        if (item == null) {
-            if (!config.getDefaultValue().equals("")) {
-                if (hasTypMatch(config, String.class.getTypeName())) {
-                    value = config.getDefaultValue();
-                } else if (hasTypMatch(config, Integer.class.getTypeName())) {
-                    value = Integer.parseInt(config.getDefaultValue());
-                } else if (hasTypMatch(config, Double.class.getTypeName())) {
-                    value = Double.parseDouble(config.getDefaultValue());
-                }
-            }
-        } else {
-            value = field.get(item);
-        }
-        return value;
-    }
-
-    protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout,
-                                                   HorizontalLayout headerLayout, String clickedColumn, T item) {
-        Field field = null;
-        try {
-            List<Field> declaredFields = getVaadinTableFields();
-
-            Optional<Field> fieldOptional = declaredFields.stream()
-                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
-                    .filter(e -> !e.getAnnotation(VaadinTableColumn.class).inEditForm())
-                    .findFirst();
-
-            Optional<Field> editableField = declaredFields.stream()
-                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumn))
-                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).inEditForm())
-                    .findFirst();
-
-            if (editableField.isPresent()) {
-                field = editableField.get();
-                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
-                VerticalLayout layoutForField = new VerticalLayout();
-                layoutForField.add((Component) componentWithValue);
-                customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
-
-                Button dialogSaveButton = new BervanButton("Save");
-
-                Button deleteButton = new BervanButton("Delete Item");
-                deleteButton.addClassName("option-button-warning");
-
-                ClipboardHelper clipboardHelper = getClipboardHelper(field, item, clickedColumn, componentWithValue);
-
-                HorizontalLayout buttonsLayout = new HorizontalLayout();
-                buttonsLayout.setWidthFull();
-                buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-
-                buttonsLayout.add(new HorizontalLayout(dialogSaveButton, clipboardHelper), deleteButton);
-
-                deleteButton.addClickListener(buttonClickEvent -> {
-                    modalDeleteItem(dialog, item);
-                });
-
-                Field finalField = field;
-                AutoConfigurableField finalComponentWithValue = componentWithValue;
-                dialogSaveButton.addClickListener(buttonClickEvent -> {
-                    try {
-                        finalField.setAccessible(true);
-                        finalField.set(item, finalComponentWithValue.getValue());
-                        finalField.setAccessible(false);
-
-                        T toBeSaved = customPreUpdate(clickedColumn, layoutForField, item, finalField, finalComponentWithValue);
-
-                        T changed = service.save(toBeSaved);
-
-                        customPostUpdate(changed);
-
-                    } catch (IllegalAccessException e) {
-                        log.error("Could not update field value!", e);
-                        showErrorNotification("Could not update value!");
-                    }
-                    dialog.close();
-                    refreshTable.clickInClient();
-                    refreshTable.click();
-                });
-
-                dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
-            } else if (fieldOptional.isPresent()) {
-                field = fieldOptional.get();
-                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
-                componentWithValue.setReadOnly(true);
-                VerticalLayout layoutForField = new VerticalLayout();
-                layoutForField.add((Component) componentWithValue);
-                customFieldInEditLayout(layoutForField, componentWithValue, clickedColumn, item);
-
-                Button deleteButton = new BervanButton("Delete Item");
-                deleteButton.addClassName("option-button-warning");
-
-                ClipboardHelper clipboardHelper = getClipboardHelper(field, item, clickedColumn, componentWithValue);
-
-                HorizontalLayout buttonsLayout = new HorizontalLayout();
-                buttonsLayout.setWidthFull();
-                buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-
-                buttonsLayout.add(new HorizontalLayout(clipboardHelper), deleteButton);
-
-                deleteButton.addClickListener(buttonClickEvent -> {
-                    modalDeleteItem(dialog, item);
-                });
-
-                dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
-
-            }
-        } catch (Exception e) {
-            log.error("Error during using edit modal. Check columns name or create custom modal!", e);
-            showErrorNotification("Error during using edit modal. Check columns name or create custom modal!");
-        } finally {
-            if (field != null) {
-                field.setAccessible(false);
-            }
-        }
-    }
-
+    @Override
     protected void customPostUpdate(T changed) {
-
-    }
-
-    private ClipboardHelper getClipboardHelper(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
-        String copyValue = getCopyValue(field, item, clickedColumn, componentWithValue);
-        Button copyButton = new BervanButton(new Icon(VaadinIcon.COPY_O), e -> showPrimaryNotification("Value copied!"));
-        ClipboardHelper clipboardHelper = new ClipboardHelper(copyValue, copyButton);
-
-        if (copyValue == null) {
-            clipboardHelper.setVisible(false);
-        }
-        return clipboardHelper;
+        super.customPostUpdate(changed);
+        refreshTable.clickInClient();
+        refreshTable.click();
     }
 
     protected T customPreUpdate(String clickedColumn, VerticalLayout layoutForField, T item, Field finalField, AutoConfigurableField finalComponentWithValue) {
@@ -813,15 +543,7 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         return item;
     }
 
-    private static <X> AutoConfigurableField buildComponentForComboBox(List<X> values, BervanComboBox<X> comboBox, X initVal) {
-        AutoConfigurableField componentWithValue;
-        comboBox.setItems(values);
-        comboBox.setWidth("100%");
-        comboBox.setValue(initVal);
-        componentWithValue = comboBox;
-        return componentWithValue;
-    }
-
+    @Override
     protected void modalDeleteItem(Dialog dialog, T item) {
         deleteItemsFromGrid(Collections.singletonList(item));
         dialog.close();
@@ -862,135 +584,13 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
         }
     }
 
-    protected List<Field> getVaadinTableFields() {
-        return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
-                .toList();
-    }
-
-    protected Optional<Field> getVaadinTableField(String clickedColumnKey) {
-        return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
-                .filter(e -> e.getAnnotation(VaadinTableColumn.class).internalName().equals(clickedColumnKey))
-                .findFirst();
-    }
-
-    protected void customFieldInEditLayout(VerticalLayout layoutForField, AutoConfigurableField
-            componentWithValue, String clickedColumn, T item) {
-
-    }
-
-    protected void customFieldInCreateLayout(Field field, VerticalLayout layoutForField, AutoConfigurableField componentWithValue) {
-
-    }
-
-    private AutoConfigurableField<LocalDateTime> buildDateTimeInput(Object value, String displayName) {
-        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(displayName);
-        dateTimePicker.setLabel("Select Date and Time");
-
-        if (value != null)
-            dateTimePicker.setValue((LocalDateTime) value);
-        return dateTimePicker;
-    }
-
-    private AutoConfigurableField<LocalTime> buildTimeInput(Object value, String displayName) {
-        BervanTimePicker timePicker = new BervanTimePicker(displayName);
-        timePicker.setLabel("Select Time");
-
-        if (value != null)
-            timePicker.setValue((LocalTime) value);
-        return timePicker;
-    }
-
-    private AutoConfigurableField<LocalDate> buildDateInput(Object value, String displayName) {
-        BervanDatePicker datePicker = new BervanDatePicker(displayName);
-        datePicker.setLabel("Select date");
-
-        if (value != null)
-            datePicker.setValue((LocalDate) value);
-        return datePicker;
-    }
-
-    private AutoConfigurableField<Integer> buildIntegerInput(Object value, String displayName) {
-        BervanIntegerField field = new BervanIntegerField(displayName);
-        field.setWidthFull();
-        if (value != null)
-            field.setValue((Integer) value);
-        return field;
-    }
-
-    private AutoConfigurableField<Double> buildLongInput(Object value, String displayName) {
-        BervanLongField field = new BervanLongField(displayName);
-        field.setWidthFull();
-        if (value != null) {
-            Long value1 = (Long) value;
-            field.setValue(Double.valueOf(value1));
-        }
-        return field;
-    }
-
-    private AutoConfigurableField<BigDecimal> buildBigDecimalInput(Object value, String displayName) {
-        BervanBigDecimalField field = new BervanBigDecimalField(displayName);
-        field.setWidthFull();
-        if (value != null)
-            field.setValue((BigDecimal) value);
-        return field;
-    }
-
-    private AutoConfigurableField<Double> buildDoubleInput(Object value, String displayName) {
-        BervanDoubleField field = new BervanDoubleField(displayName);
-        field.setWidthFull();
-        if (value != null)
-            field.setValue(((Double) value));
-        return field;
-    }
-
-    private AutoConfigurableField<String> buildTextArea(Object value, String displayName, boolean isWysiwyg) {
-        AutoConfigurableField<String> textArea = new BervanTextArea(displayName);
-        if (isWysiwyg) {
-            amountOfWysiwygEditors++;
-            textArea = new WysiwygTextArea("editor_" + amountOfWysiwygEditors, (String) value);
-        }
-        textArea.setWidthFull();
-        if (value != null)
-            textArea.setValue((String) value);
-        return textArea;
-    }
-
-    protected Span formatTextComponent(String text) {
-        if (text == null) {
-            return new Span("");
-        }
-        Span span = new Span();
-        span.getElement().setProperty("innerHTML", text.replace("\n", "<br>").replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
-        return span;
-    }
-
-    protected void newItemButtonClick() {
-        Dialog dialog = new Dialog();
-        dialog.setWidth("60vw");
-        VerticalLayout dialogLayout = new VerticalLayout();
-        HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
-
-        dialogLayout.getThemeList().remove("spacing");
-        dialogLayout.getThemeList().remove("padding");
-
-        headerLayout.getThemeList().remove("spacing");
-        headerLayout.getThemeList().remove("padding");
-
-        buildNewItemDialogContent(dialog, dialogLayout, headerLayout);
-
-        dialog.add(dialogLayout);
-        dialog.open();
-    }
-
     protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
         try {
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             VerticalLayout formLayout = new VerticalLayout();
             List<Field> declaredFields = getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinTableColumn.class).inSaveForm())
+                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
                     .toList();
 
             for (Field field : declaredFields) {
@@ -1046,15 +646,8 @@ public abstract class AbstractTableView<ID extends Serializable, T extends Persi
     }
 
     protected void postSaveActions() {
-
-    }
-
-    protected Object getFieldValueForNewItemDialog(Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry) {
-        return fieldAutoConfigurableFieldEntry.getValue().getValue();
-    }
-
-    protected void customFieldInCreateLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
-
+        super.postSaveActions();
+        refreshData();
     }
 
     protected T customizeSavingInCreateForm(T newItem) {

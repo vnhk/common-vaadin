@@ -1,8 +1,8 @@
 package com.bervan.common;
 
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinTableColumn;
-import com.bervan.common.model.VaadinTableColumnConfig;
+import com.bervan.common.model.VaadinBervanColumn;
+import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.SearchRequestQueryTranslator;
 import com.bervan.common.search.model.Operator;
@@ -157,7 +157,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     private void createCriteriaForCheckboxFilters(SearchRequest request) {
         for (Field field : checkboxFiltersMap.keySet()) {
-            VaadinTableColumnConfig config = buildColumnConfig(field);
+            VaadinBervanColumnConfig config = buildColumnConfig(field);
 
             if (config.getStrValues().size() > 0) {
                 //are all checkbox selected? if so does not make sense create criteria
@@ -316,14 +316,14 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     protected List<Field> getVaadinTableColumns() {
         return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinTableColumn.class))
+                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
                 .toList();
     }
 
     protected void buildFiltersMenu() {
         List<Field> fields = getVaadinTableColumns();
         for (Field field : fields) {
-            VaadinTableColumnConfig config = buildColumnConfig(field);
+            VaadinBervanColumnConfig config = buildColumnConfig(field);
             if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
                 VerticalLayout fieldLayout = new VerticalLayout();
                 fieldLayout.setWidthFull();
