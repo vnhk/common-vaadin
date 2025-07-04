@@ -42,8 +42,6 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         this.service = service;
         this.pageLayout = pageLayout;
         this.tClass = tClass;
-
-        addClassName("bervan-entity-view");
     }
 
     protected <X> AutoConfigurableField buildComponentForComboBox(List<X> values, BervanComboBox<X> comboBox, X initVal) {

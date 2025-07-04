@@ -75,7 +75,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         super(pageLayout, service, tClass);
         this.filtersLayout = new AbstractFiltersLayout<>(tClass, applyFiltersButton);
 
-        addClassName("bervan-entity-view");
+        addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
     }
 
