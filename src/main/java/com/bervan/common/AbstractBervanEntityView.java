@@ -34,6 +34,8 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     protected final Map<String, List<String>> dynamicMultiDropdownAllValues = new HashMap<>();
     protected final Map<String, List<String>> dynamicDropdownAllValues = new HashMap<>();
     protected final Button addButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
+    protected T item;
+    protected final Button editButton = new BervanButton("✎", e -> openEditDialog());
     protected MenuNavigationComponent pageLayout;
     protected HorizontalLayout topLayout = new HorizontalLayout();
     protected int amountOfWysiwygEditors = 0;
@@ -42,6 +44,29 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         this.service = service;
         this.pageLayout = pageLayout;
         this.tClass = tClass;
+    }
+
+    protected void openEditDialog() {
+        if (item == null) {
+            showErrorNotification("Cannot edit item - item was not selected!");
+            return;
+        }
+
+        Dialog dialog = new Dialog();
+        dialog.setWidth("60vw");
+        VerticalLayout dialogLayout = new VerticalLayout();
+        HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
+
+        dialogLayout.getThemeList().remove("spacing");
+        dialogLayout.getThemeList().remove("padding");
+
+        headerLayout.getThemeList().remove("spacing");
+        headerLayout.getThemeList().remove("padding");
+
+        buildEditItemDialogContent(dialog, dialogLayout, headerLayout);
+
+        dialog.add(dialogLayout);
+        dialog.open();
     }
 
     protected <X> AutoConfigurableField buildComponentForComboBox(List<X> values, BervanComboBox<X> comboBox, X initVal) {
@@ -54,7 +79,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     }
 
     public void renderCommonComponents() {
-        contentLayout.add(topLayout, addButton);
+        contentLayout.add(topLayout, addButton, editButton);
         add(pageLayout);
         add(contentLayout);
     }
@@ -363,7 +388,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     }
 
-    protected void customFieldInCreateLayout(Field field, VerticalLayout layoutForField, AutoConfigurableField componentWithValue) {
+    protected void customFieldInCreateItemLayout(Field field, VerticalLayout layoutForField, AutoConfigurableField componentWithValue) {
 
     }
 
@@ -467,11 +492,76 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         dialog.open();
     }
 
-    protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
+    protected void buildEditItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
         try {
+            if (item == null) {
+                showErrorNotification("Could not edit item! No item is selected!");
+                return;
+            }
+
+            VerticalLayout formLayout = new VerticalLayout();
+
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
+            List<Field> declaredFields = getVaadinTableFields().stream()
+                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
+                    .toList();
+
+            for (Field field : declaredFields) {
+                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
+                VerticalLayout layoutForField = new VerticalLayout();
+                layoutForField.getThemeList().remove("spacing");
+                layoutForField.getThemeList().remove("padding");
+                layoutForField.add((Component) componentWithValue);
+                customFieldInEditItemLayout(field, layoutForField, componentWithValue);
+                formLayout.add(layoutForField);
+                fieldsHolder.put(field, componentWithValue);
+                fieldsLayoutHolder.put(field, layoutForField);
+            }
+
+            customFieldInEditItemLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
+
+            Button dialogSaveButton = new BervanButton("Save");
+
+            HorizontalLayout buttonsLayout = new HorizontalLayout();
+            buttonsLayout.setWidthFull();
+            buttonsLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
+
+            buttonsLayout.add(dialogSaveButton);
+
+            dialogSaveButton.addClickListener(buttonClickEvent -> {
+                try {
+                    for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
+                        fieldAutoConfigurableFieldEntry.getKey().set(item, getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
+                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
+                    }
+
+                    item = customizeSavingInCreateForm(item);
+
+                    service.save(item);
+
+                    postEditItemActions();
+                } catch (Exception e) {
+                    log.error("Could not edit item!", e);
+                    showErrorNotification("Could not edit item!");
+                }
+                dialog.close();
+            });
+
+            dialogLayout.add(headerLayout, formLayout, buttonsLayout);
+        } catch (Exception e) {
+            log.error("Error during using edit modal. Check columns name or create custom modal!", e);
+            showErrorNotification("Error during using edit modal. Check columns name or create custom modal!");
+        }
+    }
+
+    protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
+        try {
             VerticalLayout formLayout = new VerticalLayout();
+
+            Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
+            Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             List<Field> declaredFields = getVaadinTableFields().stream()
                     .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
                     .toList();
@@ -482,13 +572,13 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
                 layoutForField.add((Component) componentWithValue);
-                customFieldInCreateLayout(field, layoutForField, componentWithValue);
+                customFieldInCreateItemLayout(field, layoutForField, componentWithValue);
                 formLayout.add(layoutForField);
                 fieldsHolder.put(field, componentWithValue);
                 fieldsLayoutHolder.put(field, layoutForField);
             }
 
-            customFieldInCreateLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
+            customFieldInCreateItemLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
 
             Button dialogSaveButton = new BervanButton("Save");
 
@@ -530,15 +620,31 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     }
 
+    protected void postEditItemActions() {
+
+    }
+
     protected Object getFieldValueForNewItemDialog(Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry) {
         return fieldAutoConfigurableFieldEntry.getValue().getValue();
     }
 
-    protected void customFieldInCreateLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
+    protected void customFieldInCreateItemLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
+
+    }
+
+    protected void customFieldInEditItemLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
+
+    }
+
+    protected void customFieldInEditItemLayout(Field field, VerticalLayout layoutForField, AutoConfigurableField componentWithValue) {
 
     }
 
     protected T customizeSavingInCreateForm(T newItem) {
         return newItem;
+    }
+
+    protected T customizeEditingInEditItemForm(T item) {
+        return item;
     }
 }

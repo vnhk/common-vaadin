@@ -599,13 +599,13 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
                 layoutForField.add((Component) componentWithValue);
-                customFieldInCreateLayout(field, layoutForField, componentWithValue);
+                customFieldInCreateItemLayout(field, layoutForField, componentWithValue);
                 formLayout.add(layoutForField);
                 fieldsHolder.put(field, componentWithValue);
                 fieldsLayoutHolder.put(field, layoutForField);
             }
 
-            customFieldInCreateLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
+            customFieldInCreateItemLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
 
             Button dialogSaveButton = new BervanButton("Save");
 
