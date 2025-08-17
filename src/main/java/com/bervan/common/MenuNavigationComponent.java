@@ -2,6 +2,7 @@ package com.bervan.common;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -10,8 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class MenuNavigationComponent extends VerticalLayout {
-    protected MenuButtonsRow menuButtonsRow = new MenuButtonsRow();
     protected final Map<String, Button> buttons = new HashMap<>();
+    protected MenuButtonsRow menuButtonsRow = new MenuButtonsRow();
     protected String CURRENT_ROUTE_NAME;
     protected String[] notVisibleButtonsRoutes;
 
@@ -19,7 +20,13 @@ public abstract class MenuNavigationComponent extends VerticalLayout {
         init(currentRouteName);
     }
 
+    public MenuNavigationComponent(String routeName, String[] notVisibleButtonsRoutes) {
+        init(routeName);
+        this.notVisibleButtonsRoutes = notVisibleButtonsRoutes;
+    }
+
     private void init(String currentRouteName) {
+        menuButtonsRow.addClassName("menu-container");
         CURRENT_ROUTE_NAME = currentRouteName;
         setWidth("0px");
         setHeight("0px");
@@ -31,15 +38,13 @@ public abstract class MenuNavigationComponent extends VerticalLayout {
         );
     }
 
-    public MenuNavigationComponent(String routeName, String[] notVisibleButtonsRoutes) {
-        init(routeName);
-        this.notVisibleButtonsRoutes = notVisibleButtonsRoutes;
-    }
+    public void addButtonIfVisible(HorizontalLayout menuRow, String routeName, String buttonText, Icon icon) {
+        boolean inNotVisible = notVisibleButtonsRoutes != null
+                && Arrays.asList(notVisibleButtonsRoutes).contains(routeName);
 
-    public void addButtonIfVisible(HorizontalLayout menuRow, String routeName, String buttonText) {
-        boolean inNotVisible = notVisibleButtonsRoutes != null && Arrays.asList(notVisibleButtonsRoutes).contains(routeName);
         if (notVisibleButtonsRoutes == null || !inNotVisible) {
-            Button button = new BervanButton(buttonText);
+            Button button = new BervanButton(buttonText, icon);
+            button.addClassName("navigation-button");
             buttons.put(routeName, button);
 
             if (routeName.equals(CURRENT_ROUTE_NAME)) {
