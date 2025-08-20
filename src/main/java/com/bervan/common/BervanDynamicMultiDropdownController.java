@@ -16,6 +16,7 @@ public class BervanDynamicMultiDropdownController extends VerticalLayout impleme
         this.key = key;
         this.multiSelectComboBox = new MultiSelectComboBox<>(label);
         setSpacing(false);
+        setPadding(false);
         multiSelectComboBox.setMinWidth("200px");
         multiSelectComboBox.setMaxWidth("600px");
 
