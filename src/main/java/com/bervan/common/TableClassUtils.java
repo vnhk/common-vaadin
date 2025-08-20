@@ -2,6 +2,7 @@ package com.bervan.common;
 
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -14,6 +15,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.bervan.common.AbstractPageView.createSearchSection;
 
 public class TableClassUtils {
     public static VaadinBervanColumnConfig buildColumnConfig(Field field) {
@@ -34,7 +37,7 @@ public class TableClassUtils {
         return config;
     }
 
-    public static Map<Field, Map<Object, Checkbox>> buildCheckboxFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, Map<Object, Checkbox>> buildCheckboxFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout) {
         Map<Field, Map<Object, Checkbox>> filtersMap = new HashMap<>();
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
 
@@ -46,8 +49,6 @@ public class TableClassUtils {
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
                     if (!config.getStrValues().isEmpty()) {
-                        H4 label = new H4(config.getDisplayName() + ":");
-                        fieldLayout.add(label);
                         for (String val : config.getStrValues()) {
                             Checkbox checkbox = new Checkbox(val);
                             checkbox.setValue(true);
@@ -55,8 +56,6 @@ public class TableClassUtils {
                             fieldLayout.add(checkbox);
                         }
                     } else if (!config.getIntValues().isEmpty()) {
-                        H4 label = new H4(config.getDisplayName() + ":");
-                        fieldLayout.add(label);
                         for (Integer val : config.getIntValues()) {
                             Checkbox checkbox = new Checkbox(val.toString());
                             checkbox.setValue(true);
@@ -64,7 +63,7 @@ public class TableClassUtils {
                             fieldLayout.add(checkbox);
                         }
                     }
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName(), fieldLayout));
                 }
             }
 
@@ -73,7 +72,7 @@ public class TableClassUtils {
         return filtersMap;
     }
 
-    public static Map<Field, Map<String, BervanDateTimePicker>> buildDateTimeFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, Map<String, BervanDateTimePicker>> buildDateTimeFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout) {
         Map<Field, Map<String, BervanDateTimePicker>> filtersMap = new HashMap<>();
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
 
@@ -84,41 +83,35 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanDateTimePicker from = new BervanDateTimePicker();
                     BervanDateTimePicker to = new BervanDateTimePicker();
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName(), fieldLayout));
                 } else if (field.getType().equals(LocalDate.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanDateTimePicker from = new BervanDateTimePicker(true, false);
                     BervanDateTimePicker to = new BervanDateTimePicker(true, false);
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName(), fieldLayout));
                 } else if (field.getType().equals(LocalTime.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanDateTimePicker from = new BervanDateTimePicker(false, true);
                     BervanDateTimePicker to = new BervanDateTimePicker(false, true);
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName(), fieldLayout));
                 }
             }
         }
@@ -127,7 +120,7 @@ public class TableClassUtils {
     }
 
 
-    public static Map<Field, ? extends BervanTextField> buildTextFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, ? extends BervanTextField> buildTextFieldFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout) {
         Map<Field, BervanTextField> filtersMap = new HashMap<>();
 
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
@@ -138,13 +131,13 @@ public class TableClassUtils {
                 if (field.getType().equals(String.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanTextField bervanField = new BervanTextField();
                     fieldLayout.add(bervanField);
                     filtersMap.put(field, bervanField);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName()
+                            , fieldLayout));
+
                 }
             }
         }
@@ -152,7 +145,7 @@ public class TableClassUtils {
         return filtersMap;
     }
 
-    public static Map<Field, Map<String, BervanIntegerField>> buildIntegerFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, Map<String, BervanIntegerField>> buildIntegerFieldFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout) {
         Map<Field, Map<String, BervanIntegerField>> filtersMap = new HashMap<>();
 
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
@@ -164,15 +157,15 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanIntegerField from = new BervanIntegerField();
                     BervanIntegerField to = new BervanIntegerField();
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName()
+                            , fieldLayout));
+
                 }
             }
         }
@@ -180,7 +173,7 @@ public class TableClassUtils {
         return filtersMap;
     }
 
-    public static Map<Field, Map<String, BervanDoubleField>> buildDoubleFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, Map<String, BervanDoubleField>> buildDoubleFieldFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout) {
         Map<Field, Map<String, BervanDoubleField>> filtersMap = new HashMap<>();
 
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
@@ -192,15 +185,15 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanDoubleField from = new BervanDoubleField();
                     BervanDoubleField to = new BervanDoubleField();
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName()
+                            , fieldLayout));
+
                 }
             }
         }
@@ -208,7 +201,7 @@ public class TableClassUtils {
         return filtersMap;
     }
 
-    public static Map<Field, Map<String, BervanBigDecimalField>> buildBigDecimalFieldFiltersMenu(List<Class<?>> classes, VerticalLayout filtersMenuLayout) {
+    public static Map<Field, Map<String, BervanBigDecimalField>> buildBigDecimalFieldFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout) {
         Map<Field, Map<String, BervanBigDecimalField>> filtersMap = new HashMap<>();
 
         Map<Class<?>, List<Field>> classfields = getVaadinTableColumns(classes);
@@ -220,15 +213,15 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     BervanBigDecimalField from = new BervanBigDecimalField();
                     BervanBigDecimalField to = new BervanBigDecimalField();
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
-                    filtersMenuLayout.add(fieldLayout);
+                    filtersLayout.add(createSearchSection(config.getDisplayName()
+                            , fieldLayout));
+
                 }
             }
         }

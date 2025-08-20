@@ -7,19 +7,20 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.SearchRequestQueryTranslator;
 import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -27,32 +28,35 @@ import java.util.*;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
-public class AbstractFiltersLayout<ID extends Serializable, T extends PersistableTableData<ID>> extends Div {
-    protected final VerticalLayout filtersMenuLayout = new VerticalLayout();
-    protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
+public class AbstractFiltersLayout<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final Button applyFiltersButton;
+    @Getter
     protected final Map<Field, Map<Object, Checkbox>> checkboxFiltersMap = new HashMap<>();
     protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
+    @Getter
     protected final Map<Field, BervanTextField> textFieldFiltersMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanIntegerField>> integerFieldHashMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanDoubleField>> doubleFieldHashMap = new HashMap<>();
     protected final Map<Field, Map<String, BervanBigDecimalField>> bigDecimalHasMap = new HashMap<>();
+    @Getter
     protected final Map<Field, Map<String, BervanDateTimePicker>> dateTimeFiltersMap = new HashMap<>();
     protected final Class<T> tClass;
     protected final TextField allFieldsTextSearch;
     protected final TextField stringQuerySearch;
     protected final Set<String> filterableFields = new HashSet<>();
+    protected final Div searchForm;
+    protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
+    protected HorizontalLayout autoFiltersRow;
+
     public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton) {
         this.tClass = tClass;
-        filtersMenuLayout.setVisible(false);
         this.applyFiltersButton = applyFiltersButton;
 
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         filterableFields.addAll(getFilterableFields(vaadinTableColumns)); //later configure in each class example @VaadinColumn filterable=true
 
-        allFieldsTextSearch = getFilter("Search in all field: ");
-
-        stringQuerySearch = getFilter("Custom query (overrides other filters)");
+        allFieldsTextSearch = getFilter();
+        stringQuerySearch = getFilter();
         Icon questionIcon = VaadinIcon.QUESTION_CIRCLE.create();
         Button helpButton = new Button(questionIcon);
         helpButton.getElement().setAttribute("title", "Click");
@@ -63,15 +67,18 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         queryWithHelp.setAlignItems(FlexComponent.Alignment.END);
 
         buildFiltersMenu();
-        filtersMenuLayout.add(allFieldsTextSearch);
-        filtersMenuLayout.add(new Hr(), queryWithHelp);
-        filtersMenuLayout.add(new HorizontalLayout(applyFiltersButton, reverseFiltersButton));
-        filtersMenuLayout.add(removeFiltersButton);
+
+        Div allFieldsFilter = createSearchSection("All fields filter", allFieldsTextSearch);
+        Div queryWithHelpFilter = createSearchSection("Custom query (overrides other filters)", queryWithHelp);
+        HorizontalLayout searchSectionRow = createSearchSectionRow(allFieldsFilter, queryWithHelpFilter);
+
+        HorizontalLayout searchActionButtonsLayout = getSearchActionButtonsLayout(applyFiltersButton, reverseFiltersButton, removeFiltersButton);
+        searchForm = getSearchForm(null, searchActionButtonsLayout, autoFiltersRow, searchSectionRow);
+        searchForm.setVisible(false);
+        add(filtersButton, searchForm);
 
         removeFiltersButton.setVisible(false);
-
-        add(filtersButton, filtersMenuLayout);
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     private void showHelpDialog() {
         Dialog helpDialog = new Dialog();
@@ -84,7 +91,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         Button closeButton = new Button("Close", e -> helpDialog.close());
         helpDialog.getFooter().add(closeButton);
         helpDialog.open();
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     public void addFilterableFields(String fieldName) {
         filterableFields.add(fieldName);
@@ -98,18 +105,6 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         for (Map<Object, Checkbox> value : checkboxFiltersMap.values()) {
             value.values().forEach(e -> e.setValue(!e.getValue()));
         }
-    }
-
-    public Map<Field, Map<Object, Checkbox>> getCheckboxFiltersMap() {
-        return checkboxFiltersMap;
-    }
-
-    public Map<Field, Map<String, BervanDateTimePicker>> getDateTimeFiltersMap() {
-        return dateTimeFiltersMap;
-    }
-
-    public Map<Field, BervanTextField> getTextFieldFiltersMap() {
-        return textFieldFiltersMap;
     }
 
     public SearchRequest buildCombinedFilters() {
@@ -156,23 +151,29 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     private void createCriteriaForCheckboxFilters(SearchRequest request) {
+
+
         for (Field field : checkboxFiltersMap.keySet()) {
             VaadinBervanColumnConfig config = buildColumnConfig(field);
 
-            if (config.getStrValues().size() > 0) {
+            if (!config.getStrValues().isEmpty()) {
                 //are all checkbox selected? if so does not make sense create criteria
-                if (checkboxFiltersMap.get(field).entrySet().stream().filter(e -> e.getValue().getValue()).count()
-                        == config.getStrValues().size()) {
+                long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
+                        .filter(e -> e.getValue().getValue()).count();
+
+
+                if (selectedCount == config.getStrValues().size()) {
                     continue;
                 }
 
                 for (String key : config.getStrValues()) {
                     createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                 }
-            } else if (config.getIntValues().size() > 0) {
-                //are all checkbox selected? if so does not make sense create criteria
-                if (checkboxFiltersMap.get(field).entrySet().stream().filter(e -> e.getValue().getValue()).count()
-                        == config.getIntValues().size()) {
+            } else if (!config.getIntValues().isEmpty()) {
+                long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
+                        .filter(e -> e.getValue().getValue()).count();
+
+                if (selectedCount == config.getIntValues().size()) {
                     continue;
                 }
 
@@ -311,7 +312,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     protected void toggleFiltersMenu() {
-        filtersMenuLayout.setVisible(!filtersMenuLayout.isVisible());
+        searchForm.setVisible(!searchForm.isVisible());
     }
 
     protected List<Field> getVaadinTableColumns() {
@@ -321,58 +322,100 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     protected void buildFiltersMenu() {
+
+
+        List<Component> fieldLayouts = new ArrayList<>();
+
         List<Field> fields = getVaadinTableColumns();
         for (Field field : fields) {
             VaadinBervanColumnConfig config = buildColumnConfig(field);
             if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
-                VerticalLayout fieldLayout = new VerticalLayout();
+                FlexLayout fieldLayout = new FlexLayout();
+                fieldLayout.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+                fieldLayout.getStyle()
+                        .set("gap", "0.5rem")
+                        .set("align-items", "flex-start");
                 fieldLayout.setWidthFull();
+
                 checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
+
                 if (!config.getStrValues().isEmpty()) {
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     for (String val : config.getStrValues()) {
                         Checkbox checkbox = new Checkbox(val);
                         checkbox.setValue(true);
+                        checkbox.getStyle()
+                                .set("margin-top", "20px")
+                                .set("min-width", "fit-content")
+                                .set("white-space", "nowrap");
+
                         checkboxFiltersMap.get(field).put(val, checkbox);
                         fieldLayout.add(checkbox);
                     }
                 } else {
-                    H4 label = new H4(config.getDisplayName() + ":");
-                    fieldLayout.add(label);
                     for (Integer val : config.getIntValues()) {
                         Checkbox checkbox = new Checkbox(val.toString());
                         checkbox.setValue(true);
+                        checkbox.getStyle()
+                                .set("margin-top", "20px")
+                                .set("min-width", "fit-content")
+                                .set("white-space", "nowrap");
+
                         checkboxFiltersMap.get(field).put(val, checkbox);
                         fieldLayout.add(checkbox);
                     }
                 }
-                filtersMenuLayout.add(fieldLayout);
+
+                fieldLayouts.add(createSearchSection(config.getDisplayName(), fieldLayout));
             }
         }
 
+
         dateTimeFiltersMap.putAll(TableClassUtils.buildDateTimeFiltersMenu(Collections.singletonList(tClass),
-                filtersMenuLayout));
+                fieldLayouts));
 
         textFieldFiltersMap.putAll(TableClassUtils.buildTextFieldFiltersMenu(Collections.singletonList(tClass),
-                filtersMenuLayout));
+                fieldLayouts));
 
         integerFieldHashMap.putAll(TableClassUtils.buildIntegerFieldFiltersMenu(Collections.singletonList(tClass),
-                filtersMenuLayout));
+                fieldLayouts));
 
         doubleFieldHashMap.putAll(TableClassUtils.buildDoubleFieldFiltersMenu(Collections.singletonList(tClass),
-                filtersMenuLayout));
+                fieldLayouts));
 
         bigDecimalHasMap.putAll(TableClassUtils.buildBigDecimalFieldFiltersMenu(Collections.singletonList(tClass),
-                filtersMenuLayout));
+                fieldLayouts));
 
         if (fields.isEmpty()) {
             filtersButton.setVisible(false);
         }
+
+        Div filtersSection = createSearchSection("Filters",
+                createDynamicFiltersLayout(fieldLayouts));
+        autoFiltersRow = createSearchSectionRow(filtersSection);
     }
 
-    protected TextField getFilter(String label) {
-        TextField searchField = new TextField(label);
+    private Component createDynamicFiltersLayout(List<Component> fieldLayouts) {
+        if (fieldLayouts.isEmpty()) {
+            return new Div();
+        }
+
+        FlexLayout mainContainer = new FlexLayout();
+        mainContainer.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        mainContainer.getStyle()
+                .set("gap", "0.5rem")
+                .set("align-items", "flex-start");
+        mainContainer.setWidthFull();
+
+        for (Component fieldLayout : fieldLayouts) {
+            fieldLayout.getStyle().set("flex", "0 0 auto");
+            mainContainer.add(fieldLayout);
+        }
+
+        return mainContainer;
+    }
+
+    protected TextField getFilter() {
+        TextField searchField = new TextField();
         searchField.setWidth("100%");
         return searchField;
     }
