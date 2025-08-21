@@ -54,6 +54,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected int maxPages = 0;
     protected long allFound = 0;
     protected int pageSize = 50;
+    protected HorizontalLayout paginationBar;
     protected Grid<T> grid;
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected Span countItemsInfo = new Span("");
@@ -99,14 +100,19 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         grid = getGrid();
         grid.setItems(data);
         grid.addClassName("bervan-table");
+        grid.addClassName("modern-table");
         grid.addItemClickListener(this::doOnColumnClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
         addButton.addClassName("option-button");
+        addButton.addClassName("primary-action-button");
+
         currentPage.addClassName("option-button");
-        currentPage.addClassName("option-button-warning");
+        currentPage.addClassName("page-indicator-button");
 
         prevPageButton.addClassName("option-button");
+        prevPageButton.addClassName("page-navigation-button");
+        prevPageButton.addClassName("prev-button");
         prevPageButton.addClickListener(e -> {
             if (pageNumber > 0) {
                 pageNumber--;
@@ -115,6 +121,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         });
 
         nextPageButton.addClassName("option-button");
+        nextPageButton.addClassName("page-navigation-button");
+        nextPageButton.addClassName("next-button");
         nextPageButton.addClickListener(event -> {
             if (pageNumber < maxPages - 1) {
                 pageNumber++;
@@ -130,14 +138,20 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             refreshData();
         });
 
-        goToPage.setMaxWidth("100px");
+        goToPage.setMaxWidth("120px");
+        goToPage.addClassName("page-select");
 
         HorizontalLayout topTableActions = new HorizontalLayout();
+        topTableActions.addClassName("table-actions-bar");
+        refreshTable.addClassName("option-button");
+        refreshTable.addClassName("refresh-button");
         topTableActions.add(refreshTable);
 
         checkboxActions = new HorizontalLayout();
+        checkboxActions.addClassName("checkbox-actions-bar");
         checkboxActions.setVisible(checkboxesColumnsEnabled);
         selectedItemsCountLabel.setVisible(checkboxesColumnsEnabled);
+        selectedItemsCountLabel.addClassName("selection-counter");
 
         checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
             ConfirmDialog confirmDialog = new ConfirmDialog();
@@ -173,13 +187,27 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             confirmDialog.open();
         }, BervanButtonStyle.WARNING);
 
+        checkboxDeleteButton.addClassName("delete-action-button");
         checkboxActions.add(checkboxDeleteButton);
         topTableActions.add(checkboxActions);
 
         buttonsForCheckboxesForVisibilityChange.add(checkboxDeleteButton);
 
+        applyFiltersButton.addClassName("option-button");
+        applyFiltersButton.addClassName("filter-apply-button");
+
         topLayout.add(filtersLayout.filtersButton);
-        contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, new HorizontalLayout(JustifyContentMode.BETWEEN, prevPageButton, currentPage, nextPageButton, goToPage), addButton);
+
+        paginationBar = new HorizontalLayout(prevPageButton, currentPage, nextPageButton, goToPage);
+        paginationBar.addClassName("pagination-bar");
+        paginationBar.setAlignItems(FlexComponent.Alignment.CENTER);
+        paginationBar.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        countItemsInfo.addClassName("table-info-text");
+
+        contentLayout.setSpacing(false);
+        contentLayout.setPadding(false);
+        contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, paginationBar, addButton);
 
         add(pageLayout);
 
@@ -329,7 +357,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             grid.addColumn(createCheckboxComponent())
                     .setHeader(selectAllCheckbox)
                     .setKey(CHECKBOX_COLUMN_KEY)
-                    .setWidth("20px")
+                    .setWidth("60px")
+                    .setFlexGrow(0)
                     .setTextAlign(ColumnTextAlign.CENTER)
                     .setResizable(false)
                     .setSortable(false);
@@ -362,7 +391,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             }
         }
 
-        grid.getElement().getStyle().set("--lumo-size-m", 10 + "px");
+        // Modern grid styling
+        grid.getElement().getStyle().set("--lumo-size-m", "16px");
+        grid.setAllRowsVisible(false);
+        grid.setPageSize(pageSize);
 
         grid.addSortListener(event -> {
             List<GridSortOrder<T>> sortOrders = event.getSortOrder();
@@ -383,6 +415,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     private void buildSelectAllCheckboxesComponent() {
         this.selectAllCheckbox = new Checkbox(false);
+        this.selectAllCheckbox.addClassName("modern-table-checkbox");
+        this.selectAllCheckbox.addClassName("select-all-checkbox");
         this.selectAllCheckbox.addValueChangeListener(clickEvent -> {
             if (clickEvent.isFromClient()) {
                 if (checkboxes.size() == 0) {
@@ -409,16 +443,19 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinBervanColumnConfig config) {
         return (span, record) -> {
             try {
-                span.setClassName("bervan-cell-component");
+                span.setClassName("modern-cell-content");
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
                 if (o != null) {
                     if (config.isWysiwyg()) {
-                        Icon showEditorIcon = new Icon(VaadinIcon.OPEN_BOOK);
+                        Icon showEditorIcon = new Icon(VaadinIcon.EDIT);
+                        showEditorIcon.addClassName("cell-action-icon");
                         span.add(showEditorIcon);
                     } else {
-                        span.add(o.toString());
+                        Span textContent = new Span(o.toString());
+                        textContent.addClassName("cell-text");
+                        span.add(textContent);
                     }
                 }
                 customizeTextColumnUpdater(span, record, f);
@@ -432,12 +469,15 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinBervanColumnConfig config) {
         return (span, record) -> {
             try {
-                span.setClassName("bervan-cell-component");
+                span.setClassName("modern-cell-content");
+                span.addClassName("image-cell-content");
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
-                if (o instanceof Collection<?> && ((Collection<?>) o).size() > 0) {
-                    Icon showEditorIcon = new Icon(VaadinIcon.SCATTER_CHART);
+                if (o instanceof Collection<?> && !((Collection<?>) o).isEmpty()) {
+                    Icon showEditorIcon = new Icon(VaadinIcon.PICTURE);
+                    showEditorIcon.addClassName("cell-action-icon");
+                    showEditorIcon.addClassName("image-icon");
                     span.add(showEditorIcon);
                 }
                 customizeImageColumnUpdater(span, record, f);
@@ -453,7 +493,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             try {
                 ID id = record.getId();
                 checkbox.setId("checkbox-" + id);
-                checkbox.setClassName("bervan-cell-component");
+                checkbox.setClassName("modern-table-checkbox");
                 checkbox.addValueChangeListener(e -> {
                     if (e.isFromClient()) {
                         for (Button button : buttonsForCheckboxesForVisibilityChange) {
