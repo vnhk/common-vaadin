@@ -32,13 +32,17 @@ public abstract class AbstractPageView extends VerticalLayout {
 
     public static Div createSearchSection(String title, Object... components) {
         Div section = new Div();
+        section.addClassName("search-section");
         section.getStyle()
                 .set("margin-bottom", "0")
+                .set("margin-left", "10px")
+                .set("margin-right", "10px")
                 .set("padding", "0.5rem")
                 .set("background", "var(--lumo-base-color)")
                 .set("border-radius", "var(--lumo-border-radius-s)")
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
                 .set("height", "fit-content")
+                .set("min-height", "120px")
                 .set("min-width", "0"); // Allows flex items to shrink
 
         H3 sectionTitle = new H3(title);
@@ -71,7 +75,10 @@ public abstract class AbstractPageView extends VerticalLayout {
         actionButtons.add(buttons);
         actionButtons.setSpacing(true);
         actionButtons.setJustifyContentMode(JustifyContentMode.CENTER);
-        actionButtons.getStyle().set("margin-top", "1rem");
+        actionButtons.getStyle()
+                .set("margin-top", "1rem")
+                .set("margin-left", "10px")
+                .set("margin-bottom", "1rem");
         return actionButtons;
     }
 
@@ -93,6 +100,9 @@ public abstract class AbstractPageView extends VerticalLayout {
                 .set("width", "100%");
 
         if (titleComponent != null) {
+            titleComponent.getStyle().set("margin-left", "10px")
+                    .set("margin-top", "1rem")
+                    .set("margin-bottom", "1rem");
             searchContainer.add(titleComponent, searchForm);
         } else {
             searchContainer.add(searchForm);

@@ -357,8 +357,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             grid.addColumn(createCheckboxComponent())
                     .setHeader(selectAllCheckbox)
                     .setKey(CHECKBOX_COLUMN_KEY)
-                    .setWidth("60px")
-                    .setFlexGrow(0)
+                    .setWidth("10px")
                     .setTextAlign(ColumnTextAlign.CENTER)
                     .setResizable(false)
                     .setSortable(false);
