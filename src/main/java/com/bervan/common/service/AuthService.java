@@ -3,6 +3,7 @@ package com.bervan.common.service;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
 import com.bervan.common.user.UserToUserRelation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AuthService {
 
     public static UUID getLoggedUserId() {
@@ -48,7 +50,12 @@ public class AuthService {
     }
 
     public static String getUserRole() {
-        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return principal.getRole();
+        try {
+            User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return principal.getRole();
+        } catch (Exception e) {
+            log.error("Error getting user role", e);
+            return "INVALID_ROLE";
+        }
     }
 }
