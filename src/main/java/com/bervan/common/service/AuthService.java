@@ -6,6 +6,7 @@ import com.bervan.common.user.UserToUserRelation;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,6 +21,10 @@ public class AuthService {
             }
         }
         return ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+    }
+
+    public static Optional<User> getLoggedUser() {
+        return Optional.ofNullable(((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
     }
 
     public static boolean hasAccess(Collection<? extends PersistableData> elements) {
