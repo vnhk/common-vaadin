@@ -12,7 +12,7 @@ public @interface VaadinBervanColumn {
 
     String displayName();
 
-    String[] strValues() default {};
+    String[] strValues() default {}; //todo change to class (Constants.class) and field name to get all values from that class
 
     boolean valuesSingleChoice() default true;
 

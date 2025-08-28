@@ -50,18 +50,6 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
     }
 
     @Override
-    protected void deleteItemsFromGrid(List<T> items) {
-        super.deleteItemsFromGrid(items);
-//        for (T item : items) {
-//            service.deleteById(item.getId()); //for deleting original
-//            removeItemFromGrid(item);
-//        }
-//
-//        this.grid.getDataProvider().refreshAll();
-//        resetTableResults();
-    }
-
-    @Override
     protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout,
                                                    HorizontalLayout headerLayout, String clickedField, T item) {
         Field field = null;
