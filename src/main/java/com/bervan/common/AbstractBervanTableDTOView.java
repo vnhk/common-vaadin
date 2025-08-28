@@ -10,6 +10,7 @@ import com.bervan.core.service.DTOMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +18,7 @@ import org.vaadin.olli.ClipboardHelper;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 public abstract class AbstractBervanTableDTOView<ID extends Serializable, T extends PersistableTableData<ID>, DTO extends BaseDTO<ID>> extends AbstractBervanTableView<ID, T> {
@@ -49,6 +47,18 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
             log.error("Failed to load data", e);
             showErrorNotification("Failed to load data");
         }
+    }
+
+    @Override
+    protected void deleteItemsFromGrid(List<T> items) {
+        super.deleteItemsFromGrid(items);
+//        for (T item : items) {
+//            service.deleteById(item.getId()); //for deleting original
+//            removeItemFromGrid(item);
+//        }
+//
+//        this.grid.getDataProvider().refreshAll();
+//        resetTableResults();
     }
 
     @Override
@@ -151,14 +161,76 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
         }
     }
 
-
     @Override
     protected T customizeSavingInCreateForm(T newItem) {
         try {
             DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
-            return (T) dtoMapper.map(((BaseDTO) item));
+            return (T) dtoMapper.map(((BaseDTO) newItem));
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
+        try {
+            Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
+            Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
+            VerticalLayout formLayout = new VerticalLayout();
+            List<Field> declaredFields = getVaadinTableFields().stream()
+                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
+                    .toList();
+
+            for (Field field : declaredFields) {
+                AutoConfigurableField componentWithValue = buildComponentForField(field, null);
+                VerticalLayout layoutForField = new VerticalLayout();
+                layoutForField.getThemeList().remove("spacing");
+                layoutForField.getThemeList().remove("padding");
+                layoutForField.add((Component) componentWithValue);
+                customFieldInCreateItemLayout(field, layoutForField, componentWithValue);
+                formLayout.add(layoutForField);
+                fieldsHolder.put(field, componentWithValue);
+                fieldsLayoutHolder.put(field, layoutForField);
+            }
+
+            customFieldInCreateItemLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
+
+            Button dialogSaveButton = new BervanButton("Save");
+
+            HorizontalLayout buttonsLayout = new HorizontalLayout();
+            buttonsLayout.setWidthFull();
+            buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+            buttonsLayout.add(dialogSaveButton);
+
+            dialogSaveButton.addClickListener(buttonClickEvent -> {
+                try {
+                    T newObject = (T) dtoClass.getConstructor().newInstance();
+
+                    for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
+                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
+                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
+                    }
+
+                    newObject = customizeSavingInCreateForm(newObject);
+
+                    service.save(newObject);
+
+                    postSaveActions();
+
+                    refreshData();
+                } catch (Exception e) {
+                    log.error("Could not save new item!", e);
+                    showErrorNotification("Could not save new item!");
+                }
+                dialog.close();
+            });
+
+            dialogLayout.add(headerLayout, formLayout, buttonsLayout);
+        } catch (Exception e) {
+            log.error("Error during using creation modal. Check columns name or create custom modal!", e);
+            showErrorNotification("Error during using creation modal. Check columns name or create custom modal!");
         }
     }
 

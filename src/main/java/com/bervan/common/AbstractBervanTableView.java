@@ -589,7 +589,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         showSuccessNotification("Deleted successfully!");
     }
 
-    private void deleteItemsFromGrid(List<T> items) {
+    protected void deleteItemsFromGrid(List<T> items) {
         for (T item : items) {
             service.deleteById(item.getId()); //for deleting original
             removeItemFromGrid(item);
