@@ -87,7 +87,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
 
                 buttonsLayout.add(new HorizontalLayout(dialogSaveButton, clipboardHelper), deleteButton);
 
-                T finalItem = (T) dtoMapper.map(((BaseDTO) item));
+                T finalItem = service.loadById(item.getId()).get();
                 deleteButton.addClickListener(buttonClickEvent -> {
                     modalDeleteItem(dialog, finalItem);
                 });
