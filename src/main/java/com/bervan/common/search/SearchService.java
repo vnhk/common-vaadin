@@ -130,6 +130,7 @@ public class SearchService {
     }
 
     private void validateOptions(SearchQueryOption options) {
+        throwIfNullOrEmpty(options.getEntityToFind(), "entityToFind");
         throwIfNullOrEmpty(options.getPage(), "page");
         throwIfNullOrEmpty(options.getPageSize(), "pageSize");
         throwIfNullOrEmpty(options.getSortField(), "sortField");
