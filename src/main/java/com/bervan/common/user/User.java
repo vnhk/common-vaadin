@@ -19,6 +19,8 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     private String username;
     @JsonIgnore
     private String password;
+    @JsonIgnore
+    private String dataCipherPassword;
     private String role;
     private boolean mainAccount = true;
     private boolean lockedAccount = false;
@@ -167,5 +169,13 @@ public class User extends BervanBaseEntity<UUID> implements PersistableTableData
     @Override
     public int hashCode() {
         return Objects.hash(id, username, password, role, mainAccount, deleted, modificationDate, childrenRelations);
+    }
+
+    public String getDataCipherPassword() {
+        return dataCipherPassword;
+    }
+
+    public void setDataCipherPassword(String dataCipherPassword) {
+        this.dataCipherPassword = dataCipherPassword;
     }
 }

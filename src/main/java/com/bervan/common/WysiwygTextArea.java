@@ -37,6 +37,7 @@ public class WysiwygTextArea extends VerticalLayout implements AutoConfigurableF
     }
 
     private void configure(String id, String initValue) {
+        setValue(initValue);
         editorDiv = new Div();
 
         editorDiv.setId(id);
