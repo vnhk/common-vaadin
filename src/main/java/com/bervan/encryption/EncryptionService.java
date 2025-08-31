@@ -25,7 +25,7 @@ public class EncryptionService {
      * @param password user password
      * @return encrypted text with IV prepended (Base64 encoded)
      */
-    public String encrypt(String plainText, String password) {
+    public static String encrypt(String plainText, String password) {
         try {
             SecretKey secretKey = deriveKeyFromPassword(password);
 
@@ -55,7 +55,7 @@ public class EncryptionService {
      * @param password user password
      * @return decrypted plain text
      */
-    public String decrypt(String encryptedText, String password) {
+    public static String decrypt(String encryptedText, String password) {
         try {
             byte[] data = Base64.getDecoder().decode(encryptedText);
 
@@ -82,7 +82,7 @@ public class EncryptionService {
     /**
      * Derives a 256-bit key from password using PBKDF2
      */
-    private SecretKey deriveKeyFromPassword(String password) {
+    private static SecretKey deriveKeyFromPassword(String password) {
         try {
             // Simple key derivation - for production use PBKDF2WithHmacSHA256
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
