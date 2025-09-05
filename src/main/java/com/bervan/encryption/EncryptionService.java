@@ -1,11 +1,14 @@
 package com.bervan.encryption;
 
+import com.bervan.common.model.PersistableTableData;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -106,5 +109,32 @@ public class EncryptionService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static <ID extends Serializable, T extends PersistableTableData<ID>> T decryptAll(T item, String password) {
+        T newItem = null;
+        try {
+            newItem = (T) item.getClass().getConstructor().newInstance();
+            for (Field declaredField : item.getClass().getDeclaredFields()) {
+                declaredField.setAccessible(true);
+                if (declaredField.getType().equals(String.class)) {
+                    String fieldValue = (String) declaredField.get(item);
+                    if (isEncrypted(fieldValue)) {
+                        declaredField.set(newItem, decrypt(fieldValue, password));
+                    } else {
+                        declaredField.set(newItem, fieldValue);
+                    }
+                } else {
+                    Object fieldValue = declaredField.get(item);
+                    declaredField.set(newItem, fieldValue);
+                }
+
+                declaredField.setAccessible(false);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return newItem;
     }
 }

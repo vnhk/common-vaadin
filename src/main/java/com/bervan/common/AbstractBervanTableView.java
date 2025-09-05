@@ -7,6 +7,8 @@ import com.bervan.common.model.VaadinImageBervanColumn;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
+import com.bervan.encryption.EncryptionService;
+import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -18,10 +20,10 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Input;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
@@ -62,6 +64,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected Checkbox selectAllCheckbox;
     protected List<Checkbox> checkboxes = new ArrayList<>();
     protected Button checkboxDeleteButton;
+    protected Button checkboxExportButton;
     protected List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
     protected SortDirection sortDirection = null;
     protected Grid.Column<T> columnSorted = null;
@@ -72,10 +75,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         refreshData();
     });
 
-    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger log, Class<T> tClass) {
+    protected BervanLogger bervanLogger;
+
+    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, Class<T> tClass) {
         super(pageLayout, service, tClass);
         this.filtersLayout = new AbstractFiltersLayout<>(tClass, applyFiltersButton);
-
+        this.bervanLogger = bervanLogger;
         addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
     }
@@ -187,11 +192,30 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             confirmDialog.open();
         }, BervanButtonStyle.WARNING);
 
+        checkboxExportButton = new BervanButton("Export", exportEvent -> {
+            if (!isExportable()) {
+                log.error("Table is not exportable!");
+                return;
+            }
+
+            //need to extract items now, to be able to pass them to validation methods
+            Set<String> itemsId = getSelectedItemsByCheckbox();
+
+            List<T> toBeExported = data.stream()
+                    .filter(e -> e.getId() != null)
+                    .filter(e -> itemsId.contains(e.getId().toString()))
+                    .toList();
+
+            openExportDialog(toBeExported);
+        }, BervanButtonStyle.WARNING);
+
         checkboxDeleteButton.addClassName("delete-action-button");
-        checkboxActions.add(checkboxDeleteButton);
+        checkboxExportButton.setVisible(isExportable());
+        checkboxActions.add(checkboxDeleteButton, checkboxExportButton);
         topTableActions.add(checkboxActions);
 
         buttonsForCheckboxesForVisibilityChange.add(checkboxDeleteButton);
+        buttonsForCheckboxesForVisibilityChange.add(checkboxExportButton);
 
         applyFiltersButton.addClassName("option-button");
         applyFiltersButton.addClassName("filter-apply-button");
@@ -200,8 +224,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         paginationBar = new HorizontalLayout(prevPageButton, currentPage, nextPageButton, goToPage);
         paginationBar.addClassName("pagination-bar");
-        paginationBar.setAlignItems(FlexComponent.Alignment.CENTER);
-        paginationBar.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        paginationBar.setAlignItems(Alignment.CENTER);
+        paginationBar.setJustifyContentMode(JustifyContentMode.CENTER);
 
         countItemsInfo.addClassName("table-info-text");
 
@@ -218,6 +242,62 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         for (Button button : buttonsForCheckboxesForVisibilityChange) {
             button.setEnabled(false);
         }
+    }
+
+    private void openExportDialog(List<T> toBeExported) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Export");
+        dialog.setWidth("80vw");
+
+        HorizontalLayout dialogTopBarLayout = getDialogTopBarLayout(dialog);
+        dialog.add(dialogTopBarLayout);
+
+        H4 label = new H4("Enter password to decrypt data. Leave blank to export encrypted data.");
+        Input passwordField = new Input();
+        passwordField.setType("password");
+        passwordField.setPlaceholder("Enter password");
+        passwordField.setWidthFull();
+
+        dialog.add(new VerticalLayout(label, passwordField));
+
+        dialog.add(new AbstractDataIEView(service, null, bervanLogger, tClass) {
+            @Override
+            protected void postConstruct() {
+                super.upload.setVisible(false);
+                super.remove(upload);
+                super.filtersLayout.setVisible(false);
+                super.remove(filtersLayout);
+                super.add(exportButton);
+            }
+
+            @Override
+            protected List<ExcelIEEntity<?>> getDataToExport() {
+                List<ExcelIEEntity<?>> newList = new ArrayList<>();
+                for (T t : toBeExported) {
+                    if(passwordField.getValue() != null && !passwordField.getValue().isEmpty()) {
+                        newList.add((ExcelIEEntity<?>) EncryptionService.decryptAll(t, passwordField.getValue()));
+                    }  else {
+                        newList.add((ExcelIEEntity<?>) t);
+                    }
+                }
+
+                return newList;
+            }
+        });
+
+        dialog.open();
+    }
+
+    private boolean isExportable() {
+        return tClass != null && ExcelIEEntity.class.isAssignableFrom(tClass);
+    }
+
+    protected boolean checkboxExportButtonCustomOperations(List<T> toBeExported) {
+        return true;
+    }
+
+    protected void exportSelectedItems(List<T> toBeExported) {
+
     }
 
     private void updateCurrentPageText() {
@@ -650,7 +730,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
             HorizontalLayout buttonsLayout = new HorizontalLayout();
             buttonsLayout.setWidthFull();
-            buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+            buttonsLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
 
             buttonsLayout.add(dialogSaveButton);
 

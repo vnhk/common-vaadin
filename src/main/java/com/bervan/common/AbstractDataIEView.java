@@ -28,13 +28,14 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
     protected final BaseService<ID, T> dataService;
     protected final MenuNavigationComponent pageLayout;
     protected final BervanLogger logger;
+    protected final AbstractFiltersLayout<ID, T> filtersLayout;
+    protected final Button exportButton = new BervanButton("Prepare data for export");
     private final Class<T> classToExport;
+    protected Upload upload;
     @Value("${file.service.storage.folder}")
     private String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     private String globalTmpDir;
-    protected final AbstractFiltersLayout<ID, T> filtersLayout;
-    protected final Button exportButton = new BervanButton("Prepare data for export");
 
     public AbstractDataIEView(BaseService<ID, T> dataService,
                               MenuNavigationComponent pageLayout,
@@ -45,12 +46,14 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         this.classToExport = classToExport;
         this.filtersLayout = new AbstractFiltersLayout<>(classToExport, exportButton);
 
-        add(pageLayout);
+        if (pageLayout != null) {
+            add(pageLayout);
+        }
 
         add(filtersLayout);
 
         MemoryBuffer buffer = new MemoryBuffer();
-        Upload upload = new Upload(buffer);
+        upload = new Upload(buffer);
 
         upload.addSucceededListener(event -> {
             String fileName = event.getFileName();
@@ -79,6 +82,11 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         });
 
         add(upload);
+
+        postConstruct();
+    }
+
+    protected void postConstruct() {
     }
 
     private void importData(InputStream inputStream, String fileName) throws IOException {
@@ -130,7 +138,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         return null;
     }
 
-    private List<ExcelIEEntity<?>> getDataToExport() {
+    protected List<ExcelIEEntity<?>> getDataToExport() {
         List<ExcelIEEntity<?>> result = new ArrayList<>();
 
         try {
