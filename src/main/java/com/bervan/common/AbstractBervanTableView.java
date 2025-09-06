@@ -33,6 +33,7 @@ import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -74,6 +75,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
         refreshData();
     });
+    @Value("${file.service.storage.folder}")
+    protected String pathToFileStorage;
+    @Value("${global-tmp-dir.file-storage-relative-path}")
+    protected String globalTmpDir;
 
     protected BervanLogger bervanLogger;
 
@@ -268,15 +273,17 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                 super.filtersLayout.setVisible(false);
                 super.remove(filtersLayout);
                 super.add(exportButton);
+                pathToFileStorage = AbstractBervanTableView.this.pathToFileStorage;
+                globalTmpDir = AbstractBervanTableView.this.globalTmpDir;
             }
 
             @Override
             protected List<ExcelIEEntity<?>> getDataToExport() {
                 List<ExcelIEEntity<?>> newList = new ArrayList<>();
                 for (T t : toBeExported) {
-                    if(passwordField.getValue() != null && !passwordField.getValue().isEmpty()) {
+                    if (passwordField.getValue() != null && !passwordField.getValue().isEmpty()) {
                         newList.add((ExcelIEEntity<?>) EncryptionService.decryptAll(t, passwordField.getValue()));
-                    }  else {
+                    } else {
                         newList.add((ExcelIEEntity<?>) t);
                     }
                 }

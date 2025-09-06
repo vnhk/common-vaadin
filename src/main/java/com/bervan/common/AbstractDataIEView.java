@@ -33,9 +33,9 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
     private final Class<T> classToExport;
     protected Upload upload;
     @Value("${file.service.storage.folder}")
-    private String pathToFileStorage;
+    protected String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
-    private String globalTmpDir;
+    protected String globalTmpDir;
 
     public AbstractDataIEView(BaseService<ID, T> dataService,
                               MenuNavigationComponent pageLayout,
