@@ -1,5 +1,7 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
+import com.bervan.common.Action;
+import com.bervan.common.view.AbstractPageView;
 import com.bervan.encryption.EncryptionService;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.button.Button;

@@ -1,5 +1,6 @@
 package com.bervan.common;
 
+import com.bervan.common.component.*;
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.vaadin.flow.component.Component;
@@ -16,7 +17,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.bervan.common.AbstractPageView.createSearchSection;
+import static com.bervan.common.view.AbstractPageView.createSearchSection;
 
 public class TableClassUtils {
     public static VaadinBervanColumnConfig buildColumnConfig(Field field) {

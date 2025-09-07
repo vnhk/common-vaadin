@@ -1,5 +1,7 @@
-package com.bervan.common;
+package com.bervan.common.view;
 
+import com.bervan.common.*;
+import com.bervan.common.component.*;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.model.VaadinBervanColumnConfig;

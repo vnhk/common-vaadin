@@ -1,4 +1,4 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
 public interface AutoConfigurableField<T> {
 

@@ -1,7 +1,6 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
 import com.vaadin.flow.component.textfield.BigDecimalField;
-import com.vaadin.flow.component.textfield.IntegerField;
 
 import java.math.BigDecimal;
 

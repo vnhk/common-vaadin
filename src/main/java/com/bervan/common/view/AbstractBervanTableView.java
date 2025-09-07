@@ -1,5 +1,10 @@
-package com.bervan.common;
+package com.bervan.common.view;
 
+import com.bervan.common.*;
+import com.bervan.common.component.AutoConfigurableField;
+import com.bervan.common.component.BervanButton;
+import com.bervan.common.component.BervanButtonStyle;
+import com.bervan.common.component.BervanComboBox;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.model.VaadinBervanColumnConfig;

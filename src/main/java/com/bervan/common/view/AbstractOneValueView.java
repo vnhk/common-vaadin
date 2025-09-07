@@ -1,5 +1,6 @@
-package com.bervan.common;
+package com.bervan.common.view;
 
+import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.model.BaseOneValue;
 import com.bervan.common.onevalue.OneValue;
 import com.bervan.common.service.BaseOneValueService;

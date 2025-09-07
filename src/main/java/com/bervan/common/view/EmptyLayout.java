@@ -1,4 +1,6 @@
-package com.bervan.common;
+package com.bervan.common.view;
+
+import com.bervan.common.MenuNavigationComponent;
 
 public class EmptyLayout extends MenuNavigationComponent {
 

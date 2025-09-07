@@ -1,4 +1,4 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.timepicker.TimePicker;

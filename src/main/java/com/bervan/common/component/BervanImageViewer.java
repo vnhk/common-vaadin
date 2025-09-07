@@ -1,4 +1,4 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Image;

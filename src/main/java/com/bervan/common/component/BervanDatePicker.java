@@ -1,10 +1,9 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 public class BervanDatePicker extends HorizontalLayout implements AutoConfigurableField<LocalDate> {
     private DatePicker datePicker = new DatePicker();

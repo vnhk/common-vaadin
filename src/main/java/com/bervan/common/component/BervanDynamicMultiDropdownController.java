@@ -1,4 +1,4 @@
-package com.bervan.common;
+package com.bervan.common.component;
 
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
