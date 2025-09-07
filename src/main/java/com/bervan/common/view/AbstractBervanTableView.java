@@ -1,9 +1,9 @@
 package com.bervan.common.view;
 
-import com.bervan.common.*;
+import com.bervan.common.BervanTableToolbar;
+import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
-import com.bervan.common.component.BervanButtonStyle;
 import com.bervan.common.component.BervanComboBox;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
@@ -11,21 +11,19 @@ import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.bervan.common.model.VaadinImageBervanColumn;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
+import com.bervan.common.service.GridActionService;
 import com.bervan.core.model.BervanLogger;
-import com.bervan.encryption.EncryptionService;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.Input;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -57,35 +55,33 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
     protected final BervanComboBox<Integer> goToPage = new BervanComboBox<>();
     protected final H4 selectedItemsCountLabel = new H4("Selected 0 item(s)");
-    private final Set<String> currentlySortedColumns = new HashSet<>();
+    protected final List<Checkbox> checkboxes = new ArrayList<>();
+    protected final List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
+    protected final Set<String> currentlySortedColumns = new HashSet<>();
     protected int pageNumber = 0;
     protected int maxPages = 0;
     protected long allFound = 0;
     protected int pageSize = 50;
     protected HorizontalLayout paginationBar;
     protected Grid<T> grid;
-    protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected Span countItemsInfo = new Span("");
     protected boolean checkboxesColumnsEnabled = true;
     protected Checkbox selectAllCheckbox;
-    protected List<Checkbox> checkboxes = new ArrayList<>();
-    protected Button checkboxDeleteButton;
-    protected Button checkboxExportButton;
-    protected List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
     protected SortDirection sortDirection = null;
     protected Grid.Column<T> columnSorted = null;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
-    protected HorizontalLayout checkboxActions;
+    protected BervanTableToolbar<ID, T> tableToolbarActions;
     protected String sortField;
-    protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
-        refreshData();
-    });
     @Value("${file.service.storage.folder}")
     protected String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     protected String globalTmpDir;
-
     protected BervanLogger bervanLogger;
+    protected GridActionService<ID, T> gridActionService;
+    protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
+    protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
+        refreshData();
+    });
 
     public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, Class<T> tClass) {
         super(pageLayout, service, tClass);
@@ -100,14 +96,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 //        data.addAll(loadData());
     }
 
+    protected void refreshData() {
+        gridActionService.refreshData(data);
+    }
+
     protected Set<String> getSelectedItemsByCheckbox() {
-        return checkboxes.stream()
-                .filter(AbstractField::getValue)
-                .map(Component::getId)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(e -> e.split("checkbox-")[1])
-                .collect(Collectors.toSet());
+        return gridActionService.getSelectedItemsByCheckbox(checkboxes);
     }
 
     @Override
@@ -162,70 +156,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         refreshTable.addClassName("refresh-button");
         topTableActions.add(refreshTable);
 
-        checkboxActions = new HorizontalLayout();
-        checkboxActions.addClassName("checkbox-actions-bar");
-        checkboxActions.setVisible(checkboxesColumnsEnabled);
         selectedItemsCountLabel.setVisible(checkboxesColumnsEnabled);
         selectedItemsCountLabel.addClassName("selection-counter");
-
-        checkboxDeleteButton = new BervanButton("Delete", deleteEvent -> {
-            ConfirmDialog confirmDialog = new ConfirmDialog();
-            confirmDialog.setHeader("Confirm Deletion");
-            confirmDialog.setText("Are you sure you want to delete the selected items?");
-
-            confirmDialog.setConfirmText("Delete");
-            confirmDialog.setConfirmButtonTheme("error primary");
-            confirmDialog.addConfirmListener(event -> {
-                Set<String> itemsId = getSelectedItemsByCheckbox();
-
-                List<T> toBeDeleted = data.stream()
-                        .filter(e -> e.getId() != null)
-                        .filter(e -> itemsId.contains(e.getId().toString()))
-                        .toList();
-
-                deleteItemsFromGrid(toBeDeleted);
-                showSuccessNotification("Removed " + toBeDeleted.size() + " items");
-
-                selectAllCheckbox.setValue(false);
-                for (Button button : buttonsForCheckboxesForVisibilityChange) {
-                    button.setEnabled(isAtLeastOneCheckboxSelected());
-                }
-
-                refreshData();
-            });
-
-            confirmDialog.setCancelText("Cancel");
-            confirmDialog.setCancelable(true);
-            confirmDialog.addCancelListener(event -> {
-            });
-
-            confirmDialog.open();
-        }, BervanButtonStyle.WARNING);
-
-        checkboxExportButton = new BervanButton("Export", exportEvent -> {
-            if (!isExportable()) {
-                log.error("Table is not exportable!");
-                return;
-            }
-
-            //need to extract items now, to be able to pass them to validation methods
-            Set<String> itemsId = getSelectedItemsByCheckbox();
-
-            List<T> toBeExported = data.stream()
-                    .filter(e -> e.getId() != null)
-                    .filter(e -> itemsId.contains(e.getId().toString()))
-                    .toList();
-
-            openExportDialog(toBeExported);
-        }, BervanButtonStyle.WARNING);
-
-        checkboxDeleteButton.addClassName("delete-action-button");
-        checkboxExportButton.setVisible(isExportable());
-        checkboxActions.add(checkboxDeleteButton, checkboxExportButton);
-        topTableActions.add(checkboxActions);
-
-        buttonsForCheckboxesForVisibilityChange.add(checkboxDeleteButton);
-        buttonsForCheckboxesForVisibilityChange.add(checkboxExportButton);
 
         applyFiltersButton.addClassName("option-button");
         applyFiltersButton.addClassName("filter-apply-button");
@@ -247,60 +179,23 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         add(contentLayout);
 
+        this.gridActionService = new GridActionService<>(service, filtersLayout, grid, (V) -> loadData());
         refreshData();
 
-        for (Button button : buttonsForCheckboxesForVisibilityChange) {
-            button.setEnabled(false);
-        }
+        buildToolbarActionBar();
+        tableToolbarActions.setVisible(checkboxesColumnsEnabled);
+
+        topTableActions.add(tableToolbarActions);
     }
 
-    private void openExportDialog(List<T> toBeExported) {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Export");
-        dialog.setWidth("80vw");
-
-        HorizontalLayout dialogTopBarLayout = getDialogTopBarLayout(dialog);
-        dialog.add(dialogTopBarLayout);
-
-        H4 label = new H4("Enter password to decrypt data. Leave blank to export encrypted data.");
-        Input passwordField = new Input();
-        passwordField.setType("password");
-        passwordField.setPlaceholder("Enter password");
-        passwordField.setWidthFull();
-
-        dialog.add(new VerticalLayout(label, passwordField));
-
-        dialog.add(new AbstractDataIEView(service, null, bervanLogger, tClass) {
-            @Override
-            protected void postConstruct() {
-                super.upload.setVisible(false);
-                super.remove(upload);
-                super.filtersLayout.setVisible(false);
-                super.remove(filtersLayout);
-                super.add(exportButton);
-                pathToFileStorage = AbstractBervanTableView.this.pathToFileStorage;
-                globalTmpDir = AbstractBervanTableView.this.globalTmpDir;
-            }
-
-            @Override
-            protected List<ExcelIEEntity<?>> getDataToExport() {
-                List<ExcelIEEntity<?>> newList = new ArrayList<>();
-                for (T t : toBeExported) {
-                    if (passwordField.getValue() != null && !passwordField.getValue().isEmpty()) {
-                        newList.add((ExcelIEEntity<?>) EncryptionService.decryptAll(t, passwordField.getValue()));
-                    } else {
-                        newList.add((ExcelIEEntity<?>) t);
-                    }
-                }
-
-                return newList;
-            }
-        });
-
-        dialog.open();
+    protected void buildToolbarActionBar() {
+        tableToolbarActions = new BervanTableToolbar<>(gridActionService, checkboxes, data, tClass, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange)
+                .withDeleteButton()
+                .withExportButton(isExportable(), service, bervanLogger, pathToFileStorage, globalTmpDir)
+                .build();
     }
 
-    private boolean isExportable() {
+    protected boolean isExportable() {
         return tClass != null && ExcelIEEntity.class.isAssignableFrom(tClass);
     }
 
@@ -345,7 +240,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected List<T> loadData() {
-        checkboxes = new ArrayList<>();
+        checkboxes.removeAll(checkboxes);
         updateSelectedItemsLabel();
         try {
             SearchRequest request = filtersLayout.buildCombinedFilters();
@@ -413,26 +308,14 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         countItemsInfo.setText("Items: " + allFound + ", pages: " + maxPages);
     }
 
-    protected void refreshData() {
-        this.data.removeAll(this.data);
-        this.data.addAll(loadData());
-        this.grid.getDataProvider().refreshAll();
-    }
-
-    protected void filterTable() {
-//        applyFilters = true;
-        refreshData();
-    }
-
     protected void removeFilters() {
-//        applyFilters = false;
         filtersLayout.removeFilters();
         refreshData();
     }
 
     private void applyCombinedFilters() {
         pageNumber = 0;
-        filterTable();
+        refreshData();
     }
 
     protected Grid<T> getGrid() {
@@ -510,7 +393,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         this.selectAllCheckbox.addClassName("select-all-checkbox");
         this.selectAllCheckbox.addValueChangeListener(clickEvent -> {
             if (clickEvent.isFromClient()) {
-                if (checkboxes.size() == 0) {
+                if (checkboxes.isEmpty()) {
                     selectAllCheckbox.setValue(false);
                     return;
                 }
@@ -682,37 +565,11 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected void deleteItemsFromGrid(List<T> items) {
-        for (T item : items) {
-            service.deleteById(item.getId()); //for deleting original
-            removeItemFromGrid(item);
-        }
-
-        this.grid.getDataProvider().refreshAll();
-        resetTableResults();
-    }
-
-    protected void resetTableResults() {
-        filtersLayout.removeFilters();
-        filterTable();
+        gridActionService.deleteItemsFromGrid(data, items, checkboxes);
     }
 
     protected void removeItemFromGrid(T item) {
-        int oldSize = this.data.size();
-        this.data.remove(item);
-        if (oldSize == this.data.size()) {
-            ID id = item.getId();
-            this.data.removeIf(e -> e.getId().equals(id));
-        }
-
-        ID id = item.getId();
-        if (id != null) {
-            List<Checkbox> checkboxesToRemove = checkboxes.stream()
-                    .filter(AbstractField::getValue)
-                    .filter(e -> e.getId().isPresent())
-                    .filter(e -> e.getId().get().equals("checkbox-" + id))
-                    .toList();
-            checkboxes.removeAll(checkboxesToRemove);
-        }
+        gridActionService.removeItemFromGrid(item, data, checkboxes);
     }
 
     protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
