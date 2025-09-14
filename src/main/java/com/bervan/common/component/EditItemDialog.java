@@ -28,9 +28,7 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
         this.service = service;
     }
 
-    protected Dialog buildEditItemDialog(T item) {
-        Dialog dialog = new Dialog();
-        dialog.setWidth("60vw");
+    public VerticalLayout buildEditItemDialog(Dialog dialog, T item) {
         VerticalLayout dialogLayout = new VerticalLayout();
         HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
 
@@ -113,7 +111,7 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
             showErrorNotification("Error during using edit modal. Check columns name or create custom modal!");
         }
 
-        return dialog;
+        return dialogLayout;
     }
 
 

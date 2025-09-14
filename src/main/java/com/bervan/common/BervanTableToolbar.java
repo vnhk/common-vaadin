@@ -1,7 +1,6 @@
 package com.bervan.common;
 
-import com.bervan.common.component.BervanButton;
-import com.bervan.common.component.BervanButtonStyle;
+import com.bervan.common.component.*;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
@@ -26,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BervanTableToolbar<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
@@ -41,9 +39,10 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     protected HorizontalLayout content = new HorizontalLayout();
     protected List<Button> buttonsForCheckboxesForVisibilityChange;
     protected List<Button> actionsToBeAdded = new ArrayList<>();
+    protected ComponentHelper<ID, T> componentHelper;
 
     public BervanTableToolbar(GridActionService<ID, T> gridActionService, List<Checkbox> checkboxes,
-                              List<T> data, Class<?> tClass,
+                              List<T> data, Class<T> tClass,
                               Checkbox selectAllCheckbox,
                               List<Button> buttonsForCheckboxesForVisibilityChange) {
         this.checkboxes = (checkboxes);
@@ -54,6 +53,8 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         this.tClass = tClass;
         addClassName("checkbox-actions-bar");
         add(content);
+
+        componentHelper = new CommonComponentHelper<>(tClass);
     }
 
     public BervanTableToolbar<ID, T> build() {
@@ -133,8 +134,9 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         return this;
     }
 
-    public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service, BervanLogger bervanLogger, Function<Void, Void> openEditDialog) {
-
+    public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service, BervanLogger bervanLogger) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("60vw");
         checkboxEditButton = new BervanButton("Edit", editButton -> {
             Set<String> itemsId = getSelectedItemsByCheckbox();
             if (itemsId.size() > 1) {
@@ -143,12 +145,16 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
                 return;
             }
 
-            List<T> toBeExported = data.stream()
+            T toBeEdited = data.stream()
                     .filter(e -> e.getId() != null)
                     .filter(e -> itemsId.contains(e.getId().toString()))
-                    .toList();
+                    .findFirst().get();
 
-            openEditDialog.apply(null);
+            EditItemDialog<ID, T> editItemDialog = new EditItemDialog<>(componentHelper, service);
+            dialog.removeAll();
+            dialog.add(editItemDialog.buildEditItemDialog(dialog, toBeEdited));
+
+            dialog.open();
         }, BervanButtonStyle.WARNING);
 
         actionsToBeAdded.add(checkboxEditButton);

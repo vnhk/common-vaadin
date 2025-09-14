@@ -190,6 +190,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected void buildToolbarActionBar() {
         tableToolbarActions = new BervanTableToolbar<>(gridActionService, checkboxes, data, tClass, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange)
+                .withEditButton(service, bervanLogger)
                 .withDeleteButton()
                 .withExportButton(isExportable(), service, bervanLogger, pathToFileStorage, globalTmpDir)
                 .build();
@@ -197,14 +198,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected boolean isExportable() {
         return tClass != null && ExcelIEEntity.class.isAssignableFrom(tClass);
-    }
-
-    protected boolean checkboxExportButtonCustomOperations(List<T> toBeExported) {
-        return true;
-    }
-
-    protected void exportSelectedItems(List<T> toBeExported) {
-
     }
 
     private void updateCurrentPageText() {
