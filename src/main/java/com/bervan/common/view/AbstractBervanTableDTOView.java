@@ -72,7 +72,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
             DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
             if (editableField.isPresent()) {
                 field = editableField.get();
-                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -117,7 +117,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
             } else if (fieldOptional.isPresent()) {
                 field = fieldOptional.get();
-                AutoConfigurableField componentWithValue = buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
                 componentWithValue.setReadOnly(true);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
@@ -173,7 +173,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                     .toList();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = buildComponentForField(field, null);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
@@ -200,7 +200,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
 
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
-                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
+                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, componentHelper.getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 

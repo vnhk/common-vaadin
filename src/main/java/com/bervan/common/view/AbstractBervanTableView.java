@@ -325,7 +325,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         return grid;
     }
 
-    protected final void buildGridAutomatically(Grid<T> grid) {
+    protected void buildGridAutomatically(Grid<T> grid) {
         if (checkboxesColumnsEnabled) {
             buildSelectAllCheckboxesComponent();
 
@@ -582,7 +582,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     .toList();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = buildComponentForField(field, null);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
@@ -608,7 +608,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     T newObject = tClass.getConstructor().newInstance();
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
-                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
+                        fieldAutoConfigurableFieldEntry.getKey().set(newObject, componentHelper.getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 

@@ -23,7 +23,7 @@ public class EmailService {
     @Value("${email-service-email-sender}")
     private String SENDER_EMAIL;
 
-    public void sendEmail(String to, String subject, String htmlContent) {
+    public void sendEmail(String to, String subject, String htmlContent, String emailTitle) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -33,7 +33,7 @@ public class EmailService {
         Map<String, Object> body = new HashMap<>();
 
         Map<String, String> sender = Map.of(
-                "name", "Product Alert!",
+                "name", emailTitle,
                 "email", SENDER_EMAIL
         );
 

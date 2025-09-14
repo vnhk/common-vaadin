@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class BervanTableToolbar<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
@@ -36,6 +37,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     protected Checkbox selectAllCheckbox;
     protected Button checkboxDeleteButton;
     protected Button checkboxExportButton;
+    protected Button checkboxEditButton;
     protected HorizontalLayout content = new HorizontalLayout();
     protected List<Button> buttonsForCheckboxesForVisibilityChange;
     protected List<Button> actionsToBeAdded = new ArrayList<>();
@@ -128,6 +130,28 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
 
         checkboxExportButton.setVisible(isExportable);
         actionsToBeAdded.add(checkboxDeleteButton);
+        return this;
+    }
+
+    public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service, BervanLogger bervanLogger, Function<Void, Void> openEditDialog) {
+
+        checkboxEditButton = new BervanButton("Edit", editButton -> {
+            Set<String> itemsId = getSelectedItemsByCheckbox();
+            if (itemsId.size() > 1) {
+                bervanLogger.error("Can't edit more than one item at a time!");
+                showErrorNotification("Can't edit more than one item at a time!");
+                return;
+            }
+
+            List<T> toBeExported = data.stream()
+                    .filter(e -> e.getId() != null)
+                    .filter(e -> itemsId.contains(e.getId().toString()))
+                    .toList();
+
+            openEditDialog.apply(null);
+        }, BervanButtonStyle.WARNING);
+
+        actionsToBeAdded.add(checkboxEditButton);
         return this;
     }
 
