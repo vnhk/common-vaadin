@@ -8,17 +8,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 @Slf4j
 public class CommonComponentUtils {
 
-    public static final List<ComponentForFieldBuilder> componentBuilders = Arrays.asList(
+    public static final List<ComponentForFieldBuilder> componentBuilders = new ArrayList<>(Arrays.asList(
             new IntegerListFieldBuilder(),
             new IntegerFieldBuilder(),
             new StringListFieldBuilder(),
@@ -31,7 +28,7 @@ public class CommonComponentUtils {
             new DoubleFieldBuilder(),
             new ImageFieldBuilder(),
             new NotSupportedFieldBuilder()
-    );
+    ));
 
     private CommonComponentUtils() {
 

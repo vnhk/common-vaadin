@@ -5,10 +5,12 @@ import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
 import com.bervan.common.component.BervanComboBox;
+import com.bervan.common.component.table.builders.ColumnForGridBuilder;
+import com.bervan.common.component.table.builders.ImageColumnGridBuilder;
+import com.bervan.common.component.table.builders.TextColumnGridBuilder;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.model.VaadinBervanColumnConfig;
-import com.bervan.common.model.VaadinImageBervanColumn;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
@@ -50,6 +52,10 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 @Slf4j
 public abstract class AbstractBervanTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractBervanEntityView<ID, T> implements AfterNavigationObserver {
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
+    private static final List<ColumnForGridBuilder> columnGridBuilders = new ArrayList<>(Arrays.asList(
+            ImageColumnGridBuilder.getInstance(),
+            TextColumnGridBuilder.getInstance()
+    ));
     protected final Button currentPage = new BervanButton(":)");
     protected final Button prevPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_LEFT));
     protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
@@ -89,6 +95,16 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         this.bervanLogger = bervanLogger;
         addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
+    }
+
+    public static void addColumnForGridBuilder(ColumnForGridBuilder columnGridBuilder) {
+        if (columnGridBuilder != null && !columnGridBuilders.contains(columnGridBuilder)) {
+            columnGridBuilders.add(columnGridBuilders.size() - 1, columnGridBuilder); //default needs to be last
+        }
+    }
+
+    public static void removeColumnForGridBuilder(ColumnForGridBuilder columnGridBuilder) {
+        columnGridBuilders.remove(columnGridBuilder);
     }
 
     @Override
@@ -210,20 +226,15 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                 continue;
             }
 
-            if (isCustomExtensionAsGridColumn(config)) {
-                buildColumnInGridForCustomExtension(config);
-            } else if (config.getExtension() == VaadinImageBervanColumn.class) {
-                grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
-                        .setHeader(columnName)
-                        .setKey(columnInternalName)
-                        .setResizable(false)
-                        .setSortable(false);
-            } else {
-                grid.addColumn(createTextColumnComponent(vaadinTableColumn, config))
-                        .setHeader(columnName)
-                        .setKey(columnInternalName)
-                        .setResizable(true)
-                        .setSortable(config.isSortable());
+            for (ColumnForGridBuilder columnGridBuilder : columnGridBuilders) {
+                if (columnGridBuilder.supports(config.getExtension(), config, tClass)) {
+                    grid.addColumn(columnGridBuilder.build(vaadinTableColumn, config))
+                            .setHeader(columnName)
+                            .setKey(columnInternalName)
+                            .setResizable(columnGridBuilder.isResizable())
+                            .setSortable(columnGridBuilder.isSortable());
+                    break;
+                }
             }
         }
 
@@ -272,75 +283,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         });
     }
 
-
-    protected void buildColumnInGridForCustomExtension(VaadinBervanColumnConfig config) {
-
-    }
-
-    protected boolean isCustomExtensionAsGridColumn(VaadinBervanColumnConfig config) {
-        return false;
-    }
-
-
-    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinBervanColumnConfig config) {
-        return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
-    }
-
     protected ComponentRenderer<Checkbox, T> createCheckboxComponent() {
         return new ComponentRenderer<>(Checkbox::new, checkboxColumnUpdater());
-    }
-
-    protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinBervanColumnConfig config) {
-        return new ComponentRenderer<>(Span::new, imageColumnUpdater(f, config));
-    }
-
-
-    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinBervanColumnConfig config) {
-        return (span, record) -> {
-            try {
-                span.setClassName("modern-cell-content");
-                f.setAccessible(true);
-                Object o = f.get(record);
-                f.setAccessible(false);
-                if (o != null) {
-                    if (config.isWysiwyg()) {
-                        Icon showEditorIcon = new Icon(VaadinIcon.EDIT);
-                        showEditorIcon.addClassName("cell-action-icon");
-                        span.add(showEditorIcon);
-                    } else {
-                        Span textContent = new Span(o.toString());
-                        textContent.addClassName("cell-text");
-                        span.add(textContent);
-                    }
-                }
-                customizeTextColumnUpdater(span, record, f);
-            } catch (Exception e) {
-                log.error("Could not create column in table!", e);
-                showErrorNotification("Could not create column in table!");
-            }
-        };
-    }
-
-    private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinBervanColumnConfig config) {
-        return (span, record) -> {
-            try {
-                span.setClassName("modern-cell-content");
-                span.addClassName("image-cell-content");
-                f.setAccessible(true);
-                Object o = f.get(record);
-                f.setAccessible(false);
-                if (o instanceof Collection<?> && !((Collection<?>) o).isEmpty()) {
-                    Icon showEditorIcon = new Icon(VaadinIcon.PICTURE);
-                    showEditorIcon.addClassName("cell-action-icon");
-                    showEditorIcon.addClassName("image-icon");
-                    span.add(showEditorIcon);
-                }
-                customizeImageColumnUpdater(span, record, f);
-            } catch (Exception e) {
-                log.error("Could not create column in table!", e);
-                showErrorNotification("Could not create column in table!");
-            }
-        };
     }
 
     private SerializableBiConsumer<Checkbox, T> checkboxColumnUpdater() {
@@ -377,9 +321,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     public boolean isAtLeastOneCheckboxSelected() {
         return checkboxes.parallelStream().anyMatch(AbstractField::getValue);
-    }
-
-    protected void customizeImageColumnUpdater(Span span, T record, Field f) {
     }
 
     protected Set<String> getSelectedItemsByCheckbox() {
