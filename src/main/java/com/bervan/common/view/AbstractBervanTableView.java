@@ -100,9 +100,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         gridActionService.refreshData(data);
     }
 
-    protected Set<String> getSelectedItemsByCheckbox() {
-        return gridActionService.getSelectedItemsByCheckbox(checkboxes);
-    }
 
     @Override
     public void renderCommonComponents() {
@@ -186,6 +183,207 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         tableToolbarActions.setVisible(checkboxesColumnsEnabled);
 
         topTableActions.add(tableToolbarActions);
+    }
+
+    public void buildGridAutomatically(Grid<T> grid) {
+        if (checkboxesColumnsEnabled) {
+            buildSelectAllCheckboxesComponent();
+
+            grid.addColumn(createCheckboxComponent())
+                    .setHeader(selectAllCheckbox)
+                    .setKey(CHECKBOX_COLUMN_KEY)
+                    .setWidth("10px")
+                    .setTextAlign(ColumnTextAlign.CENTER)
+                    .setResizable(false)
+                    .setSortable(false);
+        }
+
+        preColumnAutoCreation(grid);
+
+        List<Field> vaadinTableColumns = getVaadinTableFields();
+        for (Field vaadinTableColumn : vaadinTableColumns) {
+            VaadinBervanColumnConfig config = buildColumnConfig(vaadinTableColumn);
+            String columnInternalName = config.getInternalName();
+            String columnName = config.getDisplayName();
+
+            if (!config.isInTable()) {
+                continue;
+            }
+
+            if (isCustomExtensionAsGridColumn(config)) {
+                buildColumnInGridForCustomExtension(config);
+            } else if (config.getExtension() == VaadinImageBervanColumn.class) {
+                grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
+                        .setHeader(columnName)
+                        .setKey(columnInternalName)
+                        .setResizable(false)
+                        .setSortable(false);
+            } else {
+                grid.addColumn(createTextColumnComponent(vaadinTableColumn, config))
+                        .setHeader(columnName)
+                        .setKey(columnInternalName)
+                        .setResizable(true)
+                        .setSortable(config.isSortable());
+            }
+        }
+
+        // Modern grid styling
+        grid.getElement().getStyle().set("--lumo-size-m", "16px");
+        grid.setAllRowsVisible(false);
+        grid.setPageSize(pageSize);
+
+        grid.addSortListener(event -> {
+            List<GridSortOrder<T>> sortOrders = event.getSortOrder();
+            if (!sortOrders.isEmpty()) {
+                GridSortOrder<T> sortOrder = sortOrders.get(0);
+                SortDirection sortDirection = sortOrder.getDirection();
+
+                this.columnSorted = sortOrder.getSorted();
+                this.sortDirection = sortDirection;
+                this.refreshData();
+            }
+        });
+    }
+
+    protected void preColumnAutoCreation(Grid<T> grid) {
+
+    }
+
+    private void buildSelectAllCheckboxesComponent() {
+        this.selectAllCheckbox = new Checkbox(false);
+        this.selectAllCheckbox.addClassName("modern-table-checkbox");
+        this.selectAllCheckbox.addClassName("select-all-checkbox");
+        this.selectAllCheckbox.addValueChangeListener(clickEvent -> {
+            if (clickEvent.isFromClient()) {
+                if (checkboxes.isEmpty()) {
+                    selectAllCheckbox.setValue(false);
+                    return;
+                }
+
+                for (Checkbox checkbox : checkboxes) {
+                    checkbox.setValue(selectAllCheckbox.getValue());
+                }
+                for (Button button : buttonsForCheckboxesForVisibilityChange) {
+                    button.setEnabled(selectAllCheckbox.getValue());
+                }
+            }
+
+            updateSelectedItemsLabel();
+        });
+    }
+
+
+    protected void buildColumnInGridForCustomExtension(VaadinBervanColumnConfig config) {
+
+    }
+
+    protected boolean isCustomExtensionAsGridColumn(VaadinBervanColumnConfig config) {
+        return false;
+    }
+
+
+    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinBervanColumnConfig config) {
+        return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
+    }
+
+    protected ComponentRenderer<Checkbox, T> createCheckboxComponent() {
+        return new ComponentRenderer<>(Checkbox::new, checkboxColumnUpdater());
+    }
+
+    protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinBervanColumnConfig config) {
+        return new ComponentRenderer<>(Span::new, imageColumnUpdater(f, config));
+    }
+
+
+    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinBervanColumnConfig config) {
+        return (span, record) -> {
+            try {
+                span.setClassName("modern-cell-content");
+                f.setAccessible(true);
+                Object o = f.get(record);
+                f.setAccessible(false);
+                if (o != null) {
+                    if (config.isWysiwyg()) {
+                        Icon showEditorIcon = new Icon(VaadinIcon.EDIT);
+                        showEditorIcon.addClassName("cell-action-icon");
+                        span.add(showEditorIcon);
+                    } else {
+                        Span textContent = new Span(o.toString());
+                        textContent.addClassName("cell-text");
+                        span.add(textContent);
+                    }
+                }
+                customizeTextColumnUpdater(span, record, f);
+            } catch (Exception e) {
+                log.error("Could not create column in table!", e);
+                showErrorNotification("Could not create column in table!");
+            }
+        };
+    }
+
+    private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinBervanColumnConfig config) {
+        return (span, record) -> {
+            try {
+                span.setClassName("modern-cell-content");
+                span.addClassName("image-cell-content");
+                f.setAccessible(true);
+                Object o = f.get(record);
+                f.setAccessible(false);
+                if (o instanceof Collection<?> && !((Collection<?>) o).isEmpty()) {
+                    Icon showEditorIcon = new Icon(VaadinIcon.PICTURE);
+                    showEditorIcon.addClassName("cell-action-icon");
+                    showEditorIcon.addClassName("image-icon");
+                    span.add(showEditorIcon);
+                }
+                customizeImageColumnUpdater(span, record, f);
+            } catch (Exception e) {
+                log.error("Could not create column in table!", e);
+                showErrorNotification("Could not create column in table!");
+            }
+        };
+    }
+
+    private SerializableBiConsumer<Checkbox, T> checkboxColumnUpdater() {
+        return (checkbox, record) -> {
+            try {
+                ID id = record.getId();
+                checkbox.setId("checkbox-" + id);
+                checkbox.setClassName("modern-table-checkbox");
+                checkbox.addValueChangeListener(e -> {
+                    if (e.isFromClient()) {
+                        for (Button button : buttonsForCheckboxesForVisibilityChange) {
+                            button.setEnabled(isAtLeastOneCheckboxSelected());
+                        }
+                        updateSelectedItemsLabel();
+
+                        boolean flag = checkbox.getValue();
+                        for (Checkbox c : checkboxes) {
+                            if (c.getValue() != flag) {
+                                selectAllCheckbox.setValue(false); //at least one is not selected
+                                return;
+                            }
+                        }
+
+                        selectAllCheckbox.setValue(flag); //all are selected or all are not selected
+                    }
+                });
+                checkboxes.add(checkbox);
+            } catch (Exception e) {
+                log.error("Could not create checkbox column in table!", e);
+                showErrorNotification("Could not checkbox create column in table!");
+            }
+        };
+    }
+
+    public boolean isAtLeastOneCheckboxSelected() {
+        return checkboxes.parallelStream().anyMatch(AbstractField::getValue);
+    }
+
+    protected void customizeImageColumnUpdater(Span span, T record, Field f) {
+    }
+
+    protected Set<String> getSelectedItemsByCheckbox() {
+        return gridActionService.getSelectedItemsByCheckbox(checkboxes);
     }
 
     protected void buildToolbarActionBar() {
@@ -318,196 +516,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         return grid;
     }
 
-    protected void buildGridAutomatically(Grid<T> grid) {
-        if (checkboxesColumnsEnabled) {
-            buildSelectAllCheckboxesComponent();
-
-            grid.addColumn(createCheckboxComponent())
-                    .setHeader(selectAllCheckbox)
-                    .setKey(CHECKBOX_COLUMN_KEY)
-                    .setWidth("10px")
-                    .setTextAlign(ColumnTextAlign.CENTER)
-                    .setResizable(false)
-                    .setSortable(false);
-        }
-
-        preColumnAutoCreation(grid);
-
-        List<Field> vaadinTableColumns = getVaadinTableFields();
-        for (Field vaadinTableColumn : vaadinTableColumns) {
-            VaadinBervanColumnConfig config = buildColumnConfig(vaadinTableColumn);
-            String columnInternalName = config.getInternalName();
-            String columnName = config.getDisplayName();
-
-            if (!config.isInTable()) {
-                continue;
-            }
-
-            if (config.getExtension() == VaadinImageBervanColumn.class) {
-                grid.addColumn(createImageColumnComponent(vaadinTableColumn, config))
-                        .setHeader(columnName)
-                        .setKey(columnInternalName)
-                        .setResizable(false)
-                        .setSortable(false);
-            } else {
-                grid.addColumn(createTextColumnComponent(vaadinTableColumn, config))
-                        .setHeader(columnName)
-                        .setKey(columnInternalName)
-                        .setResizable(true)
-                        .setSortable(config.isSortable());
-            }
-        }
-
-        // Modern grid styling
-        grid.getElement().getStyle().set("--lumo-size-m", "16px");
-        grid.setAllRowsVisible(false);
-        grid.setPageSize(pageSize);
-
-        grid.addSortListener(event -> {
-            List<GridSortOrder<T>> sortOrders = event.getSortOrder();
-            if (!sortOrders.isEmpty()) {
-                GridSortOrder<T> sortOrder = sortOrders.get(0);
-                SortDirection sortDirection = sortOrder.getDirection();
-
-                this.columnSorted = sortOrder.getSorted();
-                this.sortDirection = sortDirection;
-                this.refreshData();
-            }
-        });
-    }
-
-    protected void preColumnAutoCreation(Grid<T> grid) {
-
-    }
-
-    private void buildSelectAllCheckboxesComponent() {
-        this.selectAllCheckbox = new Checkbox(false);
-        this.selectAllCheckbox.addClassName("modern-table-checkbox");
-        this.selectAllCheckbox.addClassName("select-all-checkbox");
-        this.selectAllCheckbox.addValueChangeListener(clickEvent -> {
-            if (clickEvent.isFromClient()) {
-                if (checkboxes.isEmpty()) {
-                    selectAllCheckbox.setValue(false);
-                    return;
-                }
-
-                for (Checkbox checkbox : checkboxes) {
-                    checkbox.setValue(selectAllCheckbox.getValue());
-                }
-                for (Button button : buttonsForCheckboxesForVisibilityChange) {
-                    button.setEnabled(selectAllCheckbox.getValue());
-                }
-            }
-
-            updateSelectedItemsLabel();
-        });
-    }
-
     private void updateSelectedItemsLabel() {
         selectedItemsCountLabel.setText("Selected " + checkboxes.stream().filter(AbstractField::getValue).count() + " item(s)");
     }
 
-    private SerializableBiConsumer<Span, T> textColumnUpdater(Field f, VaadinBervanColumnConfig config) {
-        return (span, record) -> {
-            try {
-                span.setClassName("modern-cell-content");
-                f.setAccessible(true);
-                Object o = f.get(record);
-                f.setAccessible(false);
-                if (o != null) {
-                    if (config.isWysiwyg()) {
-                        Icon showEditorIcon = new Icon(VaadinIcon.EDIT);
-                        showEditorIcon.addClassName("cell-action-icon");
-                        span.add(showEditorIcon);
-                    } else {
-                        Span textContent = new Span(o.toString());
-                        textContent.addClassName("cell-text");
-                        span.add(textContent);
-                    }
-                }
-                customizeTextColumnUpdater(span, record, f);
-            } catch (Exception e) {
-                log.error("Could not create column in table!", e);
-                showErrorNotification("Could not create column in table!");
-            }
-        };
-    }
-
-    private SerializableBiConsumer<Span, T> imageColumnUpdater(Field f, VaadinBervanColumnConfig config) {
-        return (span, record) -> {
-            try {
-                span.setClassName("modern-cell-content");
-                span.addClassName("image-cell-content");
-                f.setAccessible(true);
-                Object o = f.get(record);
-                f.setAccessible(false);
-                if (o instanceof Collection<?> && !((Collection<?>) o).isEmpty()) {
-                    Icon showEditorIcon = new Icon(VaadinIcon.PICTURE);
-                    showEditorIcon.addClassName("cell-action-icon");
-                    showEditorIcon.addClassName("image-icon");
-                    span.add(showEditorIcon);
-                }
-                customizeImageColumnUpdater(span, record, f);
-            } catch (Exception e) {
-                log.error("Could not create column in table!", e);
-                showErrorNotification("Could not create column in table!");
-            }
-        };
-    }
-
-    private SerializableBiConsumer<Checkbox, T> checkboxColumnUpdater() {
-        return (checkbox, record) -> {
-            try {
-                ID id = record.getId();
-                checkbox.setId("checkbox-" + id);
-                checkbox.setClassName("modern-table-checkbox");
-                checkbox.addValueChangeListener(e -> {
-                    if (e.isFromClient()) {
-                        for (Button button : buttonsForCheckboxesForVisibilityChange) {
-                            button.setEnabled(isAtLeastOneCheckboxSelected());
-                        }
-                        updateSelectedItemsLabel();
-
-                        boolean flag = checkbox.getValue();
-                        for (Checkbox c : checkboxes) {
-                            if (c.getValue() != flag) {
-                                selectAllCheckbox.setValue(false); //at least one is not selected
-                                return;
-                            }
-                        }
-
-                        selectAllCheckbox.setValue(flag); //all are selected or all are not selected
-                    }
-                });
-                checkboxes.add(checkbox);
-            } catch (Exception e) {
-                log.error("Could not create checkbox column in table!", e);
-                showErrorNotification("Could not checkbox create column in table!");
-            }
-        };
-    }
-
-    public boolean isAtLeastOneCheckboxSelected() {
-        return checkboxes.parallelStream().anyMatch(AbstractField::getValue);
-    }
-
-    protected void customizeImageColumnUpdater(Span span, T record, Field f) {
-    }
-
     protected void customizeTextColumnUpdater(Span span, T record, Field f) {
 
-    }
-
-    protected ComponentRenderer<Span, T> createTextColumnComponent(Field f, VaadinBervanColumnConfig config) {
-        return new ComponentRenderer<>(Span::new, textColumnUpdater(f, config));
-    }
-
-    protected ComponentRenderer<Checkbox, T> createCheckboxComponent() {
-        return new ComponentRenderer<>(Checkbox::new, checkboxColumnUpdater());
-    }
-
-    protected ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinBervanColumnConfig config) {
-        return new ComponentRenderer<>(Span::new, imageColumnUpdater(f, config));
     }
 
     protected void doOnColumnClick(ItemClickEvent<T> event) {

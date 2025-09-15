@@ -1,8 +1,9 @@
 package com.bervan.common.view;
 
+import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
-import com.bervan.common.MenuNavigationComponent;
+import com.bervan.common.component.builders.ComponentForFieldBuilder;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.service.BaseService;

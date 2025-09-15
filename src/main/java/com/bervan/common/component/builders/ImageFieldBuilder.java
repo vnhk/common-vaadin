@@ -1,0 +1,42 @@
+package com.bervan.common.component.builders;
+
+import com.bervan.common.component.AutoConfigurableField;
+import com.bervan.common.component.BervanImageController;
+import com.bervan.common.component.CommonComponentUtils;
+import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.model.VaadinImageBervanColumn;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class ImageFieldBuilder implements ComponentForFieldBuilder {
+
+    @Override
+    public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+        return buildImageField(value, config);
+    }
+
+    @Override
+    public boolean supports(Class<?> extension, VaadinBervanColumnConfig config) {
+        return config.getExtension().equals(VaadinImageBervanColumn.class);
+    }
+
+    private AutoConfigurableField<List<String>> buildImageField(Object value, VaadinBervanColumnConfig config) {
+        BervanImageController component = null;
+        List<String> imageSources = new ArrayList<>();
+        //
+        if (CommonComponentUtils.hasTypMatch(config, String.class.getTypeName())) {
+            imageSources.add((String) value);
+            component = new BervanImageController(imageSources);
+        } else if (CommonComponentUtils.hasTypMatch(config, List.class.getTypeName())) {
+            if (value != null) {
+                imageSources.addAll((Collection<String>) value);
+            }
+            component = new BervanImageController(imageSources);
+        }
+
+        return component;
+    }
+}
