@@ -16,35 +16,40 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 public class CommonComponentUtils {
 
     public static final List<ComponentForFieldBuilder> componentBuilders = new ArrayList<>(Arrays.asList(
-            new IntegerListFieldBuilder(),
-            new IntegerFieldBuilder(),
-            new StringListFieldBuilder(),
-            new StringFieldBuilder(),
-            new BigDecimalFieldBuilder(),
-            new BooleanFieldBuilder(),
-            new LocalDateFieldBuilder(),
-            new LocalTimeFieldBuilder(),
-            new LocalDateTimeFieldBuilder(),
-            new DoubleFieldBuilder(),
-            new ImageFieldBuilder(),
-            new NotSupportedFieldBuilder()
+            IntegerListFieldBuilder.getInstance(),
+            IntegerFieldBuilder.getInstance(),
+            StringListFieldBuilder.getInstance(),
+            StringFieldBuilder.getInstance(),
+            BigDecimalFieldBuilder.getInstance(),
+            BooleanFieldBuilder.getInstance(),
+            LocalDateFieldBuilder.getInstance(),
+            LocalTimeFieldBuilder.getInstance(),
+            LocalDateTimeFieldBuilder.getInstance(),
+            DoubleFieldBuilder.getInstance(),
+            ImageFieldBuilder.getInstance(),
+            NotSupportedFieldBuilder.getInstance()
     ));
+
+    public static void addComponentBuilder(ComponentForFieldBuilder componentBuilder) {
+        if (componentBuilder != null && !componentBuilders.contains(componentBuilder)) {
+            componentBuilders.add(componentBuilders.size() - 1, componentBuilder); //default needs to be last
+        }
+    }
 
     private CommonComponentUtils() {
 
     }
 
-    public static VerticalLayout buildFormLayout(Class<?> tClass, Object item) throws IllegalAccessException {
+    public static VerticalLayout buildFormLayout(Class<?> tClass, Object item, Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder) throws IllegalAccessException {
         VerticalLayout formLayout = new VerticalLayout();
 
-        Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
-        Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
         List<Field> declaredFields = getVaadinTableFields(tClass).stream()
                 .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
                 .toList();
 
 
         for (Field field : declaredFields) {
+            field.setAccessible(true);
             Object value = getInitValueForInput(field, item, buildColumnConfig(field), null);
             AutoConfigurableField componentWithValue = buildComponentForField(field, item, value);
             VerticalLayout layoutForField = new VerticalLayout();
@@ -54,6 +59,7 @@ public class CommonComponentUtils {
             formLayout.add(layoutForField);
             fieldsHolder.put(field, componentWithValue);
             fieldsLayoutHolder.put(field, layoutForField);
+            field.setAccessible(false);
         }
 
         return formLayout;

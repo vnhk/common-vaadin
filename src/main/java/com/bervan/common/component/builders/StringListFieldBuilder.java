@@ -2,15 +2,21 @@ package com.bervan.common.component.builders;
 
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanComboBox;
-import com.bervan.common.component.BervanTextField;
 import com.bervan.common.model.VaadinBervanColumnConfig;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
 public class StringListFieldBuilder implements ComponentForFieldBuilder {
+
+    private static final StringListFieldBuilder INSTANCE = new StringListFieldBuilder();
+
+    private StringListFieldBuilder() {
+    }
+
+    public static StringListFieldBuilder getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {

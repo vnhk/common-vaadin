@@ -13,6 +13,15 @@ import java.util.List;
 
 public class ImageFieldBuilder implements ComponentForFieldBuilder {
 
+    private static final ImageFieldBuilder INSTANCE = new ImageFieldBuilder();
+
+    private ImageFieldBuilder() {
+    }
+
+    public static ImageFieldBuilder getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
         return buildImageField(value, config);

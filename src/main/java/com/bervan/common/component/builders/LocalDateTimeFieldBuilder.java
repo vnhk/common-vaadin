@@ -10,6 +10,15 @@ import java.time.LocalDateTime;
 
 public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
 
+    private static final LocalDateTimeFieldBuilder INSTANCE = new LocalDateTimeFieldBuilder();
+
+    private LocalDateTimeFieldBuilder() {
+    }
+
+    public static LocalDateTimeFieldBuilder getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public AutoConfigurableField<LocalDateTime> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
         return buildLocalDateTimeInput(value, config.getDisplayName());

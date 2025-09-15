@@ -3,11 +3,19 @@ package com.bervan.common.component.builders;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanTextField;
 import com.bervan.common.model.VaadinBervanColumnConfig;
-import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 
 public class NotSupportedFieldBuilder implements ComponentForFieldBuilder {
+
+    private static final NotSupportedFieldBuilder INSTANCE = new NotSupportedFieldBuilder();
+
+    private NotSupportedFieldBuilder() {
+    }
+
+    public static NotSupportedFieldBuilder getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {

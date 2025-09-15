@@ -4,11 +4,18 @@ import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanDoubleField;
 import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.model.VaadinBervanColumnConfig;
-import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 
 public class DoubleFieldBuilder implements ComponentForFieldBuilder {
+    private static final DoubleFieldBuilder INSTANCE = new DoubleFieldBuilder();
+
+    private DoubleFieldBuilder() {
+    }
+
+    public static DoubleFieldBuilder getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {

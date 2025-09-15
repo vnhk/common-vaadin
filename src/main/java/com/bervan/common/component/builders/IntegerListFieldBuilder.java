@@ -2,15 +2,20 @@ package com.bervan.common.component.builders;
 
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanComboBox;
-import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.model.VaadinBervanColumnConfig;
-import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.List;
 
 public class IntegerListFieldBuilder implements ComponentForFieldBuilder {
+    private static final IntegerListFieldBuilder INSTANCE = new IntegerListFieldBuilder();
+
+    private IntegerListFieldBuilder() {
+    }
+
+    public static IntegerListFieldBuilder getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {

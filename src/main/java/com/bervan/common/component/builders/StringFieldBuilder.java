@@ -11,6 +11,15 @@ import java.util.UUID;
 
 public class StringFieldBuilder implements ComponentForFieldBuilder {
 
+    private static final StringFieldBuilder INSTANCE = new StringFieldBuilder();
+
+    private StringFieldBuilder() {
+    }
+
+    public static StringFieldBuilder getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
         return buildTextArea(value, config.getDisplayName(), config.isWysiwyg());

@@ -4,11 +4,20 @@ import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanIntegerField;
 import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.model.VaadinBervanColumnConfig;
-import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 
 public class IntegerFieldBuilder implements ComponentForFieldBuilder {
+
+    private static final IntegerFieldBuilder INSTANCE = new IntegerFieldBuilder();
+
+    private IntegerFieldBuilder() {
+
+    }
+
+    public static IntegerFieldBuilder getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
