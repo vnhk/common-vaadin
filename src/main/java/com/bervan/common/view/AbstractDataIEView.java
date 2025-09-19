@@ -4,6 +4,7 @@ package com.bervan.common.view;
 import com.bervan.common.component.BervanButton;
 import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.BaseExcelExport;
@@ -108,8 +109,13 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         BaseExcelImport baseExcelImport = new BaseExcelImport(Collections.singletonList(classToExport), logger);
         List<? extends ExcelIEEntity<ID>> objects = (List<? extends ExcelIEEntity<ID>>) baseExcelImport.importExcel(baseExcelImport.load(file));
         logger.debug("Extracted " + objects.size() + " entities from excel.");
+        postDataLoad(objects);
 
         dataService.saveIfValid(objects);
+    }
+
+    protected void postDataLoad(List<? extends ExcelIEEntity<ID>> objects) {
+
     }
 
     public StreamResource prepareDownloadResource() {
@@ -144,7 +150,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         List<ExcelIEEntity<?>> result = new ArrayList<>();
 
         try {
-            Set<T> loaded = dataService.load(filtersLayout.buildCombinedFilters(), Pageable.ofSize(100000));
+            Set<T> loaded = dataService.load(getRequestForDataExport(), Pageable.ofSize(100000));
             for (T t : loaded) {
                 if (t instanceof ExcelIEEntity<?>) {
                     result.add((ExcelIEEntity<?>) t);
@@ -156,6 +162,10 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         }
 
         return result;
+    }
+
+    protected SearchRequest getRequestForDataExport() {
+        return filtersLayout.buildCombinedFilters();
     }
 }
 
