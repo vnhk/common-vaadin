@@ -165,9 +165,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         HorizontalLayout topTableActions = new HorizontalLayout();
         topTableActions.addClassName("table-actions-bar");
-        refreshTable.addClassName("option-button");
         refreshTable.addClassName("refresh-button");
-        topTableActions.add(refreshTable);
+        topTableActions.add(new VerticalLayout(refreshTable));
 
         selectedItemsCountLabel.setVisible(checkboxesColumnsEnabled);
         selectedItemsCountLabel.addClassName("selection-counter");
