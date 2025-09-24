@@ -1,6 +1,6 @@
 package com.bervan.common.view;
 
-import com.bervan.common.*;
+import com.bervan.common.TableClassUtils;
 import com.bervan.common.component.*;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
@@ -34,6 +34,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Button applyFiltersButton;
     @Getter
     protected final Map<Field, Map<Object, Checkbox>> checkboxFiltersMap = new HashMap<>();
+    protected final DefaultFilterValuesContainer defaultFilterValuesContainer;
     protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
     @Getter
     protected final Map<Field, BervanTextField> textFieldFiltersMap = new HashMap<>();
@@ -50,9 +51,10 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected HorizontalLayout autoFiltersRow;
 
-    public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton) {
+    public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton, DefaultFilterValuesContainer defaultFilterValuesContainer) {
         this.tClass = tClass;
         this.applyFiltersButton = applyFiltersButton;
+        this.defaultFilterValuesContainer = defaultFilterValuesContainer;
 
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         filterableFields.addAll(getFilterableFields(vaadinTableColumns)); //later configure in each class example @VaadinColumn filterable=true
@@ -68,6 +70,12 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         queryWithHelp.setWidth("100%");
         queryWithHelp.setAlignItems(FlexComponent.Alignment.END);
 
+        searchForm = getSearchForm(applyFiltersButton, queryWithHelp);
+        add(filtersButton, searchForm);
+        removeFiltersButton.setVisible(false);
+    }
+
+    private Div getSearchForm(Button applyFiltersButton, HorizontalLayout queryWithHelp) {
         buildFiltersMenu();
 
         Div allFieldsFilter = createSearchSection("All fields filter", allFieldsTextSearch);
@@ -75,11 +83,10 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         HorizontalLayout searchSectionRow = createSearchSectionRow(allFieldsFilter, queryWithHelpFilter);
 
         HorizontalLayout searchActionButtonsLayout = getSearchActionButtonsLayout(applyFiltersButton, reverseFiltersButton, removeFiltersButton);
-        searchForm = getSearchForm(null, searchActionButtonsLayout, autoFiltersRow, searchSectionRow);
+        final Div searchForm = getSearchForm(null, searchActionButtonsLayout, autoFiltersRow, searchSectionRow);
         searchForm.setVisible(false);
-        add(filtersButton, searchForm);
 
-        removeFiltersButton.setVisible(false);
+        return searchForm;
     }
 
     private void showHelpDialog() {
@@ -93,7 +100,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         Button closeButton = new Button("Close", e -> helpDialog.close());
         helpDialog.getFooter().add(closeButton);
         helpDialog.open();
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     public void addFilterableFields(String fieldName) {
         filterableFields.add(fieldName);
@@ -101,7 +108,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     public void removeFilterableFields(String fieldName) {
         filterableFields.remove(fieldName);
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     protected void reverseFilters() {
         for (Map<Object, Checkbox> value : checkboxFiltersMap.values()) {
@@ -302,7 +309,13 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     public void removeFilters() {
-        checkboxFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setValue(true)));
+        for (Map.Entry<Field, Map<Object, Checkbox>> fieldMapEntry : checkboxFiltersMap.entrySet()) {
+            Map<Object, Boolean> defaultValuesForField = defaultFilterValuesContainer.checkboxFiltersMapDefaultValues.getOrDefault(fieldMapEntry.getKey(), new HashMap<>());
+            for (Map.Entry<Object, Checkbox> checkboxEntry : fieldMapEntry.getValue().entrySet()) {
+                checkboxEntry.getValue().setValue(defaultValuesForField.getOrDefault(checkboxEntry.getKey(), true));
+            }
+        }
+
         dateTimeFiltersMap.values().forEach(e -> e.values().forEach(c -> c.setNullValue()));
         allFieldsTextSearch.setValue("");
         stringQuerySearch.setValue("");
@@ -324,8 +337,6 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     protected void buildFiltersMenu() {
-
-
         List<Component> fieldLayouts = new ArrayList<>();
 
         List<Field> fields = getVaadinTableColumns();
@@ -344,7 +355,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 if (!config.getStrValues().isEmpty()) {
                     for (String val : config.getStrValues()) {
                         Checkbox checkbox = new Checkbox(val);
-                        checkbox.setValue(true);
+                        checkbox.setValue(getOrDefaultCheckboxValue(field, val));
                         checkbox.getStyle()
                                 .set("margin-top", "20px")
                                 .set("min-width", "fit-content")
@@ -356,7 +367,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 } else {
                     for (Integer val : config.getIntValues()) {
                         Checkbox checkbox = new Checkbox(val.toString());
-                        checkbox.setValue(true);
+                        checkbox.setValue(getOrDefaultCheckboxValue(field, val));
                         checkbox.getStyle()
                                 .set("margin-top", "20px")
                                 .set("min-width", "fit-content")
@@ -394,6 +405,10 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         Div filtersSection = createSearchSection("Filters",
                 createDynamicFiltersLayout(fieldLayouts));
         autoFiltersRow = createSearchSectionRow(filtersSection);
+    }
+
+    private Boolean getOrDefaultCheckboxValue(Field field, Object val) {
+        return defaultFilterValuesContainer.checkboxFiltersMapDefaultValues.getOrDefault(field, new HashMap<>()).getOrDefault(val, true);
     }
 
     private Component createDynamicFiltersLayout(List<Component> fieldLayouts) {

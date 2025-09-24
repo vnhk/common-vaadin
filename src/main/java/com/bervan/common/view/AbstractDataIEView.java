@@ -22,10 +22,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractDataIEView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final BaseService<ID, T> dataService;
@@ -47,7 +44,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         this.dataService = dataService;
         this.pageLayout = pageLayout;
         this.classToExport = classToExport;
-        this.filtersLayout = new AbstractFiltersLayout<>(classToExport, exportButton);
+        this.filtersLayout = new AbstractFiltersLayout<>(classToExport, exportButton, new DefaultFilterValuesContainer(new HashMap<>()));
 
         if (pageLayout != null) {
             add(pageLayout);

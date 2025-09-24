@@ -91,7 +91,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, Class<T> tClass) {
         super(pageLayout, service, tClass);
-        this.filtersLayout = new AbstractFiltersLayout<>(tClass, applyFiltersButton);
+        this.filtersLayout = buildFiltersLayout(tClass);
         this.bervanLogger = bervanLogger;
         addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
@@ -105,6 +105,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     public static void removeColumnForGridBuilder(ColumnForGridBuilder columnGridBuilder) {
         columnGridBuilders.remove(columnGridBuilder);
+    }
+
+    protected AbstractFiltersLayout<ID, T> buildFiltersLayout(Class<T> tClass) {
+        return new AbstractFiltersLayout<>(tClass, applyFiltersButton, new DefaultFilterValuesContainer(new HashMap<>()));
     }
 
     @Override
