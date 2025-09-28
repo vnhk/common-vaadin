@@ -137,12 +137,12 @@ public abstract class AbstractPageView extends VerticalLayout {
         List<AsyncTask> taskNotificationsForUser = AsyncTaskService.getTaskNotificationsForUser();
         for (AsyncTask asyncTask : taskNotificationsForUser) {
             if (Objects.equals(asyncTask.getStatus(), "FAILED")) {
-                showErrorNotification("Task failed: " + asyncTask.getMessage());
+                showErrorNotification("Task failed: " + asyncTask.getMessage(), 10000);
             } else if (Objects.equals(asyncTask.getStatus(), "FINISHED")) {
                 if (asyncTask.getMessage() != null && !asyncTask.getMessage().isEmpty()) {
-                    showSuccessNotification("Task finished successfully: " + asyncTask.getMessage());
+                    showPrimaryNotification("Task finished successfully: " + asyncTask.getMessage(), 10000);
                 } else {
-                    showSuccessNotification("Task " + asyncTask.getId().toString() + " finished successfully!");
+                    showPrimaryNotification("Task " + asyncTask.getId().toString() + " finished successfully!", 10000);
                 }
             } else {
                 continue;
@@ -150,11 +150,6 @@ public abstract class AbstractPageView extends VerticalLayout {
 
             AsyncTaskService.updateStateToNotified(asyncTask);
         }
-    }
-
-    public void showErrorNotification(String msg) {
-        Notification notification = Notification.show(msg);
-        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
     }
 
     public void showWarningNotification(String msg) {
@@ -167,9 +162,29 @@ public abstract class AbstractPageView extends VerticalLayout {
         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
+    public void showErrorNotification(String msg) {
+        Notification notification = Notification.show(msg);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
+    public void showErrorNotification(String msg, int durationMs) {
+        Notification notification = Notification.show(msg, durationMs, Notification.Position.BOTTOM_START);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+    }
+
+    public void showPrimaryNotification(String msg, int durationMs) {
+        Notification notification = Notification.show(msg, durationMs, Notification.Position.BOTTOM_START);
+        notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+    }
+
     public void showPrimaryNotification(String msg) {
         Notification notification = Notification.show(msg);
         notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+    }
+
+    public void showWarningNotification(String msg, int durationMs) {
+        Notification notification = Notification.show(msg, durationMs, Notification.Position.BOTTOM_START);
+        notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
     }
 
     protected HorizontalLayout getDialogTopBarLayout(Dialog dialog) {
