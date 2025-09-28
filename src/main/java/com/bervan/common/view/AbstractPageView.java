@@ -1,6 +1,9 @@
 package com.bervan.common.view;
 
+import com.bervan.asynctask.AsyncTask;
+import com.bervan.asynctask.AsyncTaskService;
 import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -17,6 +20,7 @@ import com.vaadin.flow.router.QueryParameters;
 import io.micrometer.common.util.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 public abstract class AbstractPageView extends VerticalLayout {
     public AbstractPageView() {
@@ -126,6 +130,26 @@ public abstract class AbstractPageView extends VerticalLayout {
         }
 
         return row;
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        List<AsyncTask> taskNotificationsForUser = AsyncTaskService.getTaskNotificationsForUser();
+        for (AsyncTask asyncTask : taskNotificationsForUser) {
+            if (Objects.equals(asyncTask.getStatus(), "FAILED")) {
+                showErrorNotification("Task failed: " + asyncTask.getMessage());
+            } else if (Objects.equals(asyncTask.getStatus(), "FINISHED")) {
+                if (asyncTask.getMessage() != null && !asyncTask.getMessage().isEmpty()) {
+                    showSuccessNotification("Task finished successfully: " + asyncTask.getMessage());
+                } else {
+                    showSuccessNotification("Task " + asyncTask.getId().toString() + " finished successfully!");
+                }
+            } else {
+                continue;
+            }
+
+            AsyncTaskService.updateStateToNotified(asyncTask);
+        }
     }
 
     public void showErrorNotification(String msg) {
