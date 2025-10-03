@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 @Slf4j
 public class MemoryChecker {
 
-    @Scheduled(cron = "0 */5 * * * *")
+//    @Scheduled(cron = "0 */5 * * * *")
     public void checkMemory() {
         Runtime runtime = Runtime.getRuntime();
         long totalMemory = runtime.totalMemory();
