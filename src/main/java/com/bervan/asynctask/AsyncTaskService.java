@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,6 +40,19 @@ public class AsyncTaskService extends BaseService<UUID, AsyncTask> {
     public synchronized static void updateStateToNotified(AsyncTask asyncTask) {
         asyncTask.setNotified(true);
         instance.save(asyncTask);
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void timeoutCheck() {
+        log.info("Starting timeout check");
+        LocalDateTime now = LocalDateTime.now();
+        Set<AsyncTask> asyncTasks = queryNotFinishedTasks();
+        for (AsyncTask asyncTask : asyncTasks) {
+            if (asyncTask.getStartDate() != null && asyncTask.getStartDate().plusMinutes(asyncTask.getTimeoutInMin()).isBefore(now)) {
+                log.info("Timeout for task {} reached", asyncTask.getId());
+                setFailed(asyncTask, "Timeout reached");
+            }
+        }
     }
 
     @PostConstruct
@@ -72,6 +86,15 @@ public class AsyncTaskService extends BaseService<UUID, AsyncTask> {
         return queryTaskNotificationFromDatabase().getOrDefault(userId, Collections.emptyList());
     }
 
+    private Set<AsyncTask> queryNotFinishedTasks() {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.setAddOwnerCriterion(false);
+        searchRequest.addCriterion("TASK_NOTIFICATION_GROUP", Operator.OR_OPERATOR, AsyncTask.class, "status", SearchOperation.EQUALS_OPERATION, "NEW");
+        searchRequest.addCriterion("TASK_NOTIFICATION_GROUP", Operator.OR_OPERATOR, AsyncTask.class, "status", SearchOperation.EQUALS_OPERATION, "IN_PROGRESS");
+
+        return load(searchRequest, Pageable.ofSize(50000));
+    }
+
     private Map<UUID, List<AsyncTask>> queryTaskNotificationFromDatabase() {
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.setAddOwnerCriterion(false);
@@ -103,11 +126,12 @@ public class AsyncTaskService extends BaseService<UUID, AsyncTask> {
         return save(newAsyncTask);
     }
 
-    public AsyncTask setInProgress(AsyncTask asyncTask) {
+    public AsyncTask setInProgress(AsyncTask asyncTask, String message) {
         asyncTask.setStatus("IN_PROGRESS");
         LocalDateTime now = LocalDateTime.now();
         asyncTask.setStartDate(now);
         asyncTask.setModificationDate(now);
+        asyncTask.setMessage(message);
         return save(asyncTask);
     }
 
