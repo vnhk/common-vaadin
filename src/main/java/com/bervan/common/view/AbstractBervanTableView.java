@@ -74,6 +74,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected boolean checkboxesColumnsEnabled = true;
     protected Checkbox selectAllCheckbox;
     protected SortDirection sortDirection = null;
+    protected com.bervan.common.search.model.SortDirection sortDir = com.bervan.common.search.model.SortDirection.ASC; //move this logic to base service
     protected Grid.Column<T> columnSorted = null;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
     protected BervanTableToolbar<ID, T> tableToolbarActions;
@@ -380,11 +381,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         try {
             SearchRequest request = filtersLayout.buildCombinedFilters();
 
-            com.bervan.common.search.model.SortDirection sortDir = com.bervan.common.search.model.SortDirection.ASC;
             if (columnSorted != null && sortDirection != null) {
                 sortField = columnSorted.getKey();
                 if (sortDirection != SortDirection.ASCENDING) {
-                    sortDir = com.bervan.common.search.model.SortDirection.DESC;
+                    this.sortDir = com.bervan.common.search.model.SortDirection.DESC;
                 }
             } else {
                 sortField = "id";

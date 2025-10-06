@@ -11,6 +11,7 @@ import com.bervan.common.service.BaseService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -35,6 +36,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     protected final VerticalLayout contentLayout = new VerticalLayout();
     protected final Class<T> tClass;
     protected T item;
+    protected boolean buildDetails = true;
     protected MenuNavigationComponent pageLayout;
     protected HorizontalLayout topLayout = new HorizontalLayout();
     protected ComponentHelper<ID, T> componentHelper;
@@ -72,7 +74,13 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     }
 
     public void renderCommonComponents() {
-        contentLayout.add(topLayout, addButton, editButton);
+        contentLayout.add(topLayout);
+        Optional<VerticalLayout> verticalLayout = buildItemReadOnlyDetails();
+        if (verticalLayout.isPresent()) {
+            contentLayout.add(verticalLayout.get());
+            contentLayout.add(new Hr());
+        }
+        contentLayout.add(new HorizontalLayout(addButton, editButton));
         add(pageLayout);
         add(contentLayout);
     }
@@ -287,6 +295,48 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
         dialog.add(dialogLayout);
         dialog.open();
+    }
+
+    protected Optional<VerticalLayout> buildItemReadOnlyDetails() {
+        if (!buildDetails) {
+            return Optional.empty();
+        }
+        VerticalLayout formLayout = new VerticalLayout();
+        try {
+            if (item == null) {
+                showErrorNotification("Could not show item! No item is provided!");
+                return Optional.empty();
+            }
+
+            Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
+            Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
+            List<Field> declaredFields = getVaadinTableFields().stream()
+                    .toList();
+
+            for (Field field : declaredFields) {
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                VerticalLayout layoutForField = new VerticalLayout();
+                layoutForField.getThemeList().remove("spacing");
+                layoutForField.getThemeList().remove("padding");
+                layoutForField.add((Component) componentWithValue);
+                customFieldInEditItemLayout(field, layoutForField, componentWithValue);
+                formLayout.add(layoutForField);
+                fieldsHolder.put(field, componentWithValue);
+                fieldsLayoutHolder.put(field, layoutForField);
+            }
+
+            customFieldInDetailsLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
+
+        } catch (Exception e) {
+            log.error("Error during creating item details. Check columns name or create custom logic!", e);
+            showErrorNotification("Error during creating item details.");
+        }
+
+        return Optional.of(formLayout);
+    }
+
+    protected void customFieldInDetailsLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
+
     }
 
     protected void buildEditItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
