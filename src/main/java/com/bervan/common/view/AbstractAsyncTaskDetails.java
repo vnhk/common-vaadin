@@ -7,7 +7,6 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
@@ -15,13 +14,12 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, AsyncTask> implements HasUrlParameter<String> {
     public static final String ROUTE_NAME = "/async/async-task/";
-    private static final AsyncTaskLayout pageLayout = new AsyncTaskLayout(ROUTE_NAME);
+    private static final AsyncTaskLayout pageLayout = new AsyncTaskLayout(ROUTE_NAME, true);
     private final BaseService<UUID, HistoryAsyncTask> historyService;
     private final BervanLogger logger;
 
@@ -39,7 +37,6 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
         addButton.setVisible(false);
         editButton.setVisible(false);
 
-        contentLayout.add(new H3("Task History"));
         AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, logger, HistoryAsyncTask.class) {
             @Override
             protected void customizePreLoad(SearchRequest request) {

@@ -15,7 +15,7 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
     public static final String ROUTE_NAME = "/async/async-task-list";
 
     public AbstractAsyncTaskList(BaseService<UUID, AsyncTask> service, BervanLogger bervanLogger) {
-        super(new AsyncTaskLayout(ROUTE_NAME), service, bervanLogger, AsyncTask.class);
+        super(new AsyncTaskLayout(ROUTE_NAME, false), service, bervanLogger, AsyncTask.class);
         renderCommonComponents();
         addButton.setVisible(false);
     }
