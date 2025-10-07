@@ -7,6 +7,7 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
@@ -38,7 +39,7 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
         addButton.setVisible(false);
         editButton.setVisible(false);
 
-        add(new H3("Task History"));
+        contentLayout.add(new H3("Task History"));
         AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, logger, HistoryAsyncTask.class) {
             @Override
             protected void customizePreLoad(SearchRequest request) {

@@ -301,6 +301,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         if (!buildDetails) {
             return Optional.empty();
         }
+
         VerticalLayout formLayout = new VerticalLayout();
         try {
             if (item == null) {
@@ -313,18 +314,44 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
             List<Field> declaredFields = getVaadinTableFields().stream()
                     .toList();
 
+            // Create two-column layout
+            VerticalLayout leftColumn = new VerticalLayout();
+            VerticalLayout rightColumn = new VerticalLayout();
+            leftColumn.getThemeList().remove("spacing");
+            leftColumn.getThemeList().remove("padding");
+            rightColumn.getThemeList().remove("spacing");
+            rightColumn.getThemeList().remove("padding");
+
+            HorizontalLayout twoColumnLayout = new HorizontalLayout(leftColumn, rightColumn);
+            twoColumnLayout.setWidthFull();
+            twoColumnLayout.getThemeList().remove("spacing");
+            twoColumnLayout.getThemeList().remove("padding");
+
+            int fieldIndex = 0;
             for (Field field : declaredFields) {
                 AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                componentWithValue.setReadOnly(true);
+                componentWithValue.setWidthFull();
+
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditItemLayout(field, layoutForField, componentWithValue);
-                formLayout.add(layoutForField);
+
+                // Alternate between left and right column
+                if (fieldIndex % 2 == 0) {
+                    leftColumn.add(layoutForField);
+                } else {
+                    rightColumn.add(layoutForField);
+                }
+
                 fieldsHolder.put(field, componentWithValue);
                 fieldsLayoutHolder.put(field, layoutForField);
+                fieldIndex++;
             }
 
+            formLayout.add(twoColumnLayout);
             customFieldInDetailsLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
 
         } catch (Exception e) {
