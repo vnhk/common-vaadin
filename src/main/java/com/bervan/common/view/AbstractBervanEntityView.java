@@ -81,7 +81,9 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
             contentLayout.add(new Hr());
         }
         contentLayout.add(new HorizontalLayout(addButton, editButton));
-        add(pageLayout);
+        if (pageLayout != null) {
+            add(pageLayout);
+        }
         add(contentLayout);
     }
 

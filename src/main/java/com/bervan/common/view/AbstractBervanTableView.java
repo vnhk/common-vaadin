@@ -192,7 +192,9 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         contentLayout.setPadding(false);
         contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, paginationBar, addButton);
 
-        add(pageLayout);
+        if(pageLayout != null) {
+            add(pageLayout);
+        }
 
         add(contentLayout);
 
