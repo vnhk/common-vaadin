@@ -17,6 +17,8 @@ public class BervanDateTimePicker extends HorizontalLayout implements AutoConfig
     }
 
     public BervanDateTimePicker(boolean datePickerEnabled, boolean timePickerEnabled) {
+        setDefaultVerticalComponentAlignment(Alignment.CENTER);
+
         if (datePickerEnabled) {
             add(datePicker);
         }
@@ -27,17 +29,23 @@ public class BervanDateTimePicker extends HorizontalLayout implements AutoConfig
     }
 
     public BervanDateTimePicker(String label) {
+        setDefaultVerticalComponentAlignment(Alignment.CENTER);
+
         datePicker = new DatePicker(label);
         add(datePicker, timePicker);
     }
 
     public BervanDateTimePicker(String label, LocalDateTime initialDateTime) {
+        setDefaultVerticalComponentAlignment(Alignment.CENTER);
+
         datePicker = new DatePicker(label);
         setValue(initialDateTime);
         add(datePicker, timePicker);
     }
 
     public BervanDateTimePicker(LocalDateTime initialDateTime) {
+        setDefaultVerticalComponentAlignment(Alignment.CENTER);
+
         setValue(initialDateTime);
         add(datePicker, timePicker);
     }
@@ -83,7 +91,12 @@ public class BervanDateTimePicker extends HorizontalLayout implements AutoConfig
 
     @Override
     public void setReadOnly(boolean readOnly) {
-
+        if (datePicker != null) {
+            datePicker.setReadOnly(readOnly);
+        }
+        if (timePicker != null) {
+            timePicker.setReadOnly(readOnly);
+        }
     }
 
     public void setLabel(String label) {
