@@ -48,7 +48,7 @@ public class AsyncTaskService extends BaseService<UUID, AsyncTask> {
         LocalDateTime now = LocalDateTime.now();
         Set<AsyncTask> asyncTasks = queryNotFinishedTasks();
         for (AsyncTask asyncTask : asyncTasks) {
-            if (asyncTask.getStartDate() != null && asyncTask.getStartDate().plusMinutes(asyncTask.getTimeoutInMin()).isBefore(now)) {
+            if (asyncTask.getStartDate() != null && asyncTask.getTimeoutInMin() != null && asyncTask.getStartDate().plusMinutes(asyncTask.getTimeoutInMin()).isBefore(now)) {
                 log.info("Timeout for task {} reached", asyncTask.getId());
                 setFailed(asyncTask, "Timeout reached");
             }
