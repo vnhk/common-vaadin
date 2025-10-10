@@ -4,10 +4,10 @@ import com.bervan.asynctask.AsyncTask;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.router.RouterLink;
 
 import java.util.UUID;
 
@@ -25,7 +25,9 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
         grid.addComponentColumn(entity -> {
                     Icon linkIcon = new Icon(VaadinIcon.LINK);
                     linkIcon.getStyle().set("cursor", "pointer");
-                    return new Anchor(AbstractAsyncTaskDetails.ROUTE_NAME + entity.getId(), new HorizontalLayout(linkIcon));
+                    RouterLink link = new RouterLink("", AbstractAsyncTaskDetails.class, entity.getId().toString());
+                    link.add(new HorizontalLayout(linkIcon));
+                    return link;
                 }).setKey("link")
                 .setWidth("10px")
                 .setResizable(false);
