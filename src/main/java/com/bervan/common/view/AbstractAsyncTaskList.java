@@ -3,11 +3,12 @@ package com.bervan.common.view;
 import com.bervan.asynctask.AsyncTask;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.router.RouterLink;
 
 import java.util.UUID;
 
@@ -23,11 +24,17 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
     @Override
     protected void preColumnAutoCreation(Grid<AsyncTask> grid) {
         grid.addComponentColumn(entity -> {
-                    Icon linkIcon = new Icon(VaadinIcon.LINK);
-                    linkIcon.getStyle().set("cursor", "pointer");
-                    RouterLink link = new RouterLink("", AbstractAsyncTaskDetails.class, entity.getId().toString());
-                    link.add(new HorizontalLayout(linkIcon));
-                    return link;
+                    Button linkButton = new Button(new Icon(VaadinIcon.LINK));
+                    linkButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+                    linkButton.getStyle().set("cursor", "pointer");
+
+                    linkButton.addClickListener(event -> {
+                        String url = AbstractAsyncTaskDetails.ROUTE_NAME + "/" + entity.getId().toString();
+                        getUI().ifPresent(ui -> ui.navigate(url));
+                    });
+
+                    return new HorizontalLayout(linkButton);
+
                 }).setKey("link")
                 .setWidth("10px")
                 .setResizable(false);

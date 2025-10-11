@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, AsyncTask> implements HasUrlParameter<String> {
-    public static final String ROUTE_NAME = "/async/async-task";
+    public static final String ROUTE_NAME = "/async/async-task/:id";
     private static final AsyncTaskLayout pageLayout = new AsyncTaskLayout(ROUTE_NAME, true);
     private final BaseService<UUID, HistoryAsyncTask> historyService;
     private final BervanLogger logger;
