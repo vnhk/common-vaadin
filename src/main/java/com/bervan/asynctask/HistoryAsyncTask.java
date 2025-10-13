@@ -33,10 +33,10 @@ public class HistoryAsyncTask extends BervanHistoryEntity<UUID> implements Persi
     @VaadinBervanColumn(internalName = "modificationDate", displayName = "Modification Date", inEditForm = false, inSaveForm = false)
     @HistoryField
     private LocalDateTime modificationDate;
-    @VaadinBervanColumn(internalName = "startDate", displayName = "Start Date", inEditForm = false, inSaveForm = false)
+    @VaadinBervanColumn(internalName = "startDate", displayName = "Start Date", inEditForm = false, inSaveForm = false, inTable = false)
     @HistoryField
     private LocalDateTime startDate;
-    @VaadinBervanColumn(internalName = "endDate", displayName = "End Date", inEditForm = false, inSaveForm = false)
+    @VaadinBervanColumn(internalName = "endDate", displayName = "End Date", inEditForm = false, inSaveForm = false, inTable = false)
     @HistoryField
     private LocalDateTime endDate;
     @HistoryField

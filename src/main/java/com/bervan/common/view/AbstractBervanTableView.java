@@ -7,6 +7,7 @@ import com.bervan.common.component.BervanButton;
 import com.bervan.common.component.BervanComboBox;
 import com.bervan.common.component.table.builders.ColumnForGridBuilder;
 import com.bervan.common.component.table.builders.ImageColumnGridBuilder;
+import com.bervan.common.component.table.builders.LocalDateTimeBuilder;
 import com.bervan.common.component.table.builders.TextColumnGridBuilder;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
@@ -53,6 +54,7 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 public abstract class AbstractBervanTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractBervanEntityView<ID, T> implements AfterNavigationObserver {
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
     private static final List<ColumnForGridBuilder> columnGridBuilders = new ArrayList<>(Arrays.asList(
+            LocalDateTimeBuilder.getInstance(),
             ImageColumnGridBuilder.getInstance(),
             TextColumnGridBuilder.getInstance()
     ));
