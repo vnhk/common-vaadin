@@ -1,6 +1,7 @@
 package com.bervan.common.view;
 
 import com.bervan.asynctask.AsyncTask;
+import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.button.Button;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.data.provider.SortDirection;
 
 import java.util.UUID;
 
@@ -19,6 +21,13 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
         super(new AsyncTaskLayout(ROUTE_NAME, false), service, bervanLogger, AsyncTask.class);
         renderCommonComponents();
         addButton.setVisible(false);
+    }
+
+    @Override
+    protected void customizePreLoad(SearchRequest request) {
+        sortField = "modificationDate";
+        sortDirection = SortDirection.DESCENDING;
+        sortDir = com.bervan.common.search.model.SortDirection.DESC;
     }
 
     @Override
