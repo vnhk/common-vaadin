@@ -45,7 +45,7 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
                     return new HorizontalLayout(linkButton);
 
                 }).setKey("link")
-                .setWidth("10px")
+                .setWidth("6px")
                 .setResizable(false);
     }
 
