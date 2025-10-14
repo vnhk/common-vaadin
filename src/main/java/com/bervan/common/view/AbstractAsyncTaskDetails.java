@@ -45,6 +45,7 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
                 request.addCriterion("HISTORY_OWNER_CRITERIA", HistoryAsyncTask.class, "asyncTask.id", SearchOperation.EQUALS_OPERATION, taskId);
             }
         };
+        historyOwnerCriteria.addButton.setVisible(false);
         add(historyOwnerCriteria);
         historyOwnerCriteria.renderCommonComponents();
     }
