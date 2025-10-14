@@ -7,7 +7,6 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
@@ -19,12 +18,11 @@ import java.util.UUID;
 
 public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, AsyncTask> implements HasUrlParameter<String> {
     public static final String ROUTE_NAME = "/async/async-task";
-    private static final AsyncTaskLayout pageLayout = new AsyncTaskLayout(ROUTE_NAME, true);
     private final BaseService<UUID, HistoryAsyncTask> historyService;
     private final BervanLogger logger;
 
     public AbstractAsyncTaskDetails(BaseService<UUID, AsyncTask> service, BaseService<UUID, HistoryAsyncTask> historyService, BervanLogger logger) {
-        super(pageLayout, service, AsyncTask.class);
+        super(new AsyncTaskLayout(ROUTE_NAME, true), service, AsyncTask.class);
         this.historyService = historyService;
         this.logger = logger;
     }
