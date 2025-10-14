@@ -2,11 +2,13 @@ package com.bervan.common.component.builders;
 
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanDateTimePicker;
+import com.bervan.common.component.BervanTextArea;
 import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.model.VaadinBervanColumnConfig;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
 
@@ -20,7 +22,7 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
     }
 
     @Override
-    public AutoConfigurableField<LocalDateTime> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+    public AutoConfigurableField<String> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
         return buildLocalDateTimeInput(value, config.getDisplayName());
     }
 
@@ -29,12 +31,13 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
         return CommonComponentUtils.hasTypMatch(config, LocalDateTime.class.getTypeName());
     }
 
-    private AutoConfigurableField<LocalDateTime> buildLocalDateTimeInput(Object value, String displayName) {
+    private AutoConfigurableField<String> buildLocalDateTimeInput(Object value, String displayName) {
         BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(displayName);
-        dateTimePicker.setLabel("Select Date and Time");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
 
         if (value != null)
             dateTimePicker.setValue((LocalDateTime) value);
-        return dateTimePicker;
+        return new BervanTextArea(displayName, dateTimePicker.getValue().format(formatter), "");
     }
 }
