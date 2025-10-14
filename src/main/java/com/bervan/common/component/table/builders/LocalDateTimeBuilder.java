@@ -55,6 +55,8 @@ public class LocalDateTimeBuilder implements ColumnForGridBuilder {
         return (span, record) -> {
             try {
                 span.setClassName("modern-cell-content");
+                span.addClassName("cell-text");
+
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
