@@ -36,8 +36,10 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
 
-        if (value != null)
-            dateTimePicker.setValue((LocalDateTime) value);
+        if (value == null) {
+            return new BervanTextArea(displayName, "", "");
+        }
+        dateTimePicker.setValue((LocalDateTime) value);
         return new BervanTextArea(displayName, dateTimePicker.getValue().format(formatter), "");
     }
 }
