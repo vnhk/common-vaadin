@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class EditItemDialog<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
@@ -54,7 +55,7 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
 
             // Build form fields based on VaadinBervanColumn annotations
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");

@@ -22,8 +22,25 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
     }
 
     @Override
-    public AutoConfigurableField<String> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+    public AutoConfigurableField<LocalDateTime> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
         return buildLocalDateTimeInput(value, config.getDisplayName());
+    }
+
+    @Override
+    public AutoConfigurableField buildReadOnlyField(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(config.getDisplayName());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
+
+        BervanTextArea readOnlyField = new BervanTextArea(config.getDisplayName());
+        readOnlyField.setReadOnly(true);
+
+        if (value == null) {
+            return readOnlyField;
+        }
+        dateTimePicker.setValue((LocalDateTime) value);
+        readOnlyField.setValue(dateTimePicker.getValue().format(formatter));
+        return readOnlyField;
     }
 
     @Override
@@ -31,15 +48,14 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
         return CommonComponentUtils.hasTypMatch(config, LocalDateTime.class.getTypeName());
     }
 
-    private AutoConfigurableField<String> buildLocalDateTimeInput(Object value, String displayName) {
+    private AutoConfigurableField<LocalDateTime> buildLocalDateTimeInput(Object value, String displayName) {
         BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(displayName);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
-
         if (value == null) {
-            return new BervanTextArea(displayName, "", "");
+            return dateTimePicker;
         }
+
         dateTimePicker.setValue((LocalDateTime) value);
-        return new BervanTextArea(displayName, dateTimePicker.getValue().format(formatter), "");
+        return dateTimePicker;
     }
 }

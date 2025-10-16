@@ -10,7 +10,7 @@ import java.util.Map;
 public interface ComponentHelper<ID extends Serializable, T extends PersistableData<ID>> {
     List<Field> getVaadinTableFields();
 
-    AutoConfigurableField buildComponentForField(Field field, T item) throws IllegalAccessException;
+    AutoConfigurableField buildComponentForField(Field field, T item, boolean readOnly) throws IllegalAccessException;
 
     Object getFieldValueForNewItemDialog(Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry);
 }

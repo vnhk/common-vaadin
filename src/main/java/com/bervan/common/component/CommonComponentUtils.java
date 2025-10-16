@@ -8,7 +8,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
@@ -30,14 +33,14 @@ public class CommonComponentUtils {
             NotSupportedFieldBuilder.getInstance()
     ));
 
+    private CommonComponentUtils() {
+
+    }
+
     public static void addComponentBuilder(ComponentForFieldBuilder componentBuilder) {
         if (componentBuilder != null && !componentBuilders.contains(componentBuilder)) {
             componentBuilders.add(componentBuilders.size() - 1, componentBuilder); //default needs to be last
         }
-    }
-
-    private CommonComponentUtils() {
-
     }
 
     public static VerticalLayout buildFormLayout(Class<?> tClass, Object item, Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder) throws IllegalAccessException {
@@ -67,8 +70,20 @@ public class CommonComponentUtils {
 
     public static AutoConfigurableField buildComponentForField(Field field, Object o, Object value) {
         for (ComponentForFieldBuilder componentBuilder : componentBuilders) {
-            if (componentBuilder.supports(field.getType(), buildColumnConfig(field))) {
-                return componentBuilder.build(field, o, value, buildColumnConfig(field));
+            VaadinBervanColumnConfig config = buildColumnConfig(field);
+            if (componentBuilder.supports(field.getType(), config)) {
+                return componentBuilder.build(field, o, value, config);
+            }
+        }
+
+        throw new RuntimeException("No component builder found for " + field.getType().getName());
+    }
+
+    public static AutoConfigurableField buildReadOnlyComponentForField(Field field, Object o, Object value) {
+        for (ComponentForFieldBuilder componentBuilder : componentBuilders) {
+            VaadinBervanColumnConfig config = buildColumnConfig(field);
+            if (componentBuilder.supports(field.getType(), config)) {
+                return componentBuilder.buildReadOnlyField(field, o, value, config);
             }
         }
 

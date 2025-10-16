@@ -3,7 +3,6 @@ package com.bervan.common.view;
 import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
-import com.bervan.common.component.builders.ComponentForFieldBuilder;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.service.BaseService;
@@ -73,7 +72,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
             DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
             if (editableField.isPresent()) {
                 field = editableField.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -118,7 +117,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
             } else if (fieldOptional.isPresent()) {
                 field = fieldOptional.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, true);
                 componentWithValue.setReadOnly(true);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
@@ -174,7 +173,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                     .toList();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null, true);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");

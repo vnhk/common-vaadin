@@ -19,7 +19,7 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
         this.tClass = tClass;
     }
 
-    public AutoConfigurableField buildComponentForField(Field field, T item) throws IllegalAccessException {
+    public AutoConfigurableField buildComponentForField(Field field, T item, boolean readOnly) throws IllegalAccessException {
         AutoConfigurableField component = null;
         VaadinBervanColumnConfig config = buildColumnConfig(field);
 
@@ -40,8 +40,10 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
 
             component = new BervanDynamicMultiDropdownController(config.getInternalName(), config.getDisplayName(), dynamicMultiDropdownAllValues.get(key),
                     initialSelectedValues);
-        } else {
+        } else if (!readOnly) {
             component = CommonComponentUtils.buildComponentForField(field, item, value);
+        } else {
+            component = CommonComponentUtils.buildReadOnlyComponentForField(field, item, value);
         }
 
         component.setId(config.getTypeName() + "_id");

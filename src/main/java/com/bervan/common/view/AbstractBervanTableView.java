@@ -537,7 +537,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     .toList();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");

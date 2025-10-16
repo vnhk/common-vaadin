@@ -129,7 +129,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
             if (editableField.isPresent()) {
                 field = editableField.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -175,8 +175,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
             } else if (fieldOptional.isPresent()) {
                 field = fieldOptional.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
-                componentWithValue.setReadOnly(true);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, true);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -331,7 +330,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
             int fieldIndex = 0;
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, true);
                 componentWithValue.setReadOnly(true);
                 componentWithValue.setWidthFull();
 
@@ -380,11 +379,11 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             List<Field> declaredFields = getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
+                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inEditForm())
                     .toList();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
@@ -443,7 +442,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                     .toList();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
