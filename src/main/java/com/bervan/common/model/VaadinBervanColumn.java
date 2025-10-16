@@ -14,8 +14,6 @@ public @interface VaadinBervanColumn {
 
     String[] strValues() default {}; //todo change to class (Constants.class) and field name to get all values from that class
 
-    boolean valuesSingleChoice() default true;
-
     int[] intValues() default {};
 
     int order() default 0;
