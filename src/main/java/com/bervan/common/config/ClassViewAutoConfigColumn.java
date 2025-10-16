@@ -15,6 +15,7 @@ public class ClassViewAutoConfigColumn {
     private List<String> strValues;
     private List<Integer> intValues;
     private boolean inSaveForm;
+    private boolean isWysiwyg;
     private boolean inEditForm;
     private boolean inTable;
     private String extension;
