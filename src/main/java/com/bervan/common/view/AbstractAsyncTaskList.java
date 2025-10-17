@@ -1,6 +1,7 @@
 package com.bervan.common.view;
 
 import com.bervan.asynctask.AsyncTask;
+import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BervanLogger;
@@ -17,8 +18,8 @@ import java.util.UUID;
 public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTask> {
     public static final String ROUTE_NAME = "/async/async-task-list";
 
-    public AbstractAsyncTaskList(BaseService<UUID, AsyncTask> service, BervanLogger bervanLogger) {
-        super(new AsyncTaskLayout(ROUTE_NAME, false), service, bervanLogger, AsyncTask.class);
+    public AbstractAsyncTaskList(BaseService<UUID, AsyncTask> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig) {
+        super(new AsyncTaskLayout(ROUTE_NAME, false), service, bervanLogger, bervanViewConfig, AsyncTask.class);
         renderCommonComponents();
         addButton.setVisible(false);
     }

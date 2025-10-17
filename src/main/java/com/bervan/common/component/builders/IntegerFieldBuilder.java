@@ -2,8 +2,7 @@ package com.bervan.common.component.builders;
 
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanIntegerField;
-import com.bervan.common.component.CommonComponentUtils;
-import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 
 import java.lang.reflect.Field;
 
@@ -20,13 +19,13 @@ public class IntegerFieldBuilder implements ComponentForFieldBuilder {
     }
 
     @Override
-    public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+    public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
         return buildIntegerInput(value, config.getDisplayName());
     }
 
     @Override
-    public boolean supports(Class<?> extension, VaadinBervanColumnConfig config) {
-        return config.getIntValues().isEmpty() && CommonComponentUtils.hasTypMatch(config, Integer.class.getTypeName());
+    public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
+        return config.getIntValues().isEmpty() && Integer.class.getTypeName().equals(typeName);
     }
 
     private AutoConfigurableField buildIntegerInput(Object value, String displayName) {

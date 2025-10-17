@@ -5,8 +5,9 @@ import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
 import com.bervan.common.component.CommonComponentHelper;
 import com.bervan.common.component.ComponentHelper;
+import com.bervan.common.config.BervanViewConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableData;
-import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.service.BaseService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -35,6 +36,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     protected final BaseService<ID, T> service;
     protected final VerticalLayout contentLayout = new VerticalLayout();
     protected final Class<T> tClass;
+    protected final BervanViewConfig bervanViewConfig;
     protected T item;
     protected boolean buildDetails = true;
     protected MenuNavigationComponent pageLayout;
@@ -43,8 +45,9 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     protected final Button addButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
     protected final Button editButton = new BervanButton("✎", e -> openEditDialog());
 
-    public AbstractBervanEntityView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, Class<T> tClass) {
+    public AbstractBervanEntityView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, @Autowired BervanViewConfig bervanViewConfig, Class<T> tClass) {
         this.service = service;
+        this.bervanViewConfig = bervanViewConfig;
         this.pageLayout = pageLayout;
         this.tClass = tClass;
         this.componentHelper = new CommonComponentHelper<>(tClass);
@@ -115,21 +118,21 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                                                    HorizontalLayout headerLayout, String clickedField, T item) {
         Field field = null;
         try {
-            List<Field> declaredFields = getVaadinTableFields();
+            Optional<Field> vaadinTableField = getVaadinTableField(clickedField);
+            if (vaadinTableField.isEmpty()) {
+                throw new RuntimeException("Invalid config or implementation for: " + clickedField);
+            }
 
-            Optional<Field> fieldOptional = declaredFields.stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).internalName().equals(clickedField))
-                    .filter(e -> !e.getAnnotation(VaadinBervanColumn.class).inEditForm())
-                    .findFirst();
+            Optional<ClassViewAutoConfigColumn> fieldConfig = getFieldConfig(clickedField);
+            if (fieldConfig.isEmpty()) {
+                throw new RuntimeException("Invalid config or implementation for: " + clickedField);
+            }
 
-            Optional<Field> editableField = declaredFields.stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).internalName().equals(clickedField))
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inEditForm())
-                    .findFirst();
+            ClassViewAutoConfigColumn classViewAutoConfigColumn = fieldConfig.get();
+            field = vaadinTableField.get();
 
-            if (editableField.isPresent()) {
-                field = editableField.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
+            if (classViewAutoConfigColumn.isInEditForm()) {
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -173,9 +176,8 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                 });
 
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
-            } else if (fieldOptional.isPresent()) {
-                field = fieldOptional.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, true);
+            } else if (!classViewAutoConfigColumn.isInEditForm()) {
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, true);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -250,15 +252,38 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     }
 
     protected List<Field> getVaadinTableFields() {
+        Set<String> fieldNames = bervanViewConfig.getFieldNames(tClass);
         return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
+                .filter(e -> fieldNames.contains(e.getName()))
+                .toList();
+    }
+
+    protected List<Field> getEditableVaadinTableFields() {
+        Set<String> fieldNames = bervanViewConfig.getEditableFieldNames(tClass);
+        return Arrays.stream(tClass.getDeclaredFields())
+                .filter(e -> fieldNames.contains(e.getName()))
+                .toList();
+    }
+
+    protected List<Field> getVaadinTableFieldsForSaveForm() {
+        Set<String> fieldNames = bervanViewConfig.getFieldNamesForSaveForm(tClass);
+        return Arrays.stream(tClass.getDeclaredFields())
+                .filter(e -> fieldNames.contains(e.getName()))
                 .toList();
     }
 
     protected Optional<Field> getVaadinTableField(String clickedColumnKey) {
         return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
-                .filter(e -> e.getAnnotation(VaadinBervanColumn.class).internalName().equals(clickedColumnKey))
+                .filter(bervanViewConfig::isAutoConfigurableField)
+                .filter(e -> bervanViewConfig.getInternalName(e).equals(clickedColumnKey))
+                .findFirst();
+    }
+
+    protected Optional<ClassViewAutoConfigColumn> getFieldConfig(String clickedColumnKey) {
+        return Arrays.stream(tClass.getDeclaredFields())
+                .filter(bervanViewConfig::isAutoConfigurableField)
+                .filter(e -> bervanViewConfig.getInternalName(e).equals(clickedColumnKey))
+                .map(bervanViewConfig::getFieldConfig)
                 .findFirst();
     }
 
@@ -330,7 +355,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
             int fieldIndex = 0;
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, true);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, true);
                 componentWithValue.setReadOnly(true);
                 componentWithValue.setWidthFull();
 
@@ -378,12 +403,10 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
-            List<Field> declaredFields = getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inEditForm())
-                    .toList();
+            List<Field> declaredFields = getEditableVaadinTableFields();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
@@ -437,12 +460,10 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
-            List<Field> declaredFields = getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
-                    .toList();
+            List<Field> declaredFields = getVaadinTableFieldsForSaveForm();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null, false);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, null, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");

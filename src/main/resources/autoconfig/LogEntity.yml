@@ -1,0 +1,25 @@
+columns:
+  - field: logLevel
+    displayName: "Level"
+    internalName: "level"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false
+    strValues: ["DEBUG", "INFO", "WARN", "ERROR"]
+
+  - field: timestamp
+    displayName: "Timestamp"
+    internalName: "timestamp"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+
+  - field: fullLog
+    displayName: "Log"
+    internalName: "log"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false

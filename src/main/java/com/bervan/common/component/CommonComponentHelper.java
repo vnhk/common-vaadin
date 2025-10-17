@@ -1,6 +1,10 @@
 package com.bervan.common.component;
 
-import com.bervan.common.model.*;
+import com.bervan.common.config.BervanViewConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
+import com.bervan.common.model.PersistableData;
+import com.bervan.common.model.VaadinDynamicDropdownBervanColumn;
+import com.bervan.common.model.VaadinDynamicMultiDropdownBervanColumn;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
@@ -19,21 +23,21 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
         this.tClass = tClass;
     }
 
-    public AutoConfigurableField buildComponentForField(Field field, T item, boolean readOnly) throws IllegalAccessException {
+    public AutoConfigurableField buildComponentForField(BervanViewConfig bervanViewConfig, Field field, T item, boolean readOnly) throws IllegalAccessException {
         AutoConfigurableField component = null;
-        VaadinBervanColumnConfig config = buildColumnConfig(field);
+        ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
 
         field.setAccessible(true);
         Object value = item == null ? null : field.get(item);
-        value = getInitValueForInput(field, item, config, value);
+        value = getInitValueForInput(bervanViewConfig, field, item, config, value);
 
-        if (config.getExtension() == VaadinDynamicDropdownBervanColumn.class) {
+        if (Objects.equals(config.getExtension(), VaadinDynamicDropdownBervanColumn.class.getSimpleName())) {
             String key = config.getInternalName();
             dynamicDropdownAllValues.put(key, getAllValuesForDynamicDropdowns(key, item));
             String initialSelectedValue = getInitialSelectedValueForDynamicDropdown(key, item);
 
             component = new BervanDynamicDropdownController(key, config.getDisplayName(), dynamicDropdownAllValues.get(key), initialSelectedValue);
-        } else if (config.getExtension() == VaadinDynamicMultiDropdownBervanColumn.class) {
+        } else if (Objects.equals(config.getExtension(), VaadinDynamicMultiDropdownBervanColumn.class.getSimpleName())) {
             String key = config.getInternalName();
             dynamicMultiDropdownAllValues.put(key, getAllValuesForDynamicMultiDropdowns(key, item));
             List<String> initialSelectedValues = getInitialSelectedValueForDynamicMultiDropdown(key, item);
@@ -41,27 +45,21 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
             component = new BervanDynamicMultiDropdownController(config.getInternalName(), config.getDisplayName(), dynamicMultiDropdownAllValues.get(key),
                     initialSelectedValues);
         } else if (!readOnly) {
-            component = CommonComponentUtils.buildComponentForField(field, item, value);
+            component = CommonComponentUtils.buildComponentForField(field, item, value, bervanViewConfig);
         } else {
-            component = CommonComponentUtils.buildReadOnlyComponentForField(field, item, value);
+            component = CommonComponentUtils.buildReadOnlyComponentForField(field, item, value, bervanViewConfig);
         }
 
-        component.setId(config.getTypeName() + "_id");
+        component.setId(config.getField() + "_id");
 
         field.setAccessible(false);
 
         return component;
     }
 
-    @Override
-    public List<Field> getVaadinTableFields() {
-        return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
-                .toList();
-    }
-
-    protected boolean hasTypMatch(VaadinBervanColumnConfig config, String typeName) {
-        return typeName.toLowerCase().contains(config.getTypeName().toLowerCase());
+    protected boolean hasTypMatch(BervanViewConfig bervanViewConfig, ClassViewAutoConfigColumn config, String typeName) {
+        Field field = Arrays.stream(tClass.getDeclaredFields()).filter(e -> e.getName().equals(config.getField())).findFirst().get();
+        return field.getType().getTypeName().equals(typeName);
     }
 
     protected List<String> getInitialSelectedValueForDynamicMultiDropdown(String key, T item) {
@@ -84,15 +82,15 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
         return new ArrayList<>();
     }
 
-    protected Object getInitValueForInput(Field field, Object item, VaadinBervanColumnConfig config, Object value) throws IllegalAccessException {
+    protected Object getInitValueForInput(BervanViewConfig bervanViewConfig, Field field, Object item, ClassViewAutoConfigColumn config, Object value) throws IllegalAccessException {
         if (item == null) {
             if (!config.getDefaultValue().equals("")) {
-                if (hasTypMatch(config, String.class.getTypeName())) {
+                if (hasTypMatch(bervanViewConfig, config, String.class.getTypeName())) {
                     value = config.getDefaultValue();
-                } else if (hasTypMatch(config, Integer.class.getTypeName())) {
-                    value = Integer.parseInt(config.getDefaultValue());
-                } else if (hasTypMatch(config, Double.class.getTypeName())) {
-                    value = Double.parseDouble(config.getDefaultValue());
+                } else if (hasTypMatch(bervanViewConfig, config, Integer.class.getTypeName())) {
+                    value = Integer.parseInt(String.valueOf(config.getDefaultValue()));
+                } else if (hasTypMatch(bervanViewConfig, config, Double.class.getTypeName())) {
+                    value = Double.parseDouble(String.valueOf(config.getDefaultValue()));
                 }
             }
         } else {

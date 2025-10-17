@@ -2,7 +2,6 @@ package com.bervan.asynctask;
 
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import jakarta.persistence.*;
@@ -22,17 +21,11 @@ import java.util.UUID;
 public class AsyncTask extends BervanBaseEntity<UUID> implements PersistableTableData<UUID> {
     @Id
     private UUID id;
-    @VaadinBervanColumn(internalName = "status", displayName = "Status", inEditForm = false, inSaveForm = false)
     private String status;
-    @VaadinBervanColumn(internalName = "message", displayName = "Message", inEditForm = false, inSaveForm = false)
     private String message;
-    @VaadinBervanColumn(internalName = "creationDate", displayName = "Creation Date", inEditForm = false, inSaveForm = false)
     private LocalDateTime creationDate;
-    @VaadinBervanColumn(internalName = "modificationDate", displayName = "Modification Date", inEditForm = false, inSaveForm = false)
     private LocalDateTime modificationDate;
-    @VaadinBervanColumn(internalName = "startDate", displayName = "Start Date", inEditForm = false, inSaveForm = false)
     private LocalDateTime startDate;
-    @VaadinBervanColumn(internalName = "endDate", displayName = "End Date", inEditForm = false, inSaveForm = false)
     private LocalDateTime endDate;
     private Boolean notified = false;
     private Boolean notifyOnSuccess = true;

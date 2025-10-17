@@ -3,7 +3,7 @@ package com.bervan.common.component.builders;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanTimePicker;
 import com.bervan.common.component.CommonComponentUtils;
-import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 
 import java.lang.reflect.Field;
 import java.time.LocalTime;
@@ -20,13 +20,13 @@ public class LocalTimeFieldBuilder implements ComponentForFieldBuilder {
     }
 
     @Override
-    public AutoConfigurableField<LocalTime> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+    public AutoConfigurableField<LocalTime> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
         return buildLocalTimeInput(value, config.getDisplayName());
     }
 
     @Override
-    public boolean supports(Class<?> extension, VaadinBervanColumnConfig config) {
-        return CommonComponentUtils.hasTypMatch(config, LocalTime.class.getTypeName());
+    public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
+        return LocalTime.class.getTypeName().equals(typeName);
     }
 
     private AutoConfigurableField<LocalTime> buildLocalTimeInput(Object value, String displayName) {

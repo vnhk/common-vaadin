@@ -1,17 +1,14 @@
 package com.bervan.common.component;
 
 import com.bervan.common.component.builders.*;
-import com.bervan.common.model.VaadinBervanColumn;
-import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.config.BervanViewConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
@@ -43,18 +40,19 @@ public class CommonComponentUtils {
         }
     }
 
-    public static VerticalLayout buildFormLayout(Class<?> tClass, Object item, Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder) throws IllegalAccessException {
+    public static VerticalLayout buildFormLayout(Class<?> tClass, Object item, Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, BervanViewConfig bervanViewConfig) throws IllegalAccessException {
         VerticalLayout formLayout = new VerticalLayout();
 
-        List<Field> declaredFields = getVaadinTableFields(tClass).stream()
-                .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
-                .toList();
+        Set<String> fieldNamesForSaveForm = bervanViewConfig.getFieldNamesForSaveForm(tClass);
 
+        List<Field> declaredFields = Arrays.stream(tClass.getDeclaredFields())
+                .filter(e -> fieldNamesForSaveForm.contains(e.getName()))
+                .toList();
 
         for (Field field : declaredFields) {
             field.setAccessible(true);
-            Object value = getInitValueForInput(field, item, buildColumnConfig(field), null);
-            AutoConfigurableField componentWithValue = buildComponentForField(field, item, value);
+            Object value = getInitValueForInput(field, item, buildColumnConfig(field, bervanViewConfig), null);
+            AutoConfigurableField componentWithValue = buildComponentForField(field, item, value, bervanViewConfig);
             VerticalLayout layoutForField = new VerticalLayout();
             layoutForField.getThemeList().remove("spacing");
             layoutForField.getThemeList().remove("padding");
@@ -68,10 +66,10 @@ public class CommonComponentUtils {
         return formLayout;
     }
 
-    public static AutoConfigurableField buildComponentForField(Field field, Object o, Object value) {
+    public static AutoConfigurableField buildComponentForField(Field field, Object o, Object value, BervanViewConfig bervanViewConfig) {
         for (ComponentForFieldBuilder componentBuilder : componentBuilders) {
-            VaadinBervanColumnConfig config = buildColumnConfig(field);
-            if (componentBuilder.supports(field.getType(), config)) {
+            ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
+            if (componentBuilder.supports(field.getType().getSimpleName(), config)) {
                 return componentBuilder.build(field, o, value, config);
             }
         }
@@ -79,10 +77,10 @@ public class CommonComponentUtils {
         throw new RuntimeException("No component builder found for " + field.getType().getName());
     }
 
-    public static AutoConfigurableField buildReadOnlyComponentForField(Field field, Object o, Object value) {
+    public static AutoConfigurableField buildReadOnlyComponentForField(Field field, Object o, Object value, BervanViewConfig bervanViewConfig) {
         for (ComponentForFieldBuilder componentBuilder : componentBuilders) {
-            VaadinBervanColumnConfig config = buildColumnConfig(field);
-            if (componentBuilder.supports(field.getType(), config)) {
+            ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
+            if (componentBuilder.supports(field.getType().getSimpleName(), config)) {
                 return componentBuilder.buildReadOnlyField(field, o, value, config);
             }
         }
@@ -90,27 +88,21 @@ public class CommonComponentUtils {
         throw new RuntimeException("No component builder found for " + field.getType().getName());
     }
 
-
-    public static List<Field> getVaadinTableFields(Class<?> tClass) {
-        return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
-                .toList();
-    }
-
-    public static boolean hasTypMatch(VaadinBervanColumnConfig config, String typeName) {
-        return typeName.toLowerCase().contains(config.getTypeName().toLowerCase());
+    public static boolean hasTypMatch(Class<?> tClass, ClassViewAutoConfigColumn config, String typeName) {
+        Field field = Arrays.stream(tClass.getDeclaredFields()).filter(e -> e.getName().equals(config.getField())).findFirst().get();
+        return field.getType().getTypeName().equals(typeName);
     }
 
 
-    public static Object getInitValueForInput(Field field, Object item, VaadinBervanColumnConfig config, Object value) throws IllegalAccessException {
+    public static Object getInitValueForInput(Field field, Object item, ClassViewAutoConfigColumn config, Object value) throws IllegalAccessException {
         if (item == null) {
             if (!config.getDefaultValue().equals("")) {
-                if (hasTypMatch(config, String.class.getTypeName())) {
+                if (hasTypMatch(field.getDeclaringClass(), config, String.class.getTypeName())) {
                     value = config.getDefaultValue();
-                } else if (hasTypMatch(config, Integer.class.getTypeName())) {
-                    value = Integer.parseInt(config.getDefaultValue());
-                } else if (hasTypMatch(config, Double.class.getTypeName())) {
-                    value = Double.parseDouble(config.getDefaultValue());
+                } else if (hasTypMatch(field.getDeclaringClass(), config, Integer.class.getTypeName())) {
+                    value = Integer.parseInt(String.valueOf(config.getDefaultValue()));
+                } else if (hasTypMatch(field.getDeclaringClass(), config, Double.class.getTypeName())) {
+                    value = Double.parseDouble(String.valueOf(config.getDefaultValue()));
                 }
             }
         } else {

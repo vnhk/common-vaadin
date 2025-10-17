@@ -9,9 +9,9 @@ import com.bervan.common.component.table.builders.ColumnForGridBuilder;
 import com.bervan.common.component.table.builders.ImageColumnGridBuilder;
 import com.bervan.common.component.table.builders.LocalDateTimeBuilder;
 import com.bervan.common.component.table.builders.TextColumnGridBuilder;
+import com.bervan.common.config.BervanViewConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumn;
-import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
@@ -92,8 +92,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         refreshData();
     });
 
-    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, Class<T> tClass) {
-        super(pageLayout, service, tClass);
+    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig, Class<T> tClass) {
+        super(pageLayout, service, bervanViewConfig, tClass);
         this.filtersLayout = buildFiltersLayout(tClass);
         this.bervanLogger = bervanLogger;
         addClassName("bervan-table-view");
@@ -111,7 +111,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected AbstractFiltersLayout<ID, T> buildFiltersLayout(Class<T> tClass) {
-        return new AbstractFiltersLayout<>(tClass, applyFiltersButton, new DefaultFilterValuesContainer(new HashMap<>()));
+        return new AbstractFiltersLayout<>(tClass, applyFiltersButton, new DefaultFilterValuesContainer(new HashMap<>()), bervanViewConfig);
     }
 
     @Override
@@ -194,7 +194,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         contentLayout.setPadding(false);
         contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, paginationBar, addButton);
 
-        if(pageLayout != null) {
+        if (pageLayout != null) {
             add(pageLayout);
         }
 
@@ -226,7 +226,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         List<Field> vaadinTableColumns = getVaadinTableFields();
         for (Field vaadinTableColumn : vaadinTableColumns) {
-            VaadinBervanColumnConfig config = buildColumnConfig(vaadinTableColumn);
+            ClassViewAutoConfigColumn config = buildColumnConfig(vaadinTableColumn, bervanViewConfig);
             String columnInternalName = config.getInternalName();
             String columnName = config.getDisplayName();
 
@@ -336,7 +336,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected void buildToolbarActionBar() {
-        tableToolbarActions = new BervanTableToolbar<>(gridActionService, checkboxes, data, tClass, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange)
+        tableToolbarActions = new BervanTableToolbar<>(gridActionService, checkboxes, data, tClass, bervanViewConfig, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange)
                 .withEditButton(service, bervanLogger)
                 .withDeleteButton()
                 .withExportButton(isExportable(), service, bervanLogger, pathToFileStorage, globalTmpDir)
@@ -532,12 +532,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             VerticalLayout formLayout = new VerticalLayout();
-            List<Field> declaredFields = getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
-                    .toList();
+            List<Field> declaredFields = getVaadinTableFieldsForSaveForm();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null, false);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, null, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");

@@ -1,7 +1,7 @@
 package com.bervan.common.component;
 
+import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.model.PersistableData;
-import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.AbstractPageView;
 import com.vaadin.flow.component.Component;
@@ -14,18 +14,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 public class EditItemDialog<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
     protected final ComponentHelper<ID, T> componentHelper;
     protected final BaseService<ID, T> service;
+    private final BervanViewConfig bervanViewConfig;
 
-    public EditItemDialog(ComponentHelper<ID, T> componentHelper, BaseService<ID, T> service) {
+    public EditItemDialog(ComponentHelper<ID, T> componentHelper, BaseService<ID, T> service, BervanViewConfig bervanViewConfig) {
         this.componentHelper = componentHelper;
+        this.bervanViewConfig = bervanViewConfig;
         this.service = service;
     }
 
@@ -49,13 +48,14 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
 
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
-            List<Field> declaredFields = componentHelper.getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inEditForm())
+            Set<String> fieldNames = bervanViewConfig.getEditableFieldNames(item.getClass());
+            List<Field> declaredFields = Arrays.stream(item.getClass().getDeclaredFields())
+                    .filter(e -> fieldNames.contains(e.getName()))
                     .toList();
 
             // Build form fields based on VaadinBervanColumn annotations
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");

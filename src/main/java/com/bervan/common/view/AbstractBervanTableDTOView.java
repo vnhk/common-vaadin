@@ -3,8 +3,9 @@ package com.bervan.common.view;
 import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
+import com.bervan.common.config.BervanViewConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
@@ -28,8 +29,8 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
     private BervanLogger bervanLogger;
     private Class<DTO> dtoClass;
 
-    public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, BervanLogger log, Class<T> tClass, Class<DTO> dtoClass) {
-        super(pageLayout, service, log, tClass);
+    public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, BervanLogger log, Class<T> tClass, Class<DTO> dtoClass, BervanViewConfig bervanViewConfig) {
+        super(pageLayout, service, log, bervanViewConfig, tClass);
         this.bervanLogger = log;
         this.dtoClass = dtoClass;
     }
@@ -57,22 +58,22 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                                                    HorizontalLayout headerLayout, String clickedField, T item) {
         Field field = null;
         try {
-            List<Field> declaredFields = getVaadinTableFields();
+            Optional<Field> vaadinTableField = getVaadinTableField(clickedField);
+            if (vaadinTableField.isEmpty()) {
+                throw new RuntimeException("Invalid config or implementation for: " + clickedField);
+            }
 
-            Optional<Field> fieldOptional = declaredFields.stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).internalName().equals(clickedField))
-                    .filter(e -> !e.getAnnotation(VaadinBervanColumn.class).inEditForm())
-                    .findFirst();
+            Optional<ClassViewAutoConfigColumn> fieldConfig = getFieldConfig(clickedField);
+            if (fieldConfig.isEmpty()) {
+                throw new RuntimeException("Invalid config or implementation for: " + clickedField);
+            }
 
-            Optional<Field> editableField = declaredFields.stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).internalName().equals(clickedField))
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inEditForm())
-                    .findFirst();
+            ClassViewAutoConfigColumn classViewAutoConfigColumn = fieldConfig.get();
+            field = vaadinTableField.get();
 
             DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
-            if (editableField.isPresent()) {
-                field = editableField.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, false);
+            if (classViewAutoConfigColumn.isInEditForm()) {
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
                 customFieldInEditLayout(layoutForField, componentWithValue, clickedField, item);
@@ -115,9 +116,8 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                 });
 
                 dialogLayout.add(headerLayout, layoutForField, buttonsLayout);
-            } else if (fieldOptional.isPresent()) {
-                field = fieldOptional.get();
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, item, true);
+            } else if (!classViewAutoConfigColumn.isInEditForm()) {
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, true);
                 componentWithValue.setReadOnly(true);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.add((Component) componentWithValue);
@@ -168,12 +168,10 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
             Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
             Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
             VerticalLayout formLayout = new VerticalLayout();
-            List<Field> declaredFields = getVaadinTableFields().stream()
-                    .filter(e -> e.getAnnotation(VaadinBervanColumn.class).inSaveForm())
-                    .toList();
+            List<Field> declaredFields = getVaadinTableFieldsForSaveForm();
 
             for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(field, null, true);
+                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, null, false);
                 VerticalLayout layoutForField = new VerticalLayout();
                 layoutForField.getThemeList().remove("spacing");
                 layoutForField.getThemeList().remove("padding");
@@ -228,16 +226,17 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
 
     @Override
     protected List<Field> getVaadinTableFields() {
+        Set<String> fieldNames = bervanViewConfig.getFieldNames(dtoClass);
         return Arrays.stream(dtoClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
+                .filter(e -> fieldNames.contains(e.getName()))
                 .toList();
     }
 
     @Override
     protected Optional<Field> getVaadinTableField(String clickedColumnKey) {
         return Arrays.stream(dtoClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
-                .filter(e -> e.getAnnotation(VaadinBervanColumn.class).internalName().equals(clickedColumnKey))
+                .filter(bervanViewConfig::isAutoConfigurableField)
+                .filter(e -> bervanViewConfig.getInternalName(e).equals(clickedColumnKey))
                 .findFirst();
     }
 }

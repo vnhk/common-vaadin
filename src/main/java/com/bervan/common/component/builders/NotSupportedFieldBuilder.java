@@ -2,7 +2,7 @@ package com.bervan.common.component.builders;
 
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanTextField;
-import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 
 import java.lang.reflect.Field;
 
@@ -18,12 +18,12 @@ public class NotSupportedFieldBuilder implements ComponentForFieldBuilder {
     }
 
     @Override
-    public AutoConfigurableField<String> build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+    public AutoConfigurableField<String> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
         return buildNotSupported((String) value);
     }
 
     @Override
-    public boolean supports(Class<?> extension, VaadinBervanColumnConfig config) {
+    public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
         return true;
     }
 

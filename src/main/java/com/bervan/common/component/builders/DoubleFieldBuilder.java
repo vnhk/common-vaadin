@@ -3,7 +3,7 @@ package com.bervan.common.component.builders;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanDoubleField;
 import com.bervan.common.component.CommonComponentUtils;
-import com.bervan.common.model.VaadinBervanColumnConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 
 import java.lang.reflect.Field;
 
@@ -18,13 +18,13 @@ public class DoubleFieldBuilder implements ComponentForFieldBuilder {
     }
 
     @Override
-    public AutoConfigurableField build(Field field, Object item, Object value, VaadinBervanColumnConfig config) {
+    public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
         return buildDoubleInput(value, config.getDisplayName());
     }
 
     @Override
-    public boolean supports(Class<?> extension, VaadinBervanColumnConfig config) {
-        return CommonComponentUtils.hasTypMatch(config, Double.class.getTypeName());
+    public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
+        return Double.class.getTypeName().equals(typeName);
     }
 
     private AutoConfigurableField buildDoubleInput(Object value, String displayName) {

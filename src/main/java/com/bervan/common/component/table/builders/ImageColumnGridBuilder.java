@@ -1,7 +1,7 @@
 package com.bervan.common.component.table.builders;
 
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.bervan.common.model.VaadinImageBervanColumn;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -22,18 +22,19 @@ public class ImageColumnGridBuilder implements ColumnForGridBuilder {
     private ImageColumnGridBuilder() {
 
     }
+
     public static ImageColumnGridBuilder getInstance() {
         return INSTANCE;
     }
 
     @Override
-    public <ID extends Serializable, T extends PersistableTableData<ID>> Renderer<T> build(Field field, VaadinBervanColumnConfig config) {
+    public <ID extends Serializable, T extends PersistableTableData<ID>> Renderer<T> build(Field field, ClassViewAutoConfigColumn config) {
         return createImageColumnComponent(field, config);
     }
 
     @Override
-    public <ID extends Serializable, T extends PersistableTableData<ID>> boolean supports(Class<?> extension, VaadinBervanColumnConfig config, Class<T> tClass) {
-        return config.getExtension() == VaadinImageBervanColumn.class;
+    public <ID extends Serializable, T extends PersistableTableData<ID>> boolean supports(String extension, ClassViewAutoConfigColumn config, Class<T> tClass) {
+        return config.getExtension().equals(VaadinImageBervanColumn.class.getSimpleName());
     }
 
     @Override
@@ -47,7 +48,7 @@ public class ImageColumnGridBuilder implements ColumnForGridBuilder {
     }
 
 
-    protected <ID extends Serializable, T extends PersistableTableData<ID>> ComponentRenderer<Span, T> createImageColumnComponent(Field f, VaadinBervanColumnConfig config) {
+    protected <ID extends Serializable, T extends PersistableTableData<ID>> ComponentRenderer<Span, T> createImageColumnComponent(Field f, ClassViewAutoConfigColumn config) {
         return new ComponentRenderer<>(Span::new, imageColumnUpdater(f));
     }
 

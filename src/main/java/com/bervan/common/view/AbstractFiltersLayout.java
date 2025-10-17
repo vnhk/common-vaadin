@@ -2,9 +2,9 @@ package com.bervan.common.view;
 
 import com.bervan.common.TableClassUtils;
 import com.bervan.common.component.*;
+import com.bervan.common.config.BervanViewConfig;
+import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumn;
-import com.bervan.common.model.VaadinBervanColumnConfig;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.SearchRequestQueryTranslator;
 import com.bervan.common.search.model.Operator;
@@ -35,6 +35,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     @Getter
     protected final Map<Field, Map<Object, Checkbox>> checkboxFiltersMap = new HashMap<>();
     protected final DefaultFilterValuesContainer defaultFilterValuesContainer;
+    protected final BervanViewConfig bervanViewConfig;
     protected final Button reverseFiltersButton = new BervanButton(new Icon(VaadinIcon.RECYCLE), e -> reverseFilters());
     @Getter
     protected final Map<Field, BervanTextField> textFieldFiltersMap = new HashMap<>();
@@ -51,10 +52,11 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected HorizontalLayout autoFiltersRow;
 
-    public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton, DefaultFilterValuesContainer defaultFilterValuesContainer) {
+    public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton, DefaultFilterValuesContainer defaultFilterValuesContainer, BervanViewConfig bervanViewConfig) {
         this.tClass = tClass;
         this.applyFiltersButton = applyFiltersButton;
         this.defaultFilterValuesContainer = defaultFilterValuesContainer;
+        this.bervanViewConfig = bervanViewConfig;
 
         List<Field> vaadinTableColumns = getVaadinTableColumns();
         filterableFields.addAll(getFilterableFields(vaadinTableColumns)); //later configure in each class example @VaadinColumn filterable=true
@@ -108,7 +110,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     public void removeFilterableFields(String fieldName) {
         filterableFields.remove(fieldName);
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     protected void reverseFilters() {
         for (Map<Object, Checkbox> value : checkboxFiltersMap.values()) {
@@ -144,7 +146,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
 
         createCriteriaTextFilters(request);
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     private SearchRequest stringQuerySearch() {
         String value = stringQuerySearch.getValue();
@@ -163,7 +165,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
 
         for (Field field : checkboxFiltersMap.keySet()) {
-            VaadinBervanColumnConfig config = buildColumnConfig(field);
+            ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
 
             if (!config.getStrValues().isEmpty()) {
                 //are all checkbox selected? if so does not make sense create criteria
@@ -331,8 +333,9 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     protected List<Field> getVaadinTableColumns() {
+        Set<String> fieldNames = bervanViewConfig.getFieldNames(tClass);
         return Arrays.stream(tClass.getDeclaredFields())
-                .filter(e -> e.isAnnotationPresent(VaadinBervanColumn.class))
+                .filter(e -> fieldNames.contains(e.getName()))
                 .toList();
     }
 
@@ -341,7 +344,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
         List<Field> fields = getVaadinTableColumns();
         for (Field field : fields) {
-            VaadinBervanColumnConfig config = buildColumnConfig(field);
+            ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
             if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
                 FlexLayout fieldLayout = new FlexLayout();
                 fieldLayout.setFlexWrap(FlexLayout.FlexWrap.WRAP);
@@ -384,19 +387,19 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
 
         dateTimeFiltersMap.putAll(TableClassUtils.buildDateTimeFiltersMenu(Collections.singletonList(tClass),
-                fieldLayouts));
+                fieldLayouts, bervanViewConfig));
 
         textFieldFiltersMap.putAll(TableClassUtils.buildTextFieldFiltersMenu(Collections.singletonList(tClass),
-                fieldLayouts));
+                fieldLayouts, bervanViewConfig));
 
         integerFieldHashMap.putAll(TableClassUtils.buildIntegerFieldFiltersMenu(Collections.singletonList(tClass),
-                fieldLayouts));
+                fieldLayouts, bervanViewConfig));
 
         doubleFieldHashMap.putAll(TableClassUtils.buildDoubleFieldFiltersMenu(Collections.singletonList(tClass),
-                fieldLayouts));
+                fieldLayouts, bervanViewConfig));
 
         bigDecimalHasMap.putAll(TableClassUtils.buildBigDecimalFieldFiltersMenu(Collections.singletonList(tClass),
-                fieldLayouts));
+                fieldLayouts, bervanViewConfig));
 
         if (fields.isEmpty()) {
             filtersButton.setVisible(false);

@@ -2,13 +2,11 @@ package com.bervan.logging;
 
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumn;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -36,16 +34,9 @@ public class LogEntity extends BervanBaseEntity<Long> implements PersistableTabl
 
     private String applicationName;
     private int lineNumber;
-
-    @VaadinBervanColumn(internalName = "level", displayName = "Level",
-            inEditForm = false, inSaveForm = false, strValues = {"DEBUG", "INFO", "WARN", "ERROR"})
     private String logLevel;
-
     private String className;
-
     private String methodName;
-
-    @VaadinBervanColumn(internalName = "timestamp", displayName = "Timestamp", inEditForm = false, inSaveForm = false, inTable = false)
     private LocalDateTime timestamp;
 
     @Size(max = MAX_LOG_MESSAGE_LENGTH)
@@ -53,7 +44,6 @@ public class LogEntity extends BervanBaseEntity<Long> implements PersistableTabl
     private String message;
 
     @Transient
-    @VaadinBervanColumn(internalName = "log", displayName = "Log", inEditForm = false, inSaveForm = false)
     private String fullLog;
 
     public LogEntity() {

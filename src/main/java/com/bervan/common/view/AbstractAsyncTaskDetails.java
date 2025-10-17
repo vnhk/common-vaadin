@@ -3,6 +3,7 @@ package com.bervan.common.view;
 import com.bervan.asynctask.AsyncTask;
 import com.bervan.asynctask.HistoryAsyncTask;
 import com.bervan.common.component.AutoConfigurableField;
+import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
@@ -21,8 +22,8 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
     private final BaseService<UUID, HistoryAsyncTask> historyService;
     private final BervanLogger logger;
 
-    public AbstractAsyncTaskDetails(BaseService<UUID, AsyncTask> service, BaseService<UUID, HistoryAsyncTask> historyService, BervanLogger logger) {
-        super(new AsyncTaskLayout(ROUTE_NAME, true), service, AsyncTask.class);
+    public AbstractAsyncTaskDetails(BaseService<UUID, AsyncTask> service, BaseService<UUID, HistoryAsyncTask> historyService, BervanLogger logger, BervanViewConfig bervanViewConfig) {
+        super(new AsyncTaskLayout(ROUTE_NAME, true), service, bervanViewConfig, AsyncTask.class);
         this.historyService = historyService;
         this.logger = logger;
     }
@@ -35,7 +36,7 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
         addButton.setVisible(false);
         editButton.setVisible(false);
 
-        AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, logger, HistoryAsyncTask.class) {
+        AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, logger, bervanViewConfig, HistoryAsyncTask.class) {
             @Override
             protected void customizePreLoad(SearchRequest request) {
                 pageSize = 10000;

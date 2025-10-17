@@ -9,14 +9,13 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 public class ViewAutoConfigLoader {
 
     @Bean
-    public Map<String, Map<String, ClassViewAutoConfigColumn>> viewAutoConfig() throws IOException {
-        Map<String, Map<String, ClassViewAutoConfigColumn>> configs = new HashMap<>();
+    public BervanViewConfig viewAutoConfig() throws IOException {
+        BervanViewConfig configs = new BervanViewConfig();
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();

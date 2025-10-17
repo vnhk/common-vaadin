@@ -1,0 +1,48 @@
+columns:
+  - field: status
+    displayName: "Status"
+    internalName: "status"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false
+
+  - field: message
+    displayName: "Message"
+    internalName: "message"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false
+
+  - field: creationDate
+    displayName: "Creation Date"
+    internalName: "creationDate"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false
+
+  - field: modificationDate
+    displayName: "Modification Date"
+    internalName: "modificationDate"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false
+
+  - field: startDate
+    displayName: "Start Date"
+    internalName: "startDate"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false
+
+  - field: endDate
+    displayName: "End Date"
+    internalName: "endDate"
+    inSaveForm: false
+    inEditForm: false
+    inTable: true
+    required: false

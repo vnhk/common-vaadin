@@ -1,8 +1,9 @@
 package com.bervan.common.view;
 
 
-import com.bervan.common.component.BervanButton;
 import com.bervan.common.MenuNavigationComponent;
+import com.bervan.common.component.BervanButton;
+import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
@@ -27,6 +28,7 @@ import java.util.*;
 public abstract class AbstractDataIEView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final BaseService<ID, T> dataService;
     protected final MenuNavigationComponent pageLayout;
+    protected final BervanViewConfig bervanViewConfig;
     protected final BervanLogger logger;
     protected final AbstractFiltersLayout<ID, T> filtersLayout;
     protected final Button exportButton = new BervanButton("Prepare data for export");
@@ -38,13 +40,14 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
     protected String globalTmpDir;
 
     public AbstractDataIEView(BaseService<ID, T> dataService,
-                              MenuNavigationComponent pageLayout,
+                              MenuNavigationComponent pageLayout, BervanViewConfig bervanViewConfig,
                               BervanLogger logger, Class<T> classToExport) {
+        this.bervanViewConfig = bervanViewConfig;
         this.logger = logger;
         this.dataService = dataService;
         this.pageLayout = pageLayout;
         this.classToExport = classToExport;
-        this.filtersLayout = new AbstractFiltersLayout<>(classToExport, exportButton, new DefaultFilterValuesContainer(new HashMap<>()));
+        this.filtersLayout = new AbstractFiltersLayout<>(classToExport, exportButton, new DefaultFilterValuesContainer(new HashMap<>()), bervanViewConfig);
 
         if (pageLayout != null) {
             add(pageLayout);

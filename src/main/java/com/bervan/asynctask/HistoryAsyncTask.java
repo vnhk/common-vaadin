@@ -2,7 +2,6 @@ package com.bervan.asynctask;
 
 import com.bervan.common.model.BervanHistoryEntity;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.VaadinBervanColumn;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.HistoryOwnerEntity;
 import com.bervan.history.model.HistorySupported;
@@ -21,22 +20,16 @@ import java.util.UUID;
 public class HistoryAsyncTask extends BervanHistoryEntity<UUID> implements PersistableTableData<UUID> {
     @Id
     private UUID id;
-    @VaadinBervanColumn(internalName = "status", displayName = "Status", inEditForm = false, inSaveForm = false)
     @HistoryField
     private String status;
-    @VaadinBervanColumn(internalName = "message", displayName = "Message", inEditForm = false, inSaveForm = false)
     @HistoryField
     private String message;
-    @VaadinBervanColumn(internalName = "creationDate", displayName = "Creation Date", inEditForm = false, inSaveForm = false)
     @HistoryField
     private LocalDateTime creationDate;
-    @VaadinBervanColumn(internalName = "modificationDate", displayName = "Modification Date", inEditForm = false, inSaveForm = false)
     @HistoryField
     private LocalDateTime modificationDate;
-    @VaadinBervanColumn(internalName = "startDate", displayName = "Start Date", inEditForm = false, inSaveForm = false, inTable = false)
     @HistoryField
     private LocalDateTime startDate;
-    @VaadinBervanColumn(internalName = "endDate", displayName = "End Date", inEditForm = false, inSaveForm = false, inTable = false)
     @HistoryField
     private LocalDateTime endDate;
     @HistoryField

@@ -1,6 +1,7 @@
 package com.bervan.common;
 
 import com.bervan.common.component.*;
+import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
@@ -21,13 +22,17 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BervanTableToolbar<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final List<Checkbox> checkboxes;
     protected final List<T> data;
     protected final Class<?> tClass;
+    protected final BervanViewConfig bervanViewConfig;
     protected final GridActionService<ID, T> gridActionService;
     protected Checkbox selectAllCheckbox;
     protected Button checkboxDeleteButton;
@@ -39,12 +44,13 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     protected ComponentHelper<ID, T> componentHelper;
 
     public BervanTableToolbar(GridActionService<ID, T> gridActionService, List<Checkbox> checkboxes,
-                              List<T> data, Class<T> tClass,
+                              List<T> data, Class<T> tClass, BervanViewConfig bervanViewConfig,
                               Checkbox selectAllCheckbox,
                               List<Button> buttonsForCheckboxesForVisibilityChange) {
         this.checkboxes = (checkboxes);
         this.gridActionService = gridActionService;
         this.data = data;
+        this.bervanViewConfig = bervanViewConfig;
         this.selectAllCheckbox = selectAllCheckbox;
         this.buttonsForCheckboxesForVisibilityChange = buttonsForCheckboxesForVisibilityChange;
         this.tClass = tClass;
@@ -147,7 +153,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
                     .filter(e -> itemsId.contains(e.getId().toString()))
                     .findFirst().get();
 
-            EditItemDialog<ID, T> editItemDialog = new EditItemDialog<>(componentHelper, service);
+            EditItemDialog<ID, T> editItemDialog = new EditItemDialog<>(componentHelper, service, bervanViewConfig);
             dialog.removeAll();
             dialog.add(editItemDialog.buildEditItemDialog(dialog, toBeEdited));
 
@@ -174,7 +180,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
 
         dialog.add(new VerticalLayout(label, passwordField));
 
-        dialog.add(new AbstractDataIEView(service, null, bervanLogger, tClass) {
+        dialog.add(new AbstractDataIEView(service, null, bervanViewConfig, bervanLogger, tClass) {
             @Override
             protected void postConstruct() {
                 super.upload.setVisible(false);
