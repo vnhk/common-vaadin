@@ -96,7 +96,7 @@ public class CommonComponentUtils {
 
     public static Object getInitValueForInput(Field field, Object item, ClassViewAutoConfigColumn config, Object value) throws IllegalAccessException {
         if (item == null) {
-            if (!config.getDefaultValue().equals("")) {
+            if (config.getDefaultValue() != null && !config.getDefaultValue().equals("")) {
                 if (hasTypMatch(field.getDeclaringClass(), config, String.class.getTypeName())) {
                     value = config.getDefaultValue();
                 } else if (hasTypMatch(field.getDeclaringClass(), config, Integer.class.getTypeName())) {

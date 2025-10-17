@@ -84,7 +84,7 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
 
     protected Object getInitValueForInput(BervanViewConfig bervanViewConfig, Field field, Object item, ClassViewAutoConfigColumn config, Object value) throws IllegalAccessException {
         if (item == null) {
-            if (!config.getDefaultValue().equals("")) {
+            if (config.getDefaultValue() != null && !config.getDefaultValue().equals("")) {
                 if (hasTypMatch(bervanViewConfig, config, String.class.getTypeName())) {
                     value = config.getDefaultValue();
                 } else if (hasTypMatch(bervanViewConfig, config, Integer.class.getTypeName())) {
