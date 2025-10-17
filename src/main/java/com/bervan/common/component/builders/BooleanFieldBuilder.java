@@ -2,11 +2,9 @@ package com.bervan.common.component.builders;
 
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanBooleanField;
-import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 
 public class BooleanFieldBuilder implements ComponentForFieldBuilder {
 
@@ -26,7 +24,7 @@ public class BooleanFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return Boolean.class.getTypeName().equals(typeName);
+        return Boolean.class.getTypeName().equalsIgnoreCase(typeName.toLowerCase()) || typeName.equalsIgnoreCase("boolean");
     }
 
     private AutoConfigurableField buildBooleanInput(Object value, String displayName) {

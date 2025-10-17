@@ -25,7 +25,8 @@ public class IntegerFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return config.getIntValues() != null && config.getIntValues().isEmpty() && Integer.class.getTypeName().equals(typeName);
+        return (config.getIntValues() == null || config.getIntValues().isEmpty())
+                && (Integer.class.getTypeName().equalsIgnoreCase(typeName) || typeName.equalsIgnoreCase("int"));
     }
 
     private AutoConfigurableField buildIntegerInput(Object value, String displayName) {

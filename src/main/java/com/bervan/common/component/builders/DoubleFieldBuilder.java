@@ -24,7 +24,7 @@ public class DoubleFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return Double.class.getTypeName().equals(typeName);
+        return Double.class.getTypeName().equalsIgnoreCase(typeName) || typeName.equalsIgnoreCase("double");
     }
 
     private AutoConfigurableField buildDoubleInput(Object value, String displayName) {

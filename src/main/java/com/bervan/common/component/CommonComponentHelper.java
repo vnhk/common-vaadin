@@ -59,7 +59,7 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
 
     protected boolean hasTypMatch(BervanViewConfig bervanViewConfig, ClassViewAutoConfigColumn config, String typeName) {
         Field field = Arrays.stream(tClass.getDeclaredFields()).filter(e -> e.getName().equals(config.getField())).findFirst().get();
-        return field.getType().getTypeName().equals(typeName);
+        return field.getType().getTypeName().equalsIgnoreCase(typeName);
     }
 
     protected List<String> getInitialSelectedValueForDynamicMultiDropdown(String key, T item) {

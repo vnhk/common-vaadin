@@ -19,7 +19,7 @@ public class NotSupportedFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildNotSupported((String) value);
+        return buildNotSupported(String.valueOf(value));
     }
 
     @Override

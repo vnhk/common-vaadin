@@ -25,7 +25,7 @@ public class BigDecimalFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return BigDecimal.class.getTypeName().equals(typeName);
+        return BigDecimal.class.getTypeName().equalsIgnoreCase(typeName);
     }
 
     private AutoConfigurableField<BigDecimal> buildBigDecimalInput(Object value, String displayName) {

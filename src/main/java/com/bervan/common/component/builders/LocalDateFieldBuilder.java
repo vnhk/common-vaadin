@@ -25,7 +25,7 @@ public class LocalDateFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return LocalDate.class.getTypeName().equals(typeName);
+        return LocalDate.class.getTypeName().equalsIgnoreCase(typeName);
     }
 
     private AutoConfigurableField buildLocalDateInput(Object value, String displayName) {

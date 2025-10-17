@@ -35,7 +35,7 @@ public class LocalDateTimeBuilder implements ColumnForGridBuilder {
     @Override
     public <ID extends Serializable, T extends PersistableTableData<ID>> boolean supports(String extension, ClassViewAutoConfigColumn config, Class<T> tClass) {
         Field field = Arrays.stream(tClass.getDeclaredFields()).filter(e -> e.getName().equals(config.getField())).findFirst().get();
-        return field.getType().getTypeName().equals(LocalDateTime.class.getTypeName());
+        return field.getType().getTypeName().equalsIgnoreCase(LocalDateTime.class.getTypeName());
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.bervan.common.model.VaadinImageBervanColumn;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ImageFieldBuilder implements ComponentForFieldBuilder {
@@ -39,7 +40,9 @@ public class ImageFieldBuilder implements ComponentForFieldBuilder {
         if (CommonComponentUtils.hasTypMatch(value.getClass(), config, String.class.getTypeName())) {
             imageSources.add((String) value);
             component = new BervanImageController(imageSources);
-        } else if (CommonComponentUtils.hasTypMatch(value.getClass(), config, List.class.getTypeName())) {
+        } else if (CommonComponentUtils.hasTypMatch(value.getClass(), config, List.class.getTypeName())
+                || CommonComponentUtils.hasTypMatch(value.getClass(), config, LinkedList.class.getTypeName()) ||
+                CommonComponentUtils.hasTypMatch(value.getClass(), config, ArrayList.class.getTypeName())) {
             if (value != null) {
                 imageSources.addAll((Collection<String>) value);
             }

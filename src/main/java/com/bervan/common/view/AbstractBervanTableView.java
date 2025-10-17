@@ -227,7 +227,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         List<Field> vaadinTableColumns = getVaadinTableFields();
         for (Field vaadinTableColumn : vaadinTableColumns) {
             ClassViewAutoConfigColumn config = buildColumnConfig(vaadinTableColumn, bervanViewConfig);
-            String columnInternalName = config.getInternalName();
+            String columnInternalName = bervanViewConfig.getInternalName(vaadinTableColumn);
             String columnName = config.getDisplayName();
 
             if (!config.isInTable()) {

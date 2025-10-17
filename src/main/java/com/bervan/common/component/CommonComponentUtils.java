@@ -89,8 +89,13 @@ public class CommonComponentUtils {
     }
 
     public static boolean hasTypMatch(Class<?> tClass, ClassViewAutoConfigColumn config, String typeName) {
-        Field field = Arrays.stream(tClass.getDeclaredFields()).filter(e -> e.getName().equals(config.getField())).findFirst().get();
-        return field.getType().getTypeName().equals(typeName);
+        Optional<Field> first = Arrays.stream(tClass.getDeclaredFields()).filter(e -> e.getName().equals(config.getField())).findFirst();
+        if (!first.isEmpty()) {
+            Field field = first.get();
+            return field.getType().getTypeName().equalsIgnoreCase(typeName);
+        } else {
+            return typeName.toLowerCase().contains(tClass.getTypeName().toLowerCase());
+        }
     }
 
 
