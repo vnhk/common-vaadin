@@ -26,7 +26,7 @@ public class StringListFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return !config.getStrValues().isEmpty();
+        return config.getStrValues() != null && !config.getStrValues().isEmpty();
     }
 
     private AutoConfigurableField buildComponentForComboBox(List values, BervanComboBox comboBox, String initVal) {

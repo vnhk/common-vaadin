@@ -36,7 +36,7 @@ public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoC
 
     public String getInternalName(Field field) {
         Class<?> declaringClass = field.getDeclaringClass();
-        for (ClassViewAutoConfigColumn config : get(declaringClass).values()) {
+        for (ClassViewAutoConfigColumn config : get(declaringClass.getSimpleName()).values()) {
             if (!field.getName().equals(config.getField())) {
                 continue;
             }

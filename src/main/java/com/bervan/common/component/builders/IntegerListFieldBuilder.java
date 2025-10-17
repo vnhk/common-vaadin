@@ -4,7 +4,6 @@ import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanComboBox;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 
-
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public class IntegerListFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return !config.getIntValues().isEmpty();
+        return config.getIntValues() != null && config.getIntValues().isEmpty();
     }
 
     private AutoConfigurableField buildComponentForComboBox(List values, BervanComboBox comboBox, Integer initVal) {

@@ -26,7 +26,7 @@ public class StringFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return config.getStrValues().isEmpty() && String.class.getTypeName().equals(typeName);
+        return (config.getStrValues() == null || config.getStrValues().isEmpty()) && String.class.getTypeName().equals(typeName);
     }
 
     private AutoConfigurableField<String> buildTextArea(Object value, String displayName, boolean isWysiwyg) {

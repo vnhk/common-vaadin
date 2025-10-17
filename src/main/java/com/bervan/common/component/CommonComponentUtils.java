@@ -69,7 +69,7 @@ public class CommonComponentUtils {
     public static AutoConfigurableField buildComponentForField(Field field, Object o, Object value, BervanViewConfig bervanViewConfig) {
         for (ComponentForFieldBuilder componentBuilder : componentBuilders) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
-            if (componentBuilder.supports(field.getType().getSimpleName(), config)) {
+            if (componentBuilder.supports(field.getType().getTypeName(), config)) {
                 return componentBuilder.build(field, o, value, config);
             }
         }
@@ -80,7 +80,7 @@ public class CommonComponentUtils {
     public static AutoConfigurableField buildReadOnlyComponentForField(Field field, Object o, Object value, BervanViewConfig bervanViewConfig) {
         for (ComponentForFieldBuilder componentBuilder : componentBuilders) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
-            if (componentBuilder.supports(field.getType().getSimpleName(), config)) {
+            if (componentBuilder.supports(field.getType().getTypeName(), config)) {
                 return componentBuilder.buildReadOnlyField(field, o, value, config);
             }
         }
