@@ -29,7 +29,7 @@ public class ImageFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return config.getExtension().equals(VaadinImageBervanColumn.class.getSimpleName());
+        return VaadinImageBervanColumn.class.getSimpleName().equals(config.getExtension());
     }
 
     private AutoConfigurableField<List<String>> buildImageField(Object value, ClassViewAutoConfigColumn config) {

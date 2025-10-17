@@ -34,7 +34,7 @@ public class ImageColumnGridBuilder implements ColumnForGridBuilder {
 
     @Override
     public <ID extends Serializable, T extends PersistableTableData<ID>> boolean supports(String extension, ClassViewAutoConfigColumn config, Class<T> tClass) {
-        return config.getExtension().equals(VaadinImageBervanColumn.class.getSimpleName());
+        return VaadinImageBervanColumn.class.getSimpleName().equals(config.getExtension());
     }
 
     @Override

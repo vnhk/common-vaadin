@@ -9,6 +9,10 @@ import java.util.stream.Collectors;
 public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoConfigColumn>> {
 
     public Set<String> getFieldNames(Class<?> tClass) {
+        if (!containsKey(tClass.getSimpleName())) {
+            return Set.of();
+        }
+
         return get(tClass.getSimpleName()).keySet();
     }
 

@@ -146,7 +146,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
 
         createCriteriaTextFilters(request);
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     private SearchRequest stringQuerySearch() {
         String value = stringQuerySearch.getValue();
@@ -167,7 +167,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         for (Field field : checkboxFiltersMap.keySet()) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
 
-            if (!config.getStrValues().isEmpty()) {
+            if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
                 //are all checkbox selected? if so does not make sense create criteria
                 long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
                         .filter(e -> e.getValue().getValue()).count();
@@ -180,7 +180,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 for (String key : config.getStrValues()) {
                     createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                 }
-            } else if (!config.getIntValues().isEmpty()) {
+            } else if (config.getIntValues() != null && !config.getIntValues().isEmpty()) {
                 long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
                         .filter(e -> e.getValue().getValue()).count();
 
@@ -207,7 +207,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 createCriteriaForDateLessEqual(field.getName().toUpperCase() + "_DATE_CRITERIA_GROUP", request, field, to);
             }
         }
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     private void createCriteriaTextFilters(SearchRequest request) {
         for (Field field : textFieldFiltersMap.keySet()) {
@@ -345,7 +345,8 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         List<Field> fields = getVaadinTableColumns();
         for (Field field : fields) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
-            if (!config.getStrValues().isEmpty() || !config.getIntValues().isEmpty()) {
+            if ((config.getStrValues() != null && !config.getStrValues().isEmpty())
+                    || (config.getIntValues() != null && !config.getIntValues().isEmpty())) {
                 FlexLayout fieldLayout = new FlexLayout();
                 fieldLayout.setFlexWrap(FlexLayout.FlexWrap.WRAP);
                 fieldLayout.getStyle()
@@ -355,7 +356,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
                 checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
 
-                if (!config.getStrValues().isEmpty()) {
+                if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
                     for (String val : config.getStrValues()) {
                         Checkbox checkbox = new Checkbox(val);
                         checkbox.setValue(getOrDefaultCheckboxValue(field, val));
