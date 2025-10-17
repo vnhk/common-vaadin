@@ -92,6 +92,9 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
                     T updatedItem = customizeSavingInEditForm(itemFinal);
 
                     // Save the item
+                    //todo fix for DTOs it also doesn't work in prod, its not related to the new auto config
+                    //new DTOMapper(bervanLogger, new ArrayList<>()).map(updatedItem); should be used
+                    //new dto implementation should be created
                     updatedItem = service.save(updatedItem);
 
                     // Execute post-save actions

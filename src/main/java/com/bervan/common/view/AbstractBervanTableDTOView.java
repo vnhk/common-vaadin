@@ -239,4 +239,13 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                 .filter(e -> bervanViewConfig.getInternalName(e).equals(clickedColumnKey))
                 .findFirst();
     }
+
+    @Override
+    protected Optional<ClassViewAutoConfigColumn> getFieldConfig(String clickedColumnKey) {
+        return Arrays.stream(dtoClass.getDeclaredFields())
+                .filter(bervanViewConfig::isAutoConfigurableField)
+                .filter(e -> bervanViewConfig.getInternalName(e).equals(clickedColumnKey))
+                .map(bervanViewConfig::getFieldConfig)
+                .findFirst();
+    }
 }
