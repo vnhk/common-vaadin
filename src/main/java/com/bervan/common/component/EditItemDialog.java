@@ -80,6 +80,19 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
             T itemFinal = item;
             // Handle save button click
             dialogSaveButton.addClickListener(buttonClickEvent -> {
+                boolean isInvalid = false;
+                for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                    fieldAutoConfigurableFieldEntry.getValue().validate();
+                    if (!isInvalid) {
+                        isInvalid = fieldAutoConfigurableFieldEntry.getValue().isInvalid();
+                    }
+                }
+
+                if (isInvalid) {
+                    showErrorNotification("Invalid value(s)");
+                    return;
+                }
+
                 try {
                     // Update item fields with form values
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {

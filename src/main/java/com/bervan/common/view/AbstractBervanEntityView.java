@@ -157,6 +157,11 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                 Field finalField = field;
                 AutoConfigurableField finalComponentWithValue = componentWithValue;
                 dialogSaveButton.addClickListener(buttonClickEvent -> {
+                    finalComponentWithValue.validate();
+                    if (finalComponentWithValue.isInvalid()) {
+                        showErrorNotification("Invalid value!");
+                        return;
+                    }
                     try {
                         finalField.setAccessible(true);
                         finalField.set(item, finalComponentWithValue.getValue());
@@ -428,6 +433,19 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
             buttonsLayout.add(dialogSaveButton);
 
             dialogSaveButton.addClickListener(buttonClickEvent -> {
+                boolean isInvalid = false;
+                for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                    fieldAutoConfigurableFieldEntry.getValue().validate();
+                    if (!isInvalid) {
+                        isInvalid = fieldAutoConfigurableFieldEntry.getValue().isInvalid();
+                    }
+                }
+
+                if (isInvalid) {
+                    showErrorNotification("Invalid value(s)");
+                    return;
+                }
+
                 try {
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
@@ -435,7 +453,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 
-                    item = customizeSavingInCreateForm(item);
+                    item = customizeEditingInEditItemForm(item);
 
                     service.save(item);
 
@@ -486,6 +504,19 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
             dialogSaveButton.addClickListener(buttonClickEvent -> {
                 try {
+                    boolean isInvalid = false;
+                    for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                        fieldAutoConfigurableFieldEntry.getValue().validate();
+                        if (!isInvalid) {
+                            isInvalid = fieldAutoConfigurableFieldEntry.getValue().isInvalid();
+                        }
+                    }
+
+                    if (isInvalid) {
+                        showErrorNotification("Invalid value(s)");
+                        return;
+                    }
+
                     T newObject = tClass.getConstructor().newInstance();
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);

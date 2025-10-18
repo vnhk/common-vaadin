@@ -557,6 +557,19 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             buttonsLayout.add(dialogSaveButton);
 
             dialogSaveButton.addClickListener(buttonClickEvent -> {
+                boolean isInvalid = false;
+                for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
+                    fieldAutoConfigurableFieldEntry.getValue().validate();
+                    if (!isInvalid) {
+                        isInvalid = fieldAutoConfigurableFieldEntry.getValue().isInvalid();
+                    }
+                }
+
+                if (isInvalid) {
+                    showErrorNotification("Invalid value(s)");
+                    return;
+                }
+
                 try {
                     T newObject = tClass.getConstructor().newInstance();
                     for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
