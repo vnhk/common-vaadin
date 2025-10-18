@@ -10,5 +10,9 @@ public interface AutoConfigurableField<T> {
 
     void setId(String id);
 
+    void validate();
+
+    boolean isInvalid();
+
     void setReadOnly(boolean readOnly);
 }

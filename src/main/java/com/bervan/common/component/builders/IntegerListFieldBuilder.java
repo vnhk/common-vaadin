@@ -19,7 +19,7 @@ public class IntegerListFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        BervanComboBox comboBox = new BervanComboBox<>(config.getDisplayName());
+        BervanComboBox comboBox = new BervanComboBox<>(config.getDisplayName(), config.isRequired());
         return buildComponentForComboBox(config.getIntValues(), comboBox, (Integer) value);
     }
 

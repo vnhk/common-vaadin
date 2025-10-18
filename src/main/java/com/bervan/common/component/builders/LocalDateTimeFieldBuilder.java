@@ -3,11 +3,9 @@ package com.bervan.common.component.builders;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanDateTimePicker;
 import com.bervan.common.component.BervanTextArea;
-import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -24,16 +22,16 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField<LocalDateTime> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildLocalDateTimeInput(value, config.getDisplayName());
+        return buildLocalDateTimeInput(value, config);
     }
 
     @Override
     public AutoConfigurableField buildReadOnlyField(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(config.getDisplayName());
+        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(config.getDisplayName(), false);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
 
-        BervanTextArea readOnlyField = new BervanTextArea(config.getDisplayName());
+        BervanTextArea readOnlyField = new BervanTextArea(config.getDisplayName(), config.isRequired(), config.getMin(), config.getMax());
         readOnlyField.setReadOnly(true);
 
         if (value == null) {
@@ -49,8 +47,8 @@ public class LocalDateTimeFieldBuilder implements ComponentForFieldBuilder {
         return LocalDateTime.class.getTypeName().equalsIgnoreCase(typeName);
     }
 
-    private AutoConfigurableField<LocalDateTime> buildLocalDateTimeInput(Object value, String displayName) {
-        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(displayName);
+    private AutoConfigurableField<LocalDateTime> buildLocalDateTimeInput(Object value, ClassViewAutoConfigColumn config) {
+        BervanDateTimePicker dateTimePicker = new BervanDateTimePicker(config.getDisplayName(), config.isRequired());
 
         if (value == null) {
             return dateTimePicker;

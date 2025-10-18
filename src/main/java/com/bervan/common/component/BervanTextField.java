@@ -1,6 +1,7 @@
 package com.bervan.common.component;
 
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.shared.Registration;
 
 public class BervanTextField extends TextField implements AutoConfigurableField<String> {
     public BervanTextField() {
@@ -26,5 +27,21 @@ public class BervanTextField extends TextField implements AutoConfigurableField<
     @Override
     public void setReadOnly(boolean readOnly) {
         super.setReadOnly(readOnly);
+    }
+
+    @Override
+    public Registration addValueChangeListener(ValueChangeListener<? super ComponentValueChangeEvent<TextField, String>> listener) {
+        validate();
+        return super.addValueChangeListener(listener);
+    }
+
+    @Override
+    public void validate() {
+        super.validate();
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return super.isInvalid();
     }
 }

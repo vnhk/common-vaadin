@@ -20,7 +20,7 @@ public class StringListFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        BervanComboBox comboBox = new BervanComboBox<>(config.getDisplayName());
+        BervanComboBox comboBox = new BervanComboBox<>(config.getDisplayName(), config.isRequired());
         return buildComponentForComboBox(config.getStrValues(), comboBox, (String) value);
     }
 

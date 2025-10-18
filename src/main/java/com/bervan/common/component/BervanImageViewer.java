@@ -141,4 +141,15 @@ public class BervanImageViewer extends VerticalLayout implements AutoConfigurabl
     public void setReadOnly(boolean readOnly) {
         this.readOnly = (readOnly);
     }
+
+
+    @Override
+    public void validate() {
+
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return false;
+    }
 }

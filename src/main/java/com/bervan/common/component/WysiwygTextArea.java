@@ -26,17 +26,22 @@ public class WysiwygTextArea extends AbstractPageView implements AutoConfigurabl
 
     };
 
+    private boolean isRequired = false;
+    private int minLength = 0;
+    private int maxLength = 0;
+    private boolean isInvalid;
+
     public WysiwygTextArea(String id) {
         this.id = id;
         configure(id, null);
     }
 
-    public WysiwygTextArea(String id, String initValue) {
+    public WysiwygTextArea(String id, String initValue, boolean isRequired, int minLength, int maxLength) {
         this.id = id;
         configure(id, initValue);
     }
 
-    public WysiwygTextArea(String id, String initValue, boolean isViewModeInitial) {
+    public WysiwygTextArea(String id, String initValue, boolean isViewModeInitial, boolean isRequired, int minLength, int maxLength) {
         this.id = id;
         this.viewMode = isViewModeInitial;
         configure(id, initValue);
@@ -138,6 +143,7 @@ public class WysiwygTextArea extends AbstractPageView implements AutoConfigurabl
 
     @ClientCallable
     public void onTextChange(String text) {
+        validate();
         this.value = text;
     }
 
@@ -169,6 +175,24 @@ public class WysiwygTextArea extends AbstractPageView implements AutoConfigurabl
     @Override
     public void setId(String id) {
         super.setId(id); //it sets layout id
+    }
+
+    @Override
+    public void validate() {
+        if (value != null && !value.trim().isEmpty() && isRequired && value.length() < minLength) {
+            this.isInvalid = true;
+        } else if (value != null && !value.trim().isEmpty() && isRequired && value.length() > maxLength) {
+            this.isInvalid = true;
+        } else if (isRequired && (value == null || value.trim().isEmpty())) {
+            this.isInvalid = true;
+        } else {
+            this.isInvalid = false;
+        }
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return isInvalid;
     }
 
     public void setSwitchButtonPostAction(Action postClickSwitchAction) {

@@ -20,7 +20,7 @@ public class LocalDateFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildLocalDateInput(value, config.getDisplayName());
+        return buildLocalDateInput(value, config);
     }
 
     @Override
@@ -28,8 +28,8 @@ public class LocalDateFieldBuilder implements ComponentForFieldBuilder {
         return LocalDate.class.getTypeName().equalsIgnoreCase(typeName);
     }
 
-    private AutoConfigurableField buildLocalDateInput(Object value, String displayName) {
-        BervanDatePicker datePicker = new BervanDatePicker(displayName);
+    private AutoConfigurableField buildLocalDateInput(Object value, ClassViewAutoConfigColumn configColumn) {
+        BervanDatePicker datePicker = new BervanDatePicker(configColumn.getDisplayName(), configColumn.isRequired());
         datePicker.setLabel("Select date");
 
         if (value != null)

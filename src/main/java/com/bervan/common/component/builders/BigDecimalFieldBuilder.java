@@ -20,7 +20,7 @@ public class BigDecimalFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildBigDecimalInput(value, config.getDisplayName());
+        return buildBigDecimalInput(value, config);
     }
 
     @Override
@@ -28,8 +28,8 @@ public class BigDecimalFieldBuilder implements ComponentForFieldBuilder {
         return BigDecimal.class.getTypeName().equalsIgnoreCase(typeName);
     }
 
-    private AutoConfigurableField<BigDecimal> buildBigDecimalInput(Object value, String displayName) {
-        BervanBigDecimalField field = new BervanBigDecimalField(displayName);
+    private AutoConfigurableField<BigDecimal> buildBigDecimalInput(Object value, ClassViewAutoConfigColumn config) {
+        BervanBigDecimalField field = new BervanBigDecimalField(config.getDisplayName(), config.isRequired());
         field.setWidthFull();
         if (value != null)
             field.setValue((BigDecimal) value);

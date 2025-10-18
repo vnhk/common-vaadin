@@ -19,7 +19,7 @@ public class BooleanFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildBooleanInput(value, config.getDisplayName());
+        return buildBooleanInput(value, config);
     }
 
     @Override
@@ -27,8 +27,8 @@ public class BooleanFieldBuilder implements ComponentForFieldBuilder {
         return Boolean.class.getTypeName().equalsIgnoreCase(typeName.toLowerCase()) || typeName.equalsIgnoreCase("boolean");
     }
 
-    private AutoConfigurableField buildBooleanInput(Object value, String displayName) {
-        BervanBooleanField checkbox = new BervanBooleanField();
+    private AutoConfigurableField buildBooleanInput(Object value, ClassViewAutoConfigColumn config) {
+        BervanBooleanField checkbox = new BervanBooleanField(config.getDisplayName(), config.isRequired());
         if (value != null) {
             checkbox.setValue((Boolean) value);
         }

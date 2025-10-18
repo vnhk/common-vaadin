@@ -8,11 +8,11 @@ import java.util.Collection;
 import java.util.List;
 
 public class BervanDynamicMultiDropdownController extends VerticalLayout implements AutoConfigurableField<List<String>> {
-
     public final String key;
     private final MultiSelectComboBox<String> multiSelectComboBox;
+    private boolean isRequired;
 
-    public BervanDynamicMultiDropdownController(String key, String label, Collection<String> availableValues, Collection<String> selectedValues) {
+    public BervanDynamicMultiDropdownController(String key, String label, Collection<String> availableValues, Collection<String> selectedValues, boolean isRequired) {
         this.key = key;
         this.multiSelectComboBox = new MultiSelectComboBox<>(label);
         setSpacing(false);
@@ -22,6 +22,10 @@ public class BervanDynamicMultiDropdownController extends VerticalLayout impleme
 
         multiSelectComboBox.setItems(availableValues);
         multiSelectComboBox.setAllowCustomValue(true);
+        this.isRequired = isRequired;
+        multiSelectComboBox.setRequiredIndicatorVisible(isRequired);
+        multiSelectComboBox.setRequired(isRequired);
+        multiSelectComboBox.setClearButtonVisible(true);//?
 
         if (selectedValues != null) {
             multiSelectComboBox.select(selectedValues);
@@ -36,6 +40,7 @@ public class BervanDynamicMultiDropdownController extends VerticalLayout impleme
 
         setWidthFull();
         add(multiSelectComboBox);
+        initListener();
     }
 
     @Override
@@ -55,6 +60,26 @@ public class BervanDynamicMultiDropdownController extends VerticalLayout impleme
     public void setWidthFull() {
         multiSelectComboBox.setWidthFull();
         super.setWidthFull();
+    }
+
+    private void initListener() {
+        multiSelectComboBox.addValueChangeListener(event -> {
+            validate();
+        });
+    }
+
+    @Override
+    public void validate() {
+        if (isRequired && multiSelectComboBox.isEmpty()) {
+            multiSelectComboBox.setInvalid(true);
+        } else {
+            multiSelectComboBox.setInvalid(false);
+        }
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return multiSelectComboBox.isInvalid();
     }
 
     @Override

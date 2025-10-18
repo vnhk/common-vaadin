@@ -7,25 +7,32 @@ import java.time.LocalTime;
 
 public class BervanTimePicker extends HorizontalLayout implements AutoConfigurableField<LocalTime> {
     private TimePicker timePicker = new TimePicker();
+    private boolean isRequired = false;
 
     public BervanTimePicker() {
         add(timePicker);
+        initListener();
     }
 
-    public BervanTimePicker(String label) {
+    public BervanTimePicker(String label, boolean isRequired) {
         timePicker = new TimePicker(label);
+        timePicker.setRequiredIndicatorVisible(isRequired);
+        this.isRequired = isRequired;
         add(timePicker);
+        initListener();
     }
 
     public BervanTimePicker(String label, LocalTime initialTime) {
         timePicker = new TimePicker(label);
         setValue(initialTime);
         add(timePicker);
+        initListener();
     }
 
     public BervanTimePicker(LocalTime initialTime) {
         setValue(initialTime);
         add(timePicker);
+        initListener();
     }
 
     @Override
@@ -50,5 +57,23 @@ public class BervanTimePicker extends HorizontalLayout implements AutoConfigurab
 
     public void setLabel(String label) {
         timePicker.setLabel(label);
+    }
+
+    private void initListener() {
+        timePicker.addValueChangeListener(event -> {
+            validate();
+        });
+    }
+
+    @Override
+    public void validate() {
+        if(isRequired) {
+            timePicker.setInvalid(timePicker.isEmpty());
+        }
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return timePicker.isInvalid();
     }
 }

@@ -21,7 +21,7 @@ public class StringFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildTextArea(value, config.getDisplayName(), config.isWysiwyg());
+        return buildTextArea(value, config.getDisplayName(), config);
     }
 
     @Override
@@ -29,14 +29,15 @@ public class StringFieldBuilder implements ComponentForFieldBuilder {
         return (config.getStrValues() == null || config.getStrValues().isEmpty()) && String.class.getTypeName().equalsIgnoreCase(typeName);
     }
 
-    private AutoConfigurableField<String> buildTextArea(Object value, String displayName, boolean isWysiwyg) {
-        AutoConfigurableField<String> textArea = new BervanTextArea(displayName);
-        if (isWysiwyg) {
-            textArea = new WysiwygTextArea("editor_" + UUID.randomUUID(), (String) value);
+    private AutoConfigurableField<String> buildTextArea(Object value, String displayName, ClassViewAutoConfigColumn config) {
+        AutoConfigurableField<String> textArea = new BervanTextArea(displayName, config.isRequired(), config.getMin(), config.getMax());
+        if (config.isWysiwyg()) {
+            textArea = new WysiwygTextArea("editor_" + UUID.randomUUID(), (String) value, config.isRequired(), config.getMin(), config.getMax());
         }
         textArea.setWidthFull();
         if (value != null)
             textArea.setValue((String) value);
+
         return textArea;
     }
 }

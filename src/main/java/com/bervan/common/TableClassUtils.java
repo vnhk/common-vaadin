@@ -70,8 +70,8 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    BervanDateTimePicker from = new BervanDateTimePicker();
-                    BervanDateTimePicker to = new BervanDateTimePicker();
+                    BervanDateTimePicker from = new BervanDateTimePicker(false);
+                    BervanDateTimePicker to = new BervanDateTimePicker(false);
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
@@ -81,8 +81,8 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    BervanDateTimePicker from = new BervanDateTimePicker(true, false);
-                    BervanDateTimePicker to = new BervanDateTimePicker(true, false);
+                    BervanDateTimePicker from = new BervanDateTimePicker(true, false, false);
+                    BervanDateTimePicker to = new BervanDateTimePicker(true, false, false);
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
@@ -92,8 +92,8 @@ public class TableClassUtils {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     filtersMap.putIfAbsent(field, new HashMap<>());
-                    BervanDateTimePicker from = new BervanDateTimePicker(false, true);
-                    BervanDateTimePicker to = new BervanDateTimePicker(false, true);
+                    BervanDateTimePicker from = new BervanDateTimePicker(false, true, false);
+                    BervanDateTimePicker to = new BervanDateTimePicker(false, true, false);
                     fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);

@@ -39,4 +39,14 @@ public class BervanImageController extends VerticalLayout implements AutoConfigu
     public void setReadOnly(boolean readOnly) {
         viewer.setReadOnly(readOnly);
     }
+
+    @Override
+    public void validate() {
+
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return false;
+    }
 }

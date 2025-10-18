@@ -11,13 +11,15 @@ import java.time.LocalTime;
 public class BervanDateTimePicker extends HorizontalLayout implements AutoConfigurableField<LocalDateTime> {
     private DatePicker datePicker = new DatePicker();
     private TimePicker timePicker = new TimePicker();
+    private boolean isRequired = false;
 
-    public BervanDateTimePicker() {
-        this(true, true);
+    public BervanDateTimePicker(boolean isRequired) {
+        this(true, true, isRequired);
     }
 
-    public BervanDateTimePicker(boolean datePickerEnabled, boolean timePickerEnabled) {
+    public BervanDateTimePicker(boolean datePickerEnabled, boolean timePickerEnabled, boolean isRequired) {
         setDefaultVerticalComponentAlignment(Alignment.CENTER);
+        this.isRequired = isRequired;
 
         if (datePickerEnabled) {
             add(datePicker);
@@ -26,28 +28,36 @@ public class BervanDateTimePicker extends HorizontalLayout implements AutoConfig
         if (timePickerEnabled) {
             add(timePicker);
         }
+
+        initListener();
     }
 
-    public BervanDateTimePicker(String label) {
+    public BervanDateTimePicker(String label, boolean isRequired) {
         setDefaultVerticalComponentAlignment(Alignment.CENTER);
+        this.isRequired = isRequired;
 
         datePicker = new DatePicker(label);
         add(datePicker, timePicker);
+        initListener();
     }
 
-    public BervanDateTimePicker(String label, LocalDateTime initialDateTime) {
+    public BervanDateTimePicker(String label, LocalDateTime initialDateTime, boolean isRequired) {
         setDefaultVerticalComponentAlignment(Alignment.CENTER);
+        this.isRequired = isRequired;
 
         datePicker = new DatePicker(label);
         setValue(initialDateTime);
         add(datePicker, timePicker);
+        initListener();
     }
 
-    public BervanDateTimePicker(LocalDateTime initialDateTime) {
+    public BervanDateTimePicker(LocalDateTime initialDateTime, boolean isRequired) {
         setDefaultVerticalComponentAlignment(Alignment.CENTER);
+        this.isRequired = isRequired;
 
         setValue(initialDateTime);
         add(datePicker, timePicker);
+        initListener();
     }
 
     @Override
@@ -106,5 +116,25 @@ public class BervanDateTimePicker extends HorizontalLayout implements AutoConfig
     public void setNullValue() {
         datePicker.setValue(null);
         timePicker.setValue(null);
+    }
+
+    private void initListener() {
+        datePicker.addValueChangeListener(event -> {
+            validate();
+        });
+    }
+
+    @Override
+    public void validate() {
+        if (isRequired && datePicker.isEmpty()) {
+            datePicker.setInvalid(true);
+        } else {
+            datePicker.setInvalid(false);
+        }
+    }
+
+    @Override
+    public boolean isInvalid() {
+        return datePicker.isInvalid();
     }
 }

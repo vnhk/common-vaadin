@@ -20,7 +20,7 @@ public class IntegerFieldBuilder implements ComponentForFieldBuilder {
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        return buildIntegerInput(value, config.getDisplayName());
+        return buildIntegerInput(value, config);
     }
 
     @Override
@@ -29,8 +29,8 @@ public class IntegerFieldBuilder implements ComponentForFieldBuilder {
                 && (Integer.class.getTypeName().equalsIgnoreCase(typeName) || typeName.equalsIgnoreCase("int"));
     }
 
-    private AutoConfigurableField buildIntegerInput(Object value, String displayName) {
-        BervanIntegerField field = new BervanIntegerField(displayName);
+    private AutoConfigurableField buildIntegerInput(Object value, ClassViewAutoConfigColumn config) {
+        BervanIntegerField field = new BervanIntegerField(config.getDisplayName(), config.isRequired(), config.getMin(), config.getMax());
         field.setWidthFull();
         if (value != null)
             field.setValue((Integer) value);
