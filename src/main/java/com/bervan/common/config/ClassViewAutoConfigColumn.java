@@ -24,4 +24,18 @@ public class ClassViewAutoConfigColumn {
     private boolean sortable; // needs to be updated in yaml file!
     private Integer min;
     private Integer max;
+
+    public Integer getMin() {
+        if (min == null) {
+            return 0;
+        }
+        return min;
+    }
+
+    public Integer getMax() {
+        if (max == null) {
+            return Integer.MAX_VALUE;
+        }
+        return max;
+    }
 }
