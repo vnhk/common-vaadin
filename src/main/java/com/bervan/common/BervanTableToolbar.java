@@ -135,8 +135,8 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
             openExportDialog(toBeExported, service, bervanLogger, pathToFileStorageVal, globalTmpDirVal);
         }, BervanButtonStyle.WARNING);
 
-        checkboxExportButton.setVisible(!isExportable);
-        actionsToBeAdded.add(checkboxDeleteButton);
+        checkboxExportButton.setVisible(isExportable);
+        actionsToBeAdded.add(checkboxExportButton);
         return this;
     }
 
