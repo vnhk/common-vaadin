@@ -1,10 +1,7 @@
 package com.bervan.common.view;
 
 import com.bervan.common.MenuNavigationComponent;
-import com.bervan.common.component.AutoConfigurableField;
-import com.bervan.common.component.BervanButton;
-import com.bervan.common.component.CommonComponentHelper;
-import com.bervan.common.component.ComponentHelper;
+import com.bervan.common.component.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableData;
@@ -37,13 +34,14 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     protected final VerticalLayout contentLayout = new VerticalLayout();
     protected final Class<T> tClass;
     protected final BervanViewConfig bervanViewConfig;
+    protected final EditItemDialog<ID, T> editItemDialog;
     protected T item;
+    protected final Button editButton = new BervanButton("✎", e -> openEditDialog());
     protected boolean buildDetails = true;
     protected MenuNavigationComponent pageLayout;
     protected HorizontalLayout topLayout = new HorizontalLayout();
     protected ComponentHelper<ID, T> componentHelper;
     protected final Button addButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
-    protected final Button editButton = new BervanButton("✎", e -> openEditDialog());
 
     public AbstractBervanEntityView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, @Autowired BervanViewConfig bervanViewConfig, Class<T> tClass) {
         this.service = service;
@@ -51,29 +49,11 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         this.pageLayout = pageLayout;
         this.tClass = tClass;
         this.componentHelper = new CommonComponentHelper<>(tClass);
+        this.editItemDialog = new EditItemDialog<>(componentHelper, service, bervanViewConfig);
     }
 
     protected void openEditDialog() {
-        if (item == null) {
-            showErrorNotification("Cannot edit item - item was not selected!");
-            return;
-        }
-
-        Dialog dialog = new Dialog();
-        dialog.setWidth("60vw");
-        VerticalLayout dialogLayout = new VerticalLayout();
-        HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
-
-        dialogLayout.getThemeList().remove("spacing");
-        dialogLayout.getThemeList().remove("padding");
-
-        headerLayout.getThemeList().remove("spacing");
-        headerLayout.getThemeList().remove("padding");
-
-        buildEditItemDialogContent(dialog, dialogLayout, headerLayout);
-
-        dialog.add(dialogLayout);
-        dialog.open();
+        editItemDialog.openEditDialog(item);
     }
 
     public void renderCommonComponents() {
@@ -397,81 +377,6 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     }
 
-    protected void buildEditItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
-        try {
-            if (item == null) {
-                showErrorNotification("Could not edit item! No item is selected!");
-                return;
-            }
-
-            VerticalLayout formLayout = new VerticalLayout();
-
-            Map<Field, AutoConfigurableField> fieldsHolder = new HashMap<>();
-            Map<Field, VerticalLayout> fieldsLayoutHolder = new HashMap<>();
-            List<Field> declaredFields = getEditableVaadinTableFields();
-
-            for (Field field : declaredFields) {
-                AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
-                VerticalLayout layoutForField = new VerticalLayout();
-                layoutForField.getThemeList().remove("spacing");
-                layoutForField.getThemeList().remove("padding");
-                layoutForField.add((Component) componentWithValue);
-                customFieldInEditItemLayout(field, layoutForField, componentWithValue);
-                formLayout.add(layoutForField);
-                fieldsHolder.put(field, componentWithValue);
-                fieldsLayoutHolder.put(field, layoutForField);
-            }
-
-            customFieldInEditItemLayout(fieldsHolder, fieldsLayoutHolder, formLayout);
-
-            Button dialogSaveButton = new BervanButton("Save");
-
-            HorizontalLayout buttonsLayout = new HorizontalLayout();
-            buttonsLayout.setWidthFull();
-            buttonsLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
-
-            buttonsLayout.add(dialogSaveButton);
-
-            dialogSaveButton.addClickListener(buttonClickEvent -> {
-                boolean isInvalid = false;
-                for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
-                    fieldAutoConfigurableFieldEntry.getValue().validate();
-                    if (!isInvalid) {
-                        isInvalid = fieldAutoConfigurableFieldEntry.getValue().isInvalid();
-                    }
-                }
-
-                if (isInvalid) {
-                    showErrorNotification("Invalid value(s)");
-                    return;
-                }
-
-                try {
-                    for (Map.Entry<Field, AutoConfigurableField> fieldAutoConfigurableFieldEntry : fieldsHolder.entrySet()) {
-                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(true);
-                        fieldAutoConfigurableFieldEntry.getKey().set(item, componentHelper.getFieldValueForNewItemDialog(fieldAutoConfigurableFieldEntry));
-                        fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
-                    }
-
-                    item = customizeEditingInEditItemForm(item);
-
-                    service.save(item);
-
-                    postEditItemActions();
-                } catch (Exception e) {
-                    log.error("Could not edit item!", e);
-                    showErrorNotification("Could not edit item!");
-                }
-                dialog.close();
-            });
-
-            dialogLayout.add(headerLayout, formLayout, buttonsLayout);
-        } catch (Exception e) {
-            log.error("Error during using edit modal. Check columns name or create custom modal!", e);
-            showErrorNotification("Error during using edit modal. Check columns name or create custom modal!");
-        }
-    }
-
     protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
         try {
             VerticalLayout formLayout = new VerticalLayout();
@@ -547,17 +452,11 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     }
 
-    protected void postEditItemActions() {
-
-    }
 
     protected void customFieldInCreateItemLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
 
     }
 
-    protected void customFieldInEditItemLayout(Map<Field, AutoConfigurableField> fieldsHolder, Map<Field, VerticalLayout> fieldsLayoutHolder, VerticalLayout formLayout) {
-
-    }
 
     protected void customFieldInEditItemLayout(Field field, VerticalLayout layoutForField, AutoConfigurableField componentWithValue) {
 
@@ -565,9 +464,5 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     protected T customizeSavingInCreateForm(T newItem) {
         return newItem;
-    }
-
-    protected T customizeEditingInEditItemForm(T item) {
-        return item;
     }
 }

@@ -33,6 +33,13 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
         this.service = service;
     }
 
+    public void openEditDialog(T item) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("80vw");
+        dialog.add(buildEditItemDialog(dialog, item));
+        dialog.open();
+    }
+
     public VerticalLayout buildEditItemDialog(Dialog dialog, T item) {
         VerticalLayout dialogLayout = new VerticalLayout();
         HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
