@@ -3,7 +3,6 @@ package com.bervan.common.service;
 
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableData;
-import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchQueryOption;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.SearchService;
@@ -25,11 +24,10 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 public abstract class BaseService<ID extends Serializable, T extends PersistableData<ID>> {
+    protected final SearchService searchService;
     private final Logger logger = LoggerFactory.getLogger(BaseService.class);
     private final Class<T> entityType;
-
     protected BaseRepository<T, ID> repository;
-    protected final SearchService searchService;
 
     protected BaseService(BaseRepository<T, ID> repository, SearchService searchService) {
         this.repository = repository;
@@ -218,4 +216,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return type.isAnnotationPresent(Entity.class);
     }
 
+    public T findById(ID id) {
+        return repository.findById(id).orElse(null);
+    }
 }

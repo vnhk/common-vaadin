@@ -20,6 +20,7 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Input;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     protected List<Button> buttonsForCheckboxesForVisibilityChange;
     protected List<Button> actionsToBeAdded = new ArrayList<>();
     protected ComponentHelper<ID, T> componentHelper;
+    @Getter
+    protected EditItemDialog<ID, T> editItemDialog;
 
     public BervanTableToolbar(GridActionService<ID, T> gridActionService, List<Checkbox> checkboxes,
                               List<T> data, Class<T> tClass, BervanViewConfig bervanViewConfig,
@@ -138,6 +141,8 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     }
 
     public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service, BervanLogger bervanLogger) {
+        editItemDialog = new EditItemDialog<>(componentHelper, service, bervanViewConfig);
+
         Dialog dialog = new Dialog();
         dialog.setWidth("60vw");
         checkboxEditButton = new BervanButton("Edit", editButton -> {
@@ -153,7 +158,6 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
                     .filter(e -> itemsId.contains(e.getId().toString()))
                     .findFirst().get();
 
-            EditItemDialog<ID, T> editItemDialog = new EditItemDialog<>(componentHelper, service, bervanViewConfig);
             dialog.removeAll();
             dialog.add(editItemDialog.buildEditItemDialog(dialog, toBeEdited));
 

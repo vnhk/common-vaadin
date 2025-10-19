@@ -10,17 +10,22 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Function;
 
 @Slf4j
 public class EditItemDialog<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
     protected final ComponentHelper<ID, T> componentHelper;
     protected final BaseService<ID, T> service;
     private final BervanViewConfig bervanViewConfig;
+    @Setter
+    private Function<T, T> customizeSavingInEditFormFunction = t -> t;
 
     public EditItemDialog(ComponentHelper<ID, T> componentHelper, BaseService<ID, T> service, BervanViewConfig bervanViewConfig) {
         this.componentHelper = componentHelper;
@@ -105,10 +110,12 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
                     T updatedItem = customizeSavingInEditForm(itemFinal);
 
                     // Save the item
+                    T existing = service.findById(updatedItem.getId()); // take item from db
+                    BeanUtils.copyProperties(updatedItem, existing, "id"); // copy updated values to existing item
+                    updatedItem = service.save(existing); // save existing (updated) item
                     //todo fix for DTOs it also doesn't work in prod, its not related to the new auto config
                     //new DTOMapper(bervanLogger, new ArrayList<>()).map(updatedItem); should be used
                     //new dto implementation should be created
-                    updatedItem = service.save(updatedItem);
 
                     // Execute post-save actions
                     postEditItemActions(updatedItem);
@@ -134,12 +141,14 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
 
     /**
      * Allows customization of the item before saving in edit form.
-     * Override this method to add custom logic before saving edited items.
+     * Override this method to add custom logic before saving edited items
+     * or set new customizeSavingInEditFormFunction
      *
      * @param item The item to be saved
      * @return The modified item
      */
     protected T customizeSavingInEditForm(T item) {
+        item = customizeSavingInEditFormFunction.apply(item);
         return item;
     }
 
