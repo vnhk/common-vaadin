@@ -119,7 +119,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
                                                       String pathToFileStorageVal, String globalTmpDirVal) {
 
         checkboxExportButton = new BervanButton("Export", exportEvent -> {
-            if (isExportable) {
+            if (!isExportable) {
                 bervanLogger.error("Table is not exportable!");
                 return;
             }
@@ -135,7 +135,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
             openExportDialog(toBeExported, service, bervanLogger, pathToFileStorageVal, globalTmpDirVal);
         }, BervanButtonStyle.WARNING);
 
-        checkboxExportButton.setVisible(isExportable);
+        checkboxExportButton.setVisible(!isExportable);
         actionsToBeAdded.add(checkboxDeleteButton);
         return this;
     }
