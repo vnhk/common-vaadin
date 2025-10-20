@@ -1,0 +1,62 @@
+columns:
+  - field: moduleName
+    displayName: "Module Name"
+    internalName: "moduleName"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+    extension: "VaadinDynamicDropdownBervanColumn"
+
+  - field: packageName
+    displayName: "Package Name"
+    internalName: "packageName"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+    min: 3
+    max: 50
+
+  - field: className
+    displayName: "className"
+    internalName: "className"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+    min: 3
+    max: 50
+
+  - field: status
+    displayName: "Status"
+    internalName: "status"
+    strValues: [ "New", "Done", "Failed" ]
+    defaultValue: "New"
+    inSaveForm: false
+    inEditForm: true
+    inTable: true
+    required: true
+
+  - field: routeName
+    displayName: "Route Name"
+    internalName: "routeName"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: false
+    min: 1
+    max: 120
+
+  - field: lowCodeClassDetails
+    displayName: "lowCodeClassDetails"
+    internalName: "lowCodeClassDetails"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+    extension: "VaadinLowCodeClassDetailsColumn"
+
+
+
+

@@ -149,7 +149,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
                         T toBeSaved = customPreUpdate(clickedField, layoutForField, item, finalField, finalComponentWithValue);
 
-                        T changed = service.save(toBeSaved);
+                        T changed = save(toBeSaved);
 
                         customPostUpdate(changed);
 
@@ -316,7 +316,6 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         VerticalLayout formLayout = new VerticalLayout();
         try {
             if (item == null) {
-                showErrorNotification("Could not show item! No item is provided!");
                 return Optional.empty();
             }
 
@@ -429,11 +428,11 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 
-                    newObject = customizeSavingInCreateForm(newObject);
+                    newObject = preSaveActions(newObject);
 
-                    service.save(newObject);
+                    T save = save(newObject);
 
-                    postSaveActions();
+                    postSaveActions(save);
                 } catch (Exception e) {
                     log.error("Could not save new item!", e);
                     showErrorNotification("Could not save new item!");
@@ -448,7 +447,11 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         }
     }
 
-    protected void postSaveActions() {
+    protected T save(T newObject) {
+        return service.save(newObject);
+    }
+
+    protected void postSaveActions(T save) {
 
     }
 
@@ -462,7 +465,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     }
 
-    protected T customizeSavingInCreateForm(T newItem) {
+    protected T preSaveActions(T newItem) {
         return newItem;
     }
 }

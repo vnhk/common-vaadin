@@ -578,11 +578,11 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 
-                    newObject = customizeSavingInCreateForm(newObject);
+                    newObject = preSaveActions(newObject);
 
-                    service.save(newObject);
+                    T save = save(newObject);
 
-                    postSaveActions();
+                    postSaveActions(save);
 
                     refreshData();
                 } catch (Exception e) {
@@ -599,12 +599,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         }
     }
 
-    protected void postSaveActions() {
-        super.postSaveActions();
+    protected void postSaveActions(T save) {
+        super.postSaveActions(save);
         refreshData();
     }
 
-    protected T customizeSavingInCreateForm(T newItem) {
+    protected T preSaveActions(T newItem) {
         return newItem;
     }
 }

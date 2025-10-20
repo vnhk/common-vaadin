@@ -1,0 +1,96 @@
+columns:
+  - field: field
+    displayName: "Field"
+    internalName: "field"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+    min: 1
+    max: 50
+
+  - field: displayName
+    displayName: "Display Name"
+    internalName: "displayName"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+    min: 3
+    max: 50
+
+  - field: type
+    displayName: "Type"
+    internalName: "type"
+    strValues: [ "String", "Boolean", "BigDecimal", "Double", "Integer", "Long" ]
+    defaultValue: "String"
+    inSaveForm: true
+    inEditForm: true
+    inTable: true
+    required: true
+
+  - field: defaultValue
+    displayName: "Default Value"
+    internalName: "defaultValue"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+
+  - field: inSaveForm
+    displayName: "inSaveForm"
+    internalName: "inSaveForm"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+
+  - field: inEditForm
+    displayName: "inEditForm"
+    internalName: "inEditForm"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+
+  - field: inTable
+    displayName: "inTable"
+    internalName: "inTable"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+
+  - field: inTable
+    displayName: "inTable"
+    internalName: "inTable"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+
+  - field: required
+    displayName: "required"
+    internalName: "required"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+
+  - field: min
+    displayName: "min"
+    internalName: "min"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: true
+
+  - field: max
+    displayName: "max"
+    internalName: "max"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: true
+
+

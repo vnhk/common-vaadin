@@ -153,7 +153,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
     }
 
     @Override
-    protected T customizeSavingInCreateForm(T newItem) {
+    protected T preSaveActions(T newItem) {
         try {
             DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
             return (T) dtoMapper.map(((BaseDTO) newItem));
@@ -202,11 +202,11 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
                         fieldAutoConfigurableFieldEntry.getKey().setAccessible(false);
                     }
 
-                    newObject = customizeSavingInCreateForm(newObject);
+                    newObject = preSaveActions(newObject);
 
-                    service.save(newObject);
+                    T save = service.save(newObject);
 
-                    postSaveActions();
+                    postSaveActions(save);
 
                     refreshData();
                 } catch (Exception e) {
