@@ -55,7 +55,6 @@ columns:
     inEditForm: true
     inTable: false
     required: false
-    defaultValue: false
 
   - field: lowCodeClassDetails
     displayName: "lowCodeClassDetails"
