@@ -48,6 +48,15 @@ columns:
     min: 1
     max: 120
 
+  - field: historyEnabled
+    displayName: "History Enabled"
+    internalName: "historyEnabled"
+    inSaveForm: true
+    inEditForm: true
+    inTable: false
+    required: false
+    defaultValue: false
+
   - field: lowCodeClassDetails
     displayName: "lowCodeClassDetails"
     internalName: "lowCodeClassDetails"

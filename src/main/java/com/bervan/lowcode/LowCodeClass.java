@@ -25,6 +25,7 @@ public class LowCodeClass extends BervanBaseEntity<UUID> implements PersistableT
     private String packageName;
     private String routeName;
     private String status;
+    private boolean historyEnabled = false;
     private String className;
     private Boolean deleted = false;
     @OneToMany(mappedBy = "lowCodeClass", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
