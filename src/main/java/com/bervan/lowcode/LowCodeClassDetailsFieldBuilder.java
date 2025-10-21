@@ -39,7 +39,7 @@ public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        LowCodeClassDetailsAutoConfigurableField lowCodeClassDetailsAutoConfigurableField = new LowCodeClassDetailsAutoConfigurableField(lowCodeDetailsService, bervanLogger, bervanViewConfig, LowCodeClassDetails.class);
+        LowCodeClassDetailsAutoConfigurableField lowCodeClassDetailsAutoConfigurableField = new LowCodeClassDetailsAutoConfigurableField((LowCodeClass) item, lowCodeDetailsService, bervanLogger, bervanViewConfig, LowCodeClassDetails.class);
         lowCodeClassDetailsAutoConfigurableField.setValue(item == null ? null : ((LowCodeClass) item).getLowCodeClassDetails());
         return lowCodeClassDetailsAutoConfigurableField;
     }
@@ -54,9 +54,11 @@ public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder
     //will generate it automatically with throw RuntimeException and comment where to override and use it.
     //or just use cascade and service is not needed at all.
     private class LowCodeClassDetailsAutoConfigurableField extends AbstractBervanTableView<UUID, LowCodeClassDetails> implements AutoConfigurableField<List<LowCodeClassDetails>> {
+        LowCodeClass parent;
 
-        public LowCodeClassDetailsAutoConfigurableField(BaseService<UUID, LowCodeClassDetails> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig, Class<LowCodeClassDetails> lowCodeClassDetailsClass) {
+        public LowCodeClassDetailsAutoConfigurableField(LowCodeClass parent, BaseService<UUID, LowCodeClassDetails> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig, Class<LowCodeClassDetails> lowCodeClassDetailsClass) {
             super(null, service, bervanLogger, bervanViewConfig, lowCodeClassDetailsClass);
+            this.parent = parent;
             pageSize = 10000;
             filtersLayout.setVisible(false);
             renderCommonComponents();
@@ -71,6 +73,10 @@ public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder
         @Override
         protected LowCodeClassDetails save(LowCodeClassDetails newObject) {
             newObject.setId(UUID.randomUUID());
+            if (parent != null) {
+                newObject.setLowCodeClass(parent);
+                parent.getLowCodeClassDetails().add(newObject);
+            }
             this.data.add(newObject); //delayed save it might be different for new item and for editing (if parent entity already exists)
             this.grid.getDataProvider().refreshAll();
             return newObject;

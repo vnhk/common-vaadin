@@ -6,6 +6,7 @@ import com.bervan.common.service.BaseService;
 import com.bervan.common.view.AbstractBervanTableView;
 import com.bervan.core.model.BervanLogger;
 
+import java.util.List;
 import java.util.UUID;
 
 public class AbstractLowCodeGeneratorView extends AbstractBervanTableView<UUID, LowCodeClass> {
@@ -17,11 +18,26 @@ public class AbstractLowCodeGeneratorView extends AbstractBervanTableView<UUID, 
         AbstractBervanTableView.addColumnForGridBuilder(LowCodeClassDetailsColumnBuilder.getInstance());
         CommonComponentUtils.addComponentBuilder(LowCodeClassDetailsFieldBuilder.getInstance(bervanViewConfig, lowCodeClassDetailsService, bervanLogger));
         renderCommonComponents();
+    }
 
+    @Override
+    protected void buildToolbarActionBar() {
         tableToolbarActions = new LowCodeGeneratorToolbar(gridActionService, checkboxes, data, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange, bervanViewConfig)
                 .withRunGenerator()
                 .withDeleteButton()
-                .withEditButton(service, bervanLogger);
+                .withEditButton(service, bervanLogger)
+                .build();
+    }
+
+    @Override
+    protected List<LowCodeClass> loadData() {
+        List<LowCodeClass> lowCodeClasses = super.loadData();
+        for (LowCodeClass lowCodeClass : lowCodeClasses) {
+            if (lowCodeClass.getLowCodeClassDetails() == null || lowCodeClass.getLowCodeClassDetails().isEmpty()) {
+                ((LowCodeClassService) service).loadDetails(lowCodeClass);
+            }
+        }
+        return lowCodeClasses;
     }
 
     @Override

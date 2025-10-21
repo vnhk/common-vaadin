@@ -32,6 +32,8 @@ public class LowCodeClassDetails extends BervanBaseEntity<UUID> implements Persi
     private Boolean required;
     private Integer min;
     private Integer max;
+    private Boolean deleted = false;
+
     @ManyToOne
     @JoinColumn(name = "low_code_class_id", nullable = false)
     private LowCodeClass lowCodeClass;

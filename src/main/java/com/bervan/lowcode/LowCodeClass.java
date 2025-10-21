@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,8 +26,9 @@ public class LowCodeClass extends BervanBaseEntity<UUID> implements PersistableT
     private String routeName;
     private String status;
     private String className;
+    private Boolean deleted = false;
     @OneToMany(mappedBy = "lowCodeClass", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<LowCodeClassDetails> lowCodeClassDetails;
+    private List<LowCodeClassDetails> lowCodeClassDetails = new ArrayList<>();
 
     @Override
     public String getTableFilterableColumnValue() {
