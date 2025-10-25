@@ -96,6 +96,10 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     protected void buildOnColumnClickDialogContent(Dialog dialog, VerticalLayout dialogLayout,
                                                    HorizontalLayout headerLayout, String clickedField, T item) {
+        if ("checkboxColumnKey".equals(clickedField)) {
+            return;
+        }
+
         Field field = null;
         try {
             Optional<Field> vaadinTableField = getVaadinTableField(clickedField);

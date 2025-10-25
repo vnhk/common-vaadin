@@ -33,15 +33,60 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
             directory.mkdirs(); // create all directories if they don't exist
         }
 
-        // Build the content of the Java files
+        // Build the content of the files
         createMainEntityClass(obj, path);
-//        createYmlAutoConfig(obj);
+        createYmlAutoConfig(obj);
         createMainRepositoryClass(obj, path);
         createMainServiceClass(obj, path);
 //        createAbstractView(obj, path);
 //        if (obj.getRouteName() != null && !obj.getRouteName().isEmpty()) {
 //            createView(obj);
 //        }
+    }
+
+    private void createYmlAutoConfig(LowCodeClass obj) {
+        String path = obj.getModuleName() + File.separator
+                + "src" + File.separator
+                + "main" + File.separator
+                + "resources" + File.separator
+                + "autoconfig";
+
+        File directory = new File(path);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        String ymlFilePath = path + File.separator + obj.getClassName() + ".yml";
+        File ymlFile = new File(ymlFilePath);
+        try {
+            ymlFile.createNewFile();
+
+            StringBuilder content = new StringBuilder();
+            content.append("columns:\n");
+            for (LowCodeClassDetails lowCodeClassDetail : obj.getLowCodeClassDetails()) {
+                content.append("  - field: ").append(lowCodeClassDetail.getField()).append("\n");
+                content.append("    displayName: \"").append(lowCodeClassDetail.getDisplayName()).append("\"\n");
+                content.append("    internalName: ").append(lowCodeClassDetail.getField()).append("\n");
+                content.append("    inSaveForm: ").append(lowCodeClassDetail.getInSaveForm()).append("\n");
+                content.append("    inEditForm: ").append(lowCodeClassDetail.getInEditForm()).append("\n");
+                content.append("    inTable: ").append(lowCodeClassDetail.getInTable()).append("\n");
+                content.append("    required: ").append(lowCodeClassDetail.getRequired()).append("\n");
+                if (lowCodeClassDetail.getMin() != null) {
+                    content.append("    min: ").append(lowCodeClassDetail.getMin()).append("\n");
+                }
+                if (lowCodeClassDetail.getMax() != null) {
+                    content.append("    max: ").append(lowCodeClassDetail.getMax()).append("\n");
+                }
+                content.append("\n");
+            }
+
+
+            try (FileWriter writer = new FileWriter(ymlFile)) {
+                writer.write(content.toString());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create YAML configuration file", e);
+        }
     }
 
     private void createMainRepositoryClass(LowCodeClass obj, String path) throws IOException {
@@ -57,7 +102,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("""
                 import com.bervan.history.model.BaseRepository;
                 import org.springframework.stereotype.Repository;
-
+                
                 import java.util.UUID;
                 """);
         content.append("\n");

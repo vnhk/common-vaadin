@@ -83,7 +83,7 @@ columns:
     inSaveForm: true
     inEditForm: true
     inTable: false
-    required: true
+    required: false
 
   - field: max
     displayName: "max"
@@ -91,6 +91,6 @@ columns:
     inSaveForm: true
     inEditForm: true
     inTable: false
-    required: true
+    required: false
 
 

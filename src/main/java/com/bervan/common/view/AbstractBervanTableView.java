@@ -479,6 +479,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         HorizontalLayout headerLayout = getDialogTopBarLayout(dialog);
         String clickedColumn = event.getColumn().getKey();
 
+        if ("checkboxColumnKey".equals(clickedColumn)) {
+            return;
+        }
+
         buildOnColumnClickDialogContent(dialog, dialogLayout, headerLayout, clickedColumn, event.getItem());
 
         dialog.add(dialogLayout);
