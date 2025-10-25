@@ -36,12 +36,82 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         // Build the content of the Java files
         createMainEntityClass(obj, path);
 //        createYmlAutoConfig(obj);
-//        createMainServiceClass(obj, path);
-//        createMainRepositoryClass(obj, path);
+        createMainRepositoryClass(obj, path);
+        createMainServiceClass(obj, path);
 //        createAbstractView(obj, path);
 //        if (obj.getRouteName() != null && !obj.getRouteName().isEmpty()) {
 //            createView(obj);
 //        }
+    }
+
+    private void createMainRepositoryClass(LowCodeClass obj, String path) throws IOException {
+        // Define the path to the Java file
+        String javaFilePath = path + File.separator + obj.getClassName() + "Repository.java";
+        File javaFile = new File(javaFilePath);
+        if (!javaFile.exists()) {
+            javaFile.createNewFile(); // create the Java file if it doesn't exist
+        }
+
+        StringBuilder content = new StringBuilder();
+        content.append("package ").append(obj.getPackageName()).append(";\n\n");
+        content.append("""
+                import com.bervan.history.model.BaseRepository;
+                import org.springframework.stereotype.Repository;
+
+                import java.util.UUID;
+                """);
+        content.append("\n");
+        content.append("// Low-Code START\n");
+        content.append("""
+                @Repository
+                """);
+        content.append("public interface ").append(obj.getClassName()).append("Repository")
+                .append(" extends BaseRepository<").append(obj.getClassName()).append(", UUID> {\n\n");
+        content.append("}\n");
+        content.append("// Low-Code END\n");
+
+        // Write content to the Java file
+        try (FileWriter writer = new FileWriter(javaFile)) {
+            writer.write(content.toString());
+        }
+    }
+
+    private void createMainServiceClass(LowCodeClass obj, String path) throws IOException {
+        // Define the path to the Java file
+        String javaFilePath = path + File.separator + obj.getClassName() + "Service.java";
+        File javaFile = new File(javaFilePath);
+        if (!javaFile.exists()) {
+            javaFile.createNewFile(); // create the Java file if it doesn't exist
+        }
+
+        StringBuilder content = new StringBuilder();
+        content.append("package ").append(obj.getPackageName()).append(";\n\n");
+        content.append("""
+                import com.bervan.common.search.SearchService;
+                import com.bervan.common.service.BaseService;
+                import com.bervan.history.model.BaseRepository;
+                import org.springframework.stereotype.Service;
+                
+                import java.util.List;
+                import java.util.UUID;
+                """);
+        content.append("\n");
+        content.append("// Low-Code START\n");
+        content.append("""
+                @Service
+                """);
+        content.append("public class ").append(obj.getClassName()).append("Service")
+                .append(" extends BaseService<UUID, ").append(obj.getClassName()).append("> {\n\n");
+        content.append("    public ").append(obj.getClassName()).append("Service(BaseRepository<").append(obj.getClassName()).append(", UUID> repository, SearchService searchService) {\n");
+        content.append("        super(repository, searchService);\n");
+        content.append("    }\n\n");
+        content.append("}\n");
+        content.append("// Low-Code END\n");
+
+        // Write content to the Java file
+        try (FileWriter writer = new FileWriter(javaFile)) {
+            writer.write(content.toString());
+        }
     }
 
     private void createMainEntityClass(LowCodeClass obj, String path) throws IOException {
@@ -62,7 +132,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
                 import jakarta.persistence.*;
                 import lombok.Getter;
                 import lombok.Setter;
-                """); // import UUID
+                """);
         content.append("\n");
         content.append("// Low-Code START\n");
         content.append("""
@@ -71,7 +141,6 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
                 @Setter
                 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
                 """);
-        content.append("\n");
         content.append("public class ").append(obj.getClassName())
                 .append(" extends BervanBaseEntity<UUID> implements PersistableTableData<UUID> {\n\n");
         content.append("    // Default constructor\n");
