@@ -3,7 +3,7 @@ package com.bervan.lowcode.generator;
 import com.bervan.lowcode.LowCodeClass;
 import org.springframework.context.annotation.Profile;
 
-@Profile("!local")
+@Profile("production")
 public class NotLocalLowCodeGenerator implements LowCodeGenerator {
     @Override
     public void generate(LowCodeClass lowCodeClass) {
