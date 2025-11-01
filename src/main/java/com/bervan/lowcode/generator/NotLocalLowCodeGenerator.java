@@ -2,8 +2,10 @@ package com.bervan.lowcode.generator;
 
 import com.bervan.lowcode.LowCodeClass;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 @Profile("production")
+@Service
 public class NotLocalLowCodeGenerator implements LowCodeGenerator {
     @Override
     public void generate(LowCodeClass lowCodeClass) {
