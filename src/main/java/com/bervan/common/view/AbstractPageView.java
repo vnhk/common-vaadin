@@ -86,7 +86,7 @@ public abstract class AbstractPageView extends VerticalLayout {
         return actionButtons;
     }
 
-    public static Div getSearchForm(Component titleComponent, HorizontalLayout actionButtons, HorizontalLayout... formSearchSectionRows) {
+    public static Div /**/getSearchForm(Component titleComponent, HorizontalLayout actionButtons, HorizontalLayout... formSearchSectionRows) {
         VerticalLayout searchForm = new VerticalLayout();
         searchForm.addClassName("search-form");
         searchForm.setSpacing(true);
