@@ -118,7 +118,7 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
 
                     // Save the item
                     T existing = service.findById(updatedItem.getId()); // take item from db
-                    BeanUtils.copyProperties(updatedItem, existing, "id"); // copy updated values to existing item
+                    BeanUtils.copyProperties(updatedItem, existing, "id", "historyEntities"); // copy updated values to existing item
                     updatedItem = service.save(existing); // save existing (updated) item
                     //todo fix for DTOs it also doesn't work in prod, its not related to the new auto config
                     //new DTOMapper(bervanLogger, new ArrayList<>()).map(updatedItem); should be used
