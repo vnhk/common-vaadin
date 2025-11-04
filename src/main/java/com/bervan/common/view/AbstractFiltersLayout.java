@@ -119,8 +119,6 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     public SearchRequest buildCombinedFilters() {
-        removeFiltersButton.setVisible(true);
-
         SearchRequest request = stringQuerySearch();
         if (request != null) {
             return request;
@@ -207,7 +205,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 createCriteriaForDateLessEqual(field.getName().toUpperCase() + "_DATE_CRITERIA_GROUP", request, field, to);
             }
         }
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     private void createCriteriaTextFilters(SearchRequest request) {
         for (Field field : textFieldFiltersMap.keySet()) {
@@ -216,7 +214,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 createCriteriaForTextContaining(field.getName().toUpperCase() + "_TEXT_FIELD_GROUP", request, field, textField);
             }
         }
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     protected void createCriteriaForTextContaining(String groupId, SearchRequest request, Field field, BervanTextField textField) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LIKE_OPERATION, "%" + textField.getValue() + "%");

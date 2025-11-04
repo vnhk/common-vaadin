@@ -21,7 +21,6 @@ public record GridActionService<ID extends Serializable, T extends PersistableTa
     public void refreshData(List<T> data) {
         data.removeAll(data);
         data.addAll(loadData.apply(null));
-        grid.getDataProvider().refreshAll();
     }
 
     public Set<String> getSelectedItemsByCheckbox(List<Checkbox> checkboxes) {

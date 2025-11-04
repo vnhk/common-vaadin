@@ -19,6 +19,7 @@ import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -26,12 +27,14 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.ItemClickEvent;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
@@ -42,10 +45,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
@@ -58,6 +64,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             ImageColumnGridBuilder.getInstance(),
             TextColumnGridBuilder.getInstance()
     ));
+    protected final Div gridLoadingOverlay = new Div();
     protected final Button currentPage = new BervanButton(":)");
     protected final Button prevPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_LEFT));
     protected final Button nextPageButton = new BervanButton(new Icon(VaadinIcon.ARROW_RIGHT));
@@ -91,6 +98,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
         refreshData();
     });
+    protected ProgressBar gridProgressBar = new ProgressBar();
 
     public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig, Class<T> tClass) {
         super(pageLayout, service, bervanViewConfig, tClass);
@@ -98,6 +106,9 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         this.bervanLogger = bervanLogger;
         addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
+
+        gridProgressBar.setWidth("800px");
+        gridProgressBar.setIndeterminate(true);
     }
 
     public static void addColumnForGridBuilder(ColumnForGridBuilder columnGridBuilder) {
@@ -110,6 +121,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         columnGridBuilders.remove(columnGridBuilder);
     }
 
+    protected void showGridLoadingProgress(boolean show) {
+        gridProgressBar.setVisible(show);
+    }
+
     protected AbstractFiltersLayout<ID, T> buildFiltersLayout(Class<T> tClass) {
         return new AbstractFiltersLayout<>(tClass, applyFiltersButton, new DefaultFilterValuesContainer(new HashMap<>()), bervanViewConfig);
     }
@@ -120,9 +135,29 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected void refreshData() {
-        gridActionService.refreshData(data);
-    }
+        showGridLoadingProgress(true);
 
+        SecurityContext context = SecurityContextHolder.getContext();
+        UI current = UI.getCurrent();
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                SecurityContextHolder.setContext(context);
+                gridActionService.refreshData(data);
+                current.access(() -> {
+                    reloadItemsCountInfo();
+                    updateCurrentPageText();
+                    showGridLoadingProgress(false);
+                    grid.setItems(data);
+                    grid.getDataProvider().refreshAll();
+                    updateSelectedItemsLabel();
+                });
+
+            } catch (Exception e) {
+                log.error("Error while refreshing grid data", e);
+            }
+        });
+    }
 
     @Override
     public void renderCommonComponents() {
@@ -190,9 +225,11 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         countItemsInfo.addClassName("table-info-text");
 
+        gridLoadingOverlay.add(gridProgressBar);
+        gridLoadingOverlay.setHeight("20px");
         contentLayout.setSpacing(false);
         contentLayout.setPadding(false);
-        contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, grid, selectedItemsCountLabel, paginationBar, addButton);
+        contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay, grid, selectedItemsCountLabel, paginationBar, addButton);
 
         if (pageLayout != null) {
             add(pageLayout);
@@ -381,7 +418,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected List<T> loadData() {
         checkboxes.removeAll(checkboxes);
-        updateSelectedItemsLabel();
         try {
             SearchRequest request = filtersLayout.buildCombinedFilters();
 
@@ -406,16 +442,15 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             allFound = countAll(request, collect);
             maxPages = (int) Math.ceil((double) allFound / pageSize);
 
-            reloadItemsCountInfo();
-            updateCurrentPageText();
+//            reloadItemsCountInfo();
+//            updateCurrentPageText();
 
             return collect;
 
         } catch (Exception e) {
             log.error("Could not load table!", e);
-            showErrorNotification("Unable to load table!");
+            throw new RuntimeException(e);
         }
-        return new ArrayList<>();
     }
 
     protected void postSearchUpdate(List<T> collect) {
