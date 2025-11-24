@@ -1,5 +1,7 @@
 package com.bervan.common.component;
 
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 
@@ -36,6 +38,10 @@ public class BervanDatePicker extends HorizontalLayout implements AutoConfigurab
         datePicker.setRequired(isRequired);
         add(datePicker);
         initListener();
+    }
+
+    public void addValueChangeListener(HasValue.ValueChangeListener<? super AbstractField.ComponentValueChangeEvent<DatePicker, LocalDate>> eventChange) {
+        datePicker.addValueChangeListener(eventChange);
     }
 
     private void initListener() {
