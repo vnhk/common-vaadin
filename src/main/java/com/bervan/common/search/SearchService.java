@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.bervan.common.search.SearchRequest.FINAL_GROUP_CONSTANT;
 
@@ -33,15 +32,19 @@ public class SearchService {
     protected CriteriaBuilder criteriaBuilder;
 
     private Object getPrimitiveTypeValue(Object value, Field field) {
+        if (value == null) return null;
+
         String valueAsString = String.valueOf(value);
-        if (field.getAnnotatedType().getType().equals(Long.class)) {
+        if (field.getAnnotatedType().getType().equals(Long.class) || field.getAnnotatedType().getType().equals(long.class)) {
             value = Long.valueOf(valueAsString);
         } else if (field.getAnnotatedType().getType().equals(String.class)) {
             value = valueAsString;
-        } else if (field.getAnnotatedType().getType().equals(Integer.class)) {
+        } else if (field.getAnnotatedType().getType().equals(Integer.class) || field.getAnnotatedType().getType().equals(int.class)) {
             value = Integer.valueOf(valueAsString);
-        } else if (field.getAnnotatedType().getType().equals(Double.class)) {
+        } else if (field.getAnnotatedType().getType().equals(Double.class) || field.getAnnotatedType().getType().equals(double.class)) {
             value = Double.valueOf(valueAsString);
+        } else if (field.getAnnotatedType().getType().equals(Boolean.class) || field.getAnnotatedType().getType().equals(boolean.class)) {
+            value = Boolean.valueOf(valueAsString);
         }
         return value;
     }

@@ -13,7 +13,6 @@ import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
@@ -63,15 +62,15 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
             InputStream inputStream = buffer.getInputStream();
             try {
                 importData(inputStream, fileName);
-                Notification.show("File uploaded successfully: " + fileName);
+                showSuccessNotification("Data imported successfully: " + fileName);
             } catch (Exception e) {
                 logger.error("Failed to upload file: " + fileName, e);
-                Notification.show("Failed to upload file: " + fileName);
+                showErrorNotification("Failed to import data from file: " + fileName);
             }
         });
 
         upload.addFailedListener(event ->
-                Notification.show("Upload failed"));
+                showErrorNotification("Upload failed"));
 
         exportButton.addClickListener(buttonClickEvent -> {
             StreamResource resource = prepareDownloadResource();

@@ -187,6 +187,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
             logger.error("Unable to perform safeIfValid", e);
             throw new RuntimeException("Unable to perform safeIfValid");
         }
+        logger.info("Import successful!");
     }
 
     private void checkDifferencesAndUpdate(T inDbItem, T newItem) throws IllegalAccessException {
