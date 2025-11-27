@@ -2,8 +2,8 @@ package com.bervan.common.onevalue;
 
 import com.bervan.common.service.AuthService;
 import com.bervan.common.service.BaseOneValueService;
-import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.ExcelIEEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
 
@@ -12,15 +12,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class OneValueService implements BaseOneValueService<OneValue> {
     private final OneValueRepository repository;
     private final OneValueHistoryRepository historyRepository;
-    private final BervanLogger logger;
 
-    public OneValueService(OneValueRepository repository, OneValueHistoryRepository historyRepository, BervanLogger logger) {
+    public OneValueService(OneValueRepository repository, OneValueHistoryRepository historyRepository) {
         this.repository = repository;
         this.historyRepository = historyRepository;
-        this.logger = logger;
     }
 
     public void save(OneValue item) {
@@ -50,7 +49,7 @@ public class OneValueService implements BaseOneValueService<OneValue> {
                 .filter(e -> !names.contains(((OneValue) e).getName()))
                 .toList();
 
-        logger.debug("Filtered One Values to be imported: " + list.size());
+        log.debug("Filtered One Values to be imported: " + list.size());
         for (ExcelIEEntity excelIEEntity : list) {
             repository.save(((OneValue) excelIEEntity));
         }

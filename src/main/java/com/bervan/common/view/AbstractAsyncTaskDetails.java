@@ -7,25 +7,24 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.model.SearchOperation;
 import com.bervan.common.service.BaseService;
-import com.bervan.core.model.BervanLogger;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, AsyncTask> implements HasUrlParameter<String> {
     public static final String ROUTE_NAME = "/async/async-task";
     private final BaseService<UUID, HistoryAsyncTask> historyService;
-    private final BervanLogger logger;
 
-    public AbstractAsyncTaskDetails(BaseService<UUID, AsyncTask> service, BaseService<UUID, HistoryAsyncTask> historyService, BervanLogger logger, BervanViewConfig bervanViewConfig) {
+    public AbstractAsyncTaskDetails(BaseService<UUID, AsyncTask> service, BaseService<UUID, HistoryAsyncTask> historyService, BervanViewConfig bervanViewConfig) {
         super(new AsyncTaskLayout(ROUTE_NAME, true), service, bervanViewConfig, AsyncTask.class);
         this.historyService = historyService;
-        this.logger = logger;
     }
 
     @Override
@@ -36,7 +35,7 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
         addButton.setVisible(false);
         editButton.setVisible(false);
 
-        AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, logger, bervanViewConfig, HistoryAsyncTask.class) {
+        AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, bervanViewConfig, HistoryAsyncTask.class) {
             @Override
             protected void customizePreLoad(SearchRequest request) {
                 pageSize = 10000;

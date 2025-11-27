@@ -15,7 +15,6 @@ import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
-import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
@@ -92,18 +91,16 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     protected String globalTmpDir;
-    protected BervanLogger bervanLogger;
     protected GridActionService<ID, T> gridActionService;
+    protected ProgressBar gridProgressBar = new ProgressBar();
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
         refreshData();
     });
-    protected ProgressBar gridProgressBar = new ProgressBar();
 
-    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig, Class<T> tClass) {
+    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanViewConfig bervanViewConfig, Class<T> tClass) {
         super(pageLayout, service, bervanViewConfig, tClass);
         this.filtersLayout = buildFiltersLayout(tClass);
-        this.bervanLogger = bervanLogger;
         addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
 
@@ -374,9 +371,9 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected void buildToolbarActionBar() {
         tableToolbarActions = new BervanTableToolbar<>(gridActionService, checkboxes, data, tClass, bervanViewConfig, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange)
-                .withEditButton(service, bervanLogger)
+                .withEditButton(service)
                 .withDeleteButton()
-                .withExportButton(isExportable(), service, bervanLogger, pathToFileStorage, globalTmpDir)
+                .withExportButton(isExportable(), service, pathToFileStorage, globalTmpDir)
                 .build();
     }
 

@@ -6,6 +6,7 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import java.time.ZoneId;
 
 @Component
 @Profile("!test && !it && !debug")
+@Slf4j
 public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements SmartLifecycle {
 
     private final RabbitTemplate rabbitTemplate;
@@ -91,7 +93,7 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
 
         this.encoder = encoder;
         super.start();
-        Logger rootLogger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+        Logger rootLogger = loggerContext.getLogger(log.ROOT_LOGGER_NAME);
         AppenderDelegator<ILoggingEvent> delegate = (AppenderDelegator<ILoggingEvent>) rootLogger.getAppender("DELEGATOR");
         delegate.setDelegateAndReplayBuffer(this);
     }

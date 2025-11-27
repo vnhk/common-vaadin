@@ -9,7 +9,6 @@ import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
-import com.bervan.core.model.BervanLogger;
 import com.bervan.core.service.DTOMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -26,12 +25,10 @@ import java.util.*;
 
 @Slf4j
 public abstract class AbstractBervanTableDTOView<ID extends Serializable, T extends PersistableTableData<ID>, DTO extends BaseDTO<ID>> extends AbstractBervanTableView<ID, T> {
-    private BervanLogger bervanLogger;
     private Class<DTO> dtoClass;
 
-    public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, BervanLogger log, Class<T> tClass, Class<DTO> dtoClass, BervanViewConfig bervanViewConfig) {
-        super(pageLayout, service, log, bervanViewConfig, tClass);
-        this.bervanLogger = log;
+    public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, Class<T> tClass, Class<DTO> dtoClass, BervanViewConfig bervanViewConfig) {
+        super(pageLayout, service, bervanViewConfig, tClass);
         this.dtoClass = dtoClass;
     }
 
@@ -41,7 +38,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
             this.data.removeAll(this.data);
             List<T> loadedData = loadData();
             List<T> converted = new ArrayList<>();
-            DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
+            DTOMapper dtoMapper = new DTOMapper(new ArrayList<>());
             for (T d : loadedData) {
                 converted.add((T) dtoMapper.map(((BaseModel) d), dtoClass));
             }
@@ -71,7 +68,6 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
             ClassViewAutoConfigColumn classViewAutoConfigColumn = fieldConfig.get();
             field = vaadinTableField.get();
 
-            DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
             if (classViewAutoConfigColumn.isInEditForm()) {
                 AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
                 VerticalLayout layoutForField = new VerticalLayout();
@@ -155,7 +151,7 @@ public abstract class AbstractBervanTableDTOView<ID extends Serializable, T exte
     @Override
     protected T preSaveActions(T newItem) {
         try {
-            DTOMapper dtoMapper = new DTOMapper(bervanLogger, new ArrayList<>());
+            DTOMapper dtoMapper = new DTOMapper(new ArrayList<>());
             return (T) dtoMapper.map(((BaseDTO) newItem));
         } catch (Exception e) {
             throw new RuntimeException(e);

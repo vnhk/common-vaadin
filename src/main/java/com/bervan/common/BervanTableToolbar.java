@@ -7,7 +7,6 @@ import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
 import com.bervan.common.view.AbstractDataIEView;
 import com.bervan.common.view.AbstractPageView;
-import com.bervan.core.model.BervanLogger;
 import com.bervan.encryption.EncryptionService;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.vaadin.flow.component.AbstractField;
@@ -21,6 +20,7 @@ import com.vaadin.flow.component.html.Input;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class BervanTableToolbar<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final List<Checkbox> checkboxes;
     protected final List<T> data;
@@ -115,12 +116,12 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         return this;
     }
 
-    public BervanTableToolbar<ID, T> withExportButton(boolean isExportable, BaseService<ID, T> service, BervanLogger bervanLogger,
+    public BervanTableToolbar<ID, T> withExportButton(boolean isExportable, BaseService<ID, T> service,
                                                       String pathToFileStorageVal, String globalTmpDirVal) {
 
         checkboxExportButton = new BervanButton("Export", exportEvent -> {
             if (!isExportable) {
-                bervanLogger.error("Table is not exportable!");
+                log.error("Table is not exportable!");
                 return;
             }
 
@@ -132,7 +133,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
                     .filter(e -> itemsId.contains(e.getId().toString()))
                     .toList();
 
-            openExportDialog(toBeExported, service, bervanLogger, pathToFileStorageVal, globalTmpDirVal);
+            openExportDialog(toBeExported, service, pathToFileStorageVal, globalTmpDirVal);
         }, BervanButtonStyle.WARNING);
 
         checkboxExportButton.setVisible(isExportable);
@@ -140,7 +141,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         return this;
     }
 
-    public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service, BervanLogger bervanLogger) {
+    public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service) {
         editItemDialog = new EditItemDialog<>(componentHelper, service, bervanViewConfig);
 
         Dialog dialog = new Dialog();
@@ -148,7 +149,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         checkboxEditButton = new BervanButton("Edit", editButton -> {
             Set<String> itemsId = getSelectedItemsByCheckbox();
             if (itemsId.size() > 1) {
-                bervanLogger.error("Can't edit more than one item at a time!");
+                log.error("Can't edit more than one item at a time!");
                 showErrorNotification("Can't edit more than one item at a time!");
                 return;
             }
@@ -168,7 +169,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         return this;
     }
 
-    protected void openExportDialog(List<T> toBeExported, BaseService<ID, T> service, BervanLogger bervanLogger, String pathToFileStorageVal, String globalTmpDirVal) {
+    protected void openExportDialog(List<T> toBeExported, BaseService<ID, T> service, String pathToFileStorageVal, String globalTmpDirVal) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Export");
         dialog.setWidth("80vw");
@@ -184,7 +185,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
 
         dialog.add(new VerticalLayout(label, passwordField));
 
-        dialog.add(new AbstractDataIEView(service, null, bervanViewConfig, bervanLogger, tClass) {
+        dialog.add(new AbstractDataIEView(service, null, bervanViewConfig, tClass) {
             @Override
             protected void postConstruct() {
                 super.upload.setVisible(false);

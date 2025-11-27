@@ -12,8 +12,7 @@ import com.bervan.history.model.BaseRepository;
 import com.bervan.ieentities.ExcelIEEntity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.Entity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +22,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
+@Slf4j
 public abstract class BaseService<ID extends Serializable, T extends PersistableData<ID>> {
     protected final SearchService searchService;
-    private final Logger logger = LoggerFactory.getLogger(BaseService.class);
     private final Class<T> entityType;
     protected BaseRepository<T, ID> repository;
 
@@ -107,7 +106,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         Set<T> result = load(request, Pageable.ofSize(1));
 
         if (result.size() != 1) {
-            logger.error("Element not found by id, expected 1 found: {}", result.size());
+            log.error("Element not found by id, expected 1 found: {}", result.size());
             return Optional.empty();
         } else {
             return Optional.of(result.iterator().next());
@@ -163,7 +162,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
             List<? extends ExcelIEEntity<ID>> list = objects.stream()
                     .filter(e -> entityType.isInstance(e))
                     .toList();
-            logger.debug("Filtered values to be imported: " + list.size());
+            log.debug("Filtered values to be imported: " + list.size());
 
             for (ExcelIEEntity<ID> excelIEEntity : list) {
                 if (excelIEEntity.getId() != null) {
@@ -184,10 +183,10 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
                 }
             }
         } catch (Exception e) {
-            logger.error("Unable to perform safeIfValid", e);
+            log.error("Unable to perform safeIfValid", e);
             throw new RuntimeException("Unable to perform safeIfValid");
         }
-        logger.info("Import successful!");
+        log.info("Import successful!");
     }
 
     private void checkDifferencesAndUpdate(T inDbItem, T newItem) throws IllegalAccessException {

@@ -6,7 +6,6 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.AbstractBervanTableView;
-import com.bervan.core.model.BervanLogger;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -17,20 +16,17 @@ import java.util.UUID;
 public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder {
     private static LowCodeClassDetailsFieldBuilder INSTANCE;
     private final BervanViewConfig bervanViewConfig;
-    private final BervanLogger bervanLogger;
     private final LowCodeClassDetailsService lowCodeDetailsService;
 
-    private LowCodeClassDetailsFieldBuilder(BervanViewConfig bervanViewConfig, BervanLogger bervanLogger, LowCodeClassDetailsService lowCodeDetailsService) {
+    private LowCodeClassDetailsFieldBuilder(BervanViewConfig bervanViewConfig, LowCodeClassDetailsService lowCodeDetailsService) {
         this.bervanViewConfig = bervanViewConfig;
-        this.bervanLogger = bervanLogger;
         this.lowCodeDetailsService = lowCodeDetailsService;
     }
 
     public synchronized static LowCodeClassDetailsFieldBuilder getInstance(BervanViewConfig bervanViewConfig,
-                                                                           LowCodeClassDetailsService lowCodeDetailsService,
-                                                                           BervanLogger bervanLogger) {
+                                                                           LowCodeClassDetailsService lowCodeDetailsService) {
         if (INSTANCE == null) {
-            INSTANCE = new LowCodeClassDetailsFieldBuilder(bervanViewConfig, bervanLogger,
+            INSTANCE = new LowCodeClassDetailsFieldBuilder(bervanViewConfig,
                     lowCodeDetailsService);
         }
         return INSTANCE;
@@ -39,7 +35,7 @@ public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder
 
     @Override
     public AutoConfigurableField build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
-        LowCodeClassDetailsAutoConfigurableField lowCodeClassDetailsAutoConfigurableField = new LowCodeClassDetailsAutoConfigurableField((LowCodeClass) item, lowCodeDetailsService, bervanLogger, bervanViewConfig, LowCodeClassDetails.class);
+        LowCodeClassDetailsAutoConfigurableField lowCodeClassDetailsAutoConfigurableField = new LowCodeClassDetailsAutoConfigurableField((LowCodeClass) item, lowCodeDetailsService, bervanViewConfig, LowCodeClassDetails.class);
         lowCodeClassDetailsAutoConfigurableField.setValue(item == null ? null : ((LowCodeClass) item).getLowCodeClassDetails());
         return lowCodeClassDetailsAutoConfigurableField;
     }
@@ -56,8 +52,8 @@ public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder
     private class LowCodeClassDetailsAutoConfigurableField extends AbstractBervanTableView<UUID, LowCodeClassDetails> implements AutoConfigurableField<List<LowCodeClassDetails>> {
         LowCodeClass parent;
 
-        public LowCodeClassDetailsAutoConfigurableField(LowCodeClass parent, BaseService<UUID, LowCodeClassDetails> service, BervanLogger bervanLogger, BervanViewConfig bervanViewConfig, Class<LowCodeClassDetails> lowCodeClassDetailsClass) {
-            super(null, service, bervanLogger, bervanViewConfig, lowCodeClassDetailsClass);
+        public LowCodeClassDetailsAutoConfigurableField(LowCodeClass parent, BaseService<UUID, LowCodeClassDetails> service, BervanViewConfig bervanViewConfig, Class<LowCodeClassDetails> lowCodeClassDetailsClass) {
+            super(null, service, bervanViewConfig, lowCodeClassDetailsClass);
             this.parent = parent;
             pageSize = 10000;
             filtersLayout.setVisible(false);

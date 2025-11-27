@@ -7,7 +7,6 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
-import com.bervan.core.model.BervanLogger;
 import com.bervan.ieentities.BaseExcelExport;
 import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
@@ -16,6 +15,7 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -24,11 +24,11 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 public abstract class AbstractDataIEView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final BaseService<ID, T> dataService;
     protected final MenuNavigationComponent pageLayout;
     protected final BervanViewConfig bervanViewConfig;
-    protected final BervanLogger logger;
     protected final AbstractFiltersLayout<ID, T> filtersLayout;
     protected final Button exportButton = new BervanButton("Prepare data for export");
     private final Class<T> classToExport;
@@ -39,10 +39,8 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
     protected String globalTmpDir;
 
     public AbstractDataIEView(BaseService<ID, T> dataService,
-                              MenuNavigationComponent pageLayout, BervanViewConfig bervanViewConfig,
-                              BervanLogger logger, Class<T> classToExport) {
+                              MenuNavigationComponent pageLayout, BervanViewConfig bervanViewConfig, Class<T> classToExport) {
         this.bervanViewConfig = bervanViewConfig;
-        this.logger = logger;
         this.dataService = dataService;
         this.pageLayout = pageLayout;
         this.classToExport = classToExport;
@@ -64,7 +62,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
                 importData(inputStream, fileName);
                 showSuccessNotification("Data imported successfully: " + fileName);
             } catch (Exception e) {
-                logger.error("Failed to upload file: " + fileName, e);
+                log.error("Failed to upload file: " + fileName, e);
                 showErrorNotification("Failed to import data from file: " + fileName);
             }
         });
@@ -105,9 +103,9 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
             }
         }
 
-        BaseExcelImport baseExcelImport = new BaseExcelImport(Collections.singletonList(classToExport), logger);
+        BaseExcelImport baseExcelImport = new BaseExcelImport(Collections.singletonList(classToExport));
         List<? extends ExcelIEEntity<ID>> objects = (List<? extends ExcelIEEntity<ID>>) baseExcelImport.importExcel(baseExcelImport.load(file));
-        logger.debug("Extracted " + objects.size() + " entities from excel.");
+        log.debug("Extracted " + objects.size() + " entities from excel.");
         postDataLoad(objects);
 
         dataService.saveIfValid(objects);
@@ -121,7 +119,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
         try {
             BaseExcelExport baseExcelExport = new BaseExcelExport();
             List<ExcelIEEntity<?>> dataToExport = getDataToExport();
-            logger.info("Found " + dataToExport.size() + " to be exported!");
+            log.info("Found " + dataToExport.size() + " to be exported!");
             if (dataToExport.isEmpty()) {
                 showWarningNotification("No data to be exported!");
                 return null;
@@ -138,7 +136,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
                 }
             });
         } catch (Exception e) {
-            logger.error("Could not prepare export data.", e);
+            log.error("Could not prepare export data.", e);
             showErrorNotification("Could not prepare export data.");
         }
 
@@ -156,7 +154,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
                 }
             }
         } catch (OutOfMemoryError e) {
-            logger.error("To much data to be exported!", e);
+            log.error("To much data to be exported!", e);
             showErrorNotification("To much data to be exported!");
         }
 

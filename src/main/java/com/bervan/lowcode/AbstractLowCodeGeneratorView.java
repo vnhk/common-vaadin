@@ -4,7 +4,6 @@ import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.AbstractBervanTableView;
-import com.bervan.core.model.BervanLogger;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,11 +11,11 @@ import java.util.UUID;
 public class AbstractLowCodeGeneratorView extends AbstractBervanTableView<UUID, LowCodeClass> {
     public static final String ROUTE_NAME = "/lowcode-generator";
 
-    public AbstractLowCodeGeneratorView(BaseService<UUID, LowCodeClass> service, LowCodeClassDetailsService lowCodeClassDetailsService, BervanViewConfig bervanViewConfig, BervanLogger bervanLogger) {
-        super(null, service, bervanLogger, bervanViewConfig, LowCodeClass.class);
+    public AbstractLowCodeGeneratorView(BaseService<UUID, LowCodeClass> service, LowCodeClassDetailsService lowCodeClassDetailsService, BervanViewConfig bervanViewConfig) {
+        super(null, service, bervanViewConfig, LowCodeClass.class);
         this.componentHelper = new LowCodeComponentHelper();
         AbstractBervanTableView.addColumnForGridBuilder(LowCodeClassDetailsColumnBuilder.getInstance());
-        CommonComponentUtils.addComponentBuilder(LowCodeClassDetailsFieldBuilder.getInstance(bervanViewConfig, lowCodeClassDetailsService, bervanLogger));
+        CommonComponentUtils.addComponentBuilder(LowCodeClassDetailsFieldBuilder.getInstance(bervanViewConfig, lowCodeClassDetailsService));
         renderCommonComponents();
     }
 
@@ -25,7 +24,7 @@ public class AbstractLowCodeGeneratorView extends AbstractBervanTableView<UUID, 
         tableToolbarActions = new LowCodeGeneratorToolbar(gridActionService, checkboxes, data, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange, bervanViewConfig)
                 .withRunGenerator()
                 .withDeleteButton()
-                .withEditButton(service, bervanLogger)
+                .withEditButton(service)
                 .build();
     }
 

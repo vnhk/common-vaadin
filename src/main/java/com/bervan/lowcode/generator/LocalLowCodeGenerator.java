@@ -2,6 +2,7 @@ package com.bervan.lowcode.generator;
 
 import com.bervan.lowcode.LowCodeClass;
 import com.bervan.lowcode.LowCodeClassDetails;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -38,10 +39,51 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         createYmlAutoConfig(obj);
         createMainRepositoryClass(obj, path);
         createMainServiceClass(obj, path);
-//        createAbstractView(obj, path);
+        createAbstractView(obj, path);
 //        if (obj.getRouteName() != null && !obj.getRouteName().isEmpty()) {
 //            createView(obj);
 //        }
+    }
+
+    private void createAbstractView(LowCodeClass obj, String path) throws IOException {
+        String className = "Abstract" + obj.getClassName() + "View";
+        String javaFilePath = path + File.separator + className + ".java";
+        File javaFile = new File(javaFilePath);
+        if (!javaFile.exists()) {
+            javaFile.createNewFile(); // create the Java file if it doesn't exist
+        }
+
+        StringBuilder content = new StringBuilder();
+        content.append("package ").append(obj.getPackageName()).append(";\n\n");
+        content.append("""
+                import com.bervan.common.config.BervanViewConfig;
+                import com.bervan.common.service.BaseService;
+                import com.bervan.core.model.BervanLogger;
+                import com.bervan.common.view.AbstractBervanTableView;
+                import lombok.extern.slf4j.Slf4j;
+                
+                import java.util.UUID;
+                
+                """);
+        content.append("\n");
+        content.append("// Low-Code START\n");
+
+        content.append("@Slf4j");
+        content.append("public abstract class ").append(className)
+                .append(" extends AbstractBervanTableView<UUID, ").append(obj.getClassName()).append("> {\n");
+        content.append("    public static final String ROUTE_NAME = \"").append(obj.getRouteName()).append("\";\n\n");
+        content.append("    protected ").append(className).append("(BaseService<UUID,").append(obj.getClassName())
+                .append("> service, BervanViewConfig bervanViewConfig) {\n");
+        content.append("        super(layout, service, bervanViewConfig, ").append(className).append(".class);\n");
+        content.append("    }\n\n");
+        content.append("}\n");
+        content.append("// Low-Code END\n");
+
+        // Write content to the Java file
+        try (FileWriter writer = new FileWriter(javaFile)) {
+            writer.write(content.toString());
+        }
+
     }
 
     private void createYmlAutoConfig(LowCodeClass obj) {
@@ -136,6 +178,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
                 import com.bervan.common.service.BaseService;
                 import com.bervan.history.model.BaseRepository;
                 import org.springframework.stereotype.Service;
+                import lombok.extern.slf4j.Slf4j;
                 
                 import java.util.List;
                 import java.util.UUID;
@@ -144,6 +187,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("// Low-Code START\n");
         content.append("""
                 @Service
+                @Slf4j
                 """);
         content.append("public class ").append(obj.getClassName()).append("Service")
                 .append(" extends BaseService<UUID, ").append(obj.getClassName()).append("> {\n\n");
@@ -178,6 +222,9 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
                 import lombok.Getter;
                 import lombok.Setter;
                 """);
+        if (obj.getLowCodeClassDetails().stream().anyMatch(e -> e.getType().contains("BigDecimal"))) {
+            content.append("import java.math.BigDecimal;\n");
+        }
         content.append("\n");
         content.append("// Low-Code START\n");
         content.append("""
