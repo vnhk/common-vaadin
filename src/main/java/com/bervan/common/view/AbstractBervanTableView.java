@@ -619,8 +619,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     T save = save(newObject);
 
                     postSaveActions(save);
-
-                    refreshData();
                 } catch (Exception e) {
                     log.error("Could not save new item!", e);
                     showErrorNotification("Could not save new item!");
