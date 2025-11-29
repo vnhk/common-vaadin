@@ -18,6 +18,9 @@ public class PlaywrightService {
     private List<String> userAgents;
 
     public Page getPage(Playwright playwright, boolean headless) {
+        if (userAgents.isEmpty()) {
+            throw new RuntimeException("No user agents defined");
+        }
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
                 .setHeadless(headless)
                 .setArgs(Arrays.asList("--disable-blink-features=AutomationControlled",
