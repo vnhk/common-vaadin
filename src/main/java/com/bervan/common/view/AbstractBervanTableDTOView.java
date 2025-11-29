@@ -24,12 +24,14 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Slf4j
+@Deprecated
 public abstract class AbstractBervanTableDTOView<ID extends Serializable, T extends PersistableTableData<ID>, DTO extends BaseDTO<ID>> extends AbstractBervanTableView<ID, T> {
     private Class<DTO> dtoClass;
 
     public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, Class<T> tClass, Class<DTO> dtoClass, BervanViewConfig bervanViewConfig) {
         super(pageLayout, service, bervanViewConfig, tClass);
         this.dtoClass = dtoClass;
+        throw new RuntimeException("This class is deprecated. Please use AbstractBervanTableView instead!");
     }
 
     @Override

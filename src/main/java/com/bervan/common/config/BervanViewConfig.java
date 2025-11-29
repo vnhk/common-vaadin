@@ -18,6 +18,9 @@ public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoC
 
     public Set<String> getFieldNamesForSaveForm(Class<?> tClass) {
         Map<String, ClassViewAutoConfigColumn> stringClassViewAutoConfigColumnMap = get(tClass.getSimpleName());
+        if (stringClassViewAutoConfigColumnMap == null) {
+            return Set.of();
+        }
         return stringClassViewAutoConfigColumnMap.entrySet().stream()
                 .filter(e -> e.getValue().isInSaveForm())
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
