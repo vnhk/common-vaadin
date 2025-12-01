@@ -114,7 +114,11 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
     private String getVal(Map<String, Object> json, String key) {
         Object orDefault = json.getOrDefault(key, null);
         if (orDefault == null) return null;
-        return orDefault.toString().replace("?#?:?", "");
+        String replaced = orDefault.toString().replace("?#?:?", "");
+        if (replaced.isBlank()) {
+            return null;
+        }
+        return replaced;
     }
 
     @Override

@@ -43,16 +43,25 @@ public class BervanJsonLogViewer extends VerticalLayout implements AutoConfigura
         if (value == null) return;
 
         String formattedJson = tryFormatJson(value);
+
         if (formattedJson != null) {
+            String processed = formattedJson.replaceAll(
+                    "(\"msg\"\\s*:\\s*\"[^\"]*)\\n([^\"\n]*)",
+                    "$1<br>$2"
+            );
+
             add(new Html(
-                    "<pre class='json-log-viewer-pre'>" +
-                            formattedJson +
-                            "</pre>"
+                    "<div class='json-log-viewer-pre' " +
+                            "style='white-space: pre-wrap; word-break: break-word;'>" +
+                            processed +
+                            "</div>"
             ));
+
         } else {
             String html = value.replace("\n", "<br>");
             add(new Html(
-                    "<div class='json-log-viewer-text'>" +
+                    "<div class='json-log-viewer-text' " +
+                            "style='white-space: pre-wrap; word-break: break-word;'>" +
                             html +
                             "</div>"
             ));
@@ -81,7 +90,8 @@ public class BervanJsonLogViewer extends VerticalLayout implements AutoConfigura
     }
 
     @Override
-    public void validate() {}
+    public void validate() {
+    }
 
     @Override
     public boolean isInvalid() {
