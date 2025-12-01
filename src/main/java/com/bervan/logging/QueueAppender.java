@@ -49,11 +49,15 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
 
         Map<String, Object> json;
         String processName = null;
+        String className = null;
+        String method = null;
         String route = null;
         String packageName = null;
         try {
             json = objectMapper.readValue(decodedString, Map.class);
             packageName = json.getOrDefault("package", null).toString();
+            className = json.getOrDefault("class", null).toString();
+            method = json.getOrDefault("method", null).toString();
             Object ctx = json.getOrDefault(BaseProcessContext.CTX, null);
             if (ctx instanceof Map) {
                 processName = (String) ((Map) ctx).getOrDefault(BaseProcessContext.PROCESS_NAME, null);
@@ -74,8 +78,8 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
                             ZoneId.systemDefault()
                     ),
                     packageName,
-                    callerData.getClassName(),
-                    callerData.getMethodName(),
+                    className,
+                    method,
                     processName,
                     route,
                     callerData.getLineNumber(),

@@ -34,6 +34,7 @@ public class LogListener {
             entity.setClassName(logMessage.getClassName());
             entity.setLineNumber(logMessage.getLineNumber());
             entity.setMethodName(logMessage.getMethodName());
+            entity.setPackageName(logMessage.getPackageName());
             entity.setProcessName(logMessage.getProcessName());
             entity.setRoute(logMessage.getRoute());
             entity.setJson(logMessage.getJson());
