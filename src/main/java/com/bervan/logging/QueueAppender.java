@@ -55,9 +55,9 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
         String packageName = null;
         try {
             json = objectMapper.readValue(decodedString, Map.class);
-            packageName = json.getOrDefault("package", null).toString();
-            className = json.getOrDefault("class", null).toString();
-            method = json.getOrDefault("method", null).toString();
+            packageName = getVal(json, "packageName");
+            className = getVal(json, "class");
+            method = getVal(json, "method");
             Object ctx = json.getOrDefault(BaseProcessContext.CTX, null);
             if (ctx instanceof Map) {
                 processName = (String) ((Map) ctx).getOrDefault(BaseProcessContext.PROCESS_NAME, null);
@@ -109,6 +109,12 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
         } catch (Exception e) {
             addError("Failed to send log to RabbitMQ", e);
         }
+    }
+
+    private String getVal(Map<String, Object> json, String key) {
+        Object orDefault = json.getOrDefault(key, null);
+        if (orDefault == null) return null;
+        return orDefault.toString().replace("?#?:?", "");
     }
 
     @Override
