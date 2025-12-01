@@ -49,7 +49,6 @@ columns:
     required: false
     filterable: false
     fetchable: true
-    # add filterable logic to filter the json in the frontend
 
   - field: packageName
     displayName: "Package"
@@ -60,7 +59,6 @@ columns:
     required: false
     filterable: true
     fetchable: true
-    # add filterable logic to filter the json in the frontend
 
   - field: fullLog
     displayName: "Log"
@@ -70,3 +68,4 @@ columns:
     inTable: true
     required: false
     fetchable: false
+    extension: "JsonLogViewerColumn"

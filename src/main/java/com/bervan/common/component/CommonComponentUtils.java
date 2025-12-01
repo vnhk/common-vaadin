@@ -14,6 +14,7 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 public class CommonComponentUtils {
     public static final List<ComponentForFieldBuilder> componentBuilders = new ArrayList<>(Arrays.asList(
+            JsonLogFieldBuilder.getInstance(),
             IntegerListFieldBuilder.getInstance(),
             IntegerFieldBuilder.getInstance(),
             StringListFieldBuilder.getInstance(),

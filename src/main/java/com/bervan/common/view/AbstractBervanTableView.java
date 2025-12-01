@@ -5,10 +5,7 @@ import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
 import com.bervan.common.component.BervanComboBox;
-import com.bervan.common.component.table.builders.ColumnForGridBuilder;
-import com.bervan.common.component.table.builders.ImageColumnGridBuilder;
-import com.bervan.common.component.table.builders.LocalDateTimeBuilder;
-import com.bervan.common.component.table.builders.TextColumnGridBuilder;
+import com.bervan.common.component.table.builders.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
@@ -60,6 +57,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
     private static final List<ColumnForGridBuilder> columnGridBuilders = new ArrayList<>(Arrays.asList(
             LocalDateTimeBuilder.getInstance(),
+            JsonLogColumnGridBuilder.getInstance(),
             ImageColumnGridBuilder.getInstance(),
             TextColumnGridBuilder.getInstance()
     ));
