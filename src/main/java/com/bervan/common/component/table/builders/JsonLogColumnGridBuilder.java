@@ -6,6 +6,7 @@ import com.bervan.common.model.PersistableTableData;
 import com.bervan.logging.JsonLogger;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -54,7 +55,9 @@ public class JsonLogColumnGridBuilder implements ColumnForGridBuilder {
     private <ID extends Serializable, T extends PersistableTableData<ID>> SerializableBiConsumer<Span, T> jsonColumnUpdater(Field f) {
         return (span, record) -> {
             try {
+                span.removeAll();
                 span.setClassName("modern-cell-content");
+
                 f.setAccessible(true);
                 Object o = f.get(record);
                 f.setAccessible(false);
@@ -65,10 +68,10 @@ public class JsonLogColumnGridBuilder implements ColumnForGridBuilder {
                 }
 
                 String raw = o.toString().trim();
+
                 JsonNode json = tryParseJson(raw);
 
                 if (json == null) {
-                    // Not JSON → normal text
                     span.setText(raw);
                     return;
                 }
@@ -77,13 +80,38 @@ public class JsonLogColumnGridBuilder implements ColumnForGridBuilder {
                 String date = getJsonField(json, "date");
                 String msg = getJsonField(json, "msg");
 
-                String result = (level + " " + date + " " + msg).trim();
+                Div container = new Div();
+                container.getStyle().set("display", "inline-block");
+                container.getStyle().set("white-space", "normal");
 
-                span.setText(result);
+                Span levelSpan = new Span(level);
+                levelSpan.addClassName(getLevelClass(level));
+                levelSpan.getStyle().set("display", "inline-block");
+
+                // Message (multi-line)
+                Span msgSpan = new Span((date + " " + msg).trim());
+                msgSpan.getStyle().set("white-space", "pre-wrap");
+                msgSpan.getStyle().set("display", "inline");
+
+                container.add(levelSpan, new Span(" "), msgSpan);
+
+                span.add(container);
 
             } catch (Exception e) {
                 log.error("Could not create column in table!", e);
             }
+        };
+    }
+
+    private String getLevelClass(String level) {
+        if (level == null) return "log-level-default";
+
+        return switch (level.toUpperCase()) {
+            case "INFO" -> "log-level-info";
+            case "DEBUG" -> "log-level-debug";
+            case "WARN" -> "log-level-warn";
+            case "ERROR" -> "log-level-error";
+            default -> "log-level-default";
         };
     }
 
