@@ -21,6 +21,6 @@ public class LogMessage implements Serializable {
     private String methodName;
     private String processName;
     private String route;
-    private int lineNumber;
+    private Integer lineNumber;
     private String json;
 }

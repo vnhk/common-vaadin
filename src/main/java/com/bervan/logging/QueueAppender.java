@@ -53,11 +53,16 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
         String method = null;
         String route = null;
         String packageName = null;
+        Integer line = null;
         try {
             json = objectMapper.readValue(decodedString, Map.class);
-            packageName = getVal(json, "packageName");
+            packageName = getVal(json, "package");
             className = getVal(json, "class");
             method = getVal(json, "method");
+            String lineStr = getVal(json, "line");
+            if (lineStr != null) {
+                line = Integer.parseInt(lineStr);
+            }
             Object ctx = json.getOrDefault(BaseProcessContext.CTX, null);
             if (ctx instanceof Map) {
                 processName = (String) ((Map) ctx).getOrDefault(BaseProcessContext.PROCESS_NAME, null);
@@ -68,7 +73,6 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
 
         LogMessage logMessage;
         if (eventObject.getCallerData() != null && eventObject.getCallerData().length > 0) {
-            StackTraceElement callerData = eventObject.getCallerData()[0];
             logMessage = new LogMessage(
                     applicationName,
                     eventObject.getLevel().toString(),
@@ -82,7 +86,7 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
                     method,
                     processName,
                     route,
-                    callerData.getLineNumber(),
+                    line,
                     decodedString
             );
         } else {
@@ -99,7 +103,7 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
                     null,
                     processName,
                     route,
-                    -1,
+                    null,
                     decodedString
             );
         }
