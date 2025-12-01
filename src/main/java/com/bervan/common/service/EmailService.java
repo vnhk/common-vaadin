@@ -1,7 +1,7 @@
 package com.bervan.common.service;
 
+import com.bervan.logging.JsonLogger;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -11,10 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class EmailService {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
 
     @Value("${email-service-api-key}")
     private String API_KEY;

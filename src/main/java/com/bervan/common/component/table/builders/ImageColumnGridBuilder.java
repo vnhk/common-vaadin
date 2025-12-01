@@ -3,21 +3,21 @@ package com.bervan.common.component.table.builders;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.model.VaadinImageBervanColumn;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
-@Slf4j
 public class ImageColumnGridBuilder implements ColumnForGridBuilder {
     private static final ImageColumnGridBuilder INSTANCE = new ImageColumnGridBuilder();
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
 
     private ImageColumnGridBuilder() {
 

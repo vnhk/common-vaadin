@@ -3,7 +3,7 @@ package com.bervan.common.onevalue;
 import com.bervan.common.service.AuthService;
 import com.bervan.common.service.BaseOneValueService;
 import com.bervan.ieentities.ExcelIEEntity;
-import lombok.extern.slf4j.Slf4j;
+import com.bervan.logging.JsonLogger;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class OneValueService implements BaseOneValueService<OneValue> {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private final OneValueRepository repository;
     private final OneValueHistoryRepository historyRepository;
 

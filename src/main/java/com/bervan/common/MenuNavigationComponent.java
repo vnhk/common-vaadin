@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,7 +16,8 @@ import java.util.Map;
 public abstract class MenuNavigationComponent extends VerticalLayout {
     protected final Map<String, Button> buttons = new HashMap<>();
     protected MenuButtonsRow menuButtonsRow = new MenuButtonsRow();
-    protected String CURRENT_ROUTE_NAME;
+    @Getter
+    protected String currentRouteName;
     protected String[] notVisibleButtonsRoutes;
 
     public MenuNavigationComponent(String currentRouteName) {
@@ -29,7 +31,7 @@ public abstract class MenuNavigationComponent extends VerticalLayout {
 
     private void init(String currentRouteName) {
         menuButtonsRow.addClassName("menu-container");
-        CURRENT_ROUTE_NAME = currentRouteName;
+        this.currentRouteName = currentRouteName;
         setWidth("0px");
         setHeight("0px");
         UI.getCurrent().getPage().executeJs("document.querySelectorAll('navigation-buttons').forEach(el => el.remove());");
@@ -49,7 +51,7 @@ public abstract class MenuNavigationComponent extends VerticalLayout {
             button.addClassName("navigation-button");
             buttons.put(routeName, button);
 
-            if (routeName.equals(CURRENT_ROUTE_NAME)) {
+            if (routeName.equals(currentRouteName)) {
                 button.addClassName("selected-route-button");
             } else {
                 button.addClickListener(buttonClickEvent ->

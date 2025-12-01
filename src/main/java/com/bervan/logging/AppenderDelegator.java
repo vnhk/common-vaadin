@@ -2,13 +2,19 @@ package com.bervan.logging;
 
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
+import ch.qos.logback.core.encoder.Encoder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
+@Setter
+@Getter
 public class AppenderDelegator<E> extends UnsynchronizedAppenderBase<E> {
 
     private final ArrayList<E> logBuffer = new ArrayList<>(1024);
     private Appender<E> delegate;
+    private Encoder<E> encoder;
 
     @Override
     protected void append(E event) {

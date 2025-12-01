@@ -16,39 +16,11 @@ public class LogMessage implements Serializable {
     private String logLevel;
     private String message;
     private LocalDateTime timestamp;
+    private String packageName;
     private String className;
     private String methodName;
+    private String processName;
+    private String route;
     private int lineNumber;
-
-    public String getApplicationName() {
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
-    }
-
-    public String getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(String logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
+    private String json;
 }

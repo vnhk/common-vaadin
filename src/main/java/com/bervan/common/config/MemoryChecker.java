@@ -1,14 +1,11 @@
 package com.bervan.common.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import com.bervan.logging.JsonLogger;
 
-//@Service
-@Slf4j
 public class MemoryChecker {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
 
-//    @Scheduled(cron = "0 */5 * * * *")
+    //    @Scheduled(cron = "0 */5 * * * *")
     public void checkMemory() {
         Runtime runtime = Runtime.getRuntime();
         long totalMemory = runtime.totalMemory();

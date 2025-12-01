@@ -3,7 +3,7 @@ package com.bervan.common.service;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
 import com.bervan.common.user.UserToUserRelation;
-import lombok.extern.slf4j.Slf4j;
+import com.bervan.logging.JsonLogger;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class AuthService {
+    private final static JsonLogger log = JsonLogger.getLogger(AuthService.class);
 
     public static UUID getLoggedUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

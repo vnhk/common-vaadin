@@ -3,6 +3,7 @@ package com.bervan.lowcode;
 import com.bervan.common.component.table.builders.ColumnForGridBuilder;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
@@ -10,15 +11,13 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
-@Slf4j
 public class LowCodeClassDetailsColumnBuilder implements ColumnForGridBuilder {
-
     private static final LowCodeClassDetailsColumnBuilder INSTANCE = new LowCodeClassDetailsColumnBuilder();
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
 
     private LowCodeClassDetailsColumnBuilder() {
 

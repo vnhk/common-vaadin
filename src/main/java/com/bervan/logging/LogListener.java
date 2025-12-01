@@ -34,6 +34,9 @@ public class LogListener {
             entity.setClassName(logMessage.getClassName());
             entity.setLineNumber(logMessage.getLineNumber());
             entity.setMethodName(logMessage.getMethodName());
+            entity.setProcessName(logMessage.getProcessName());
+            entity.setRoute(logMessage.getRoute());
+            entity.setJson(logMessage.getJson());
 
             if (entity.getMessage().length() > MAX_LOG_MESSAGE_LENGTH) {
                 entity.setMessage(truncateLogMessage(entity.getMessage()));

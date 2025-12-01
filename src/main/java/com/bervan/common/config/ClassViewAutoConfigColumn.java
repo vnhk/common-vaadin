@@ -18,6 +18,8 @@ public class ClassViewAutoConfigColumn {
     private boolean wysiwyg;
     private boolean inEditForm;
     private boolean inTable;
+    private boolean fetchable = true;
+    private boolean filterable = true;
     private String extension;
     private Object defaultValue;
     private boolean required;

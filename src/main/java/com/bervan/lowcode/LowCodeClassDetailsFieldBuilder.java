@@ -6,15 +6,15 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.AbstractBervanTableView;
-import lombok.extern.slf4j.Slf4j;
+import com.bervan.logging.JsonLogger;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
 public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder {
     private static LowCodeClassDetailsFieldBuilder INSTANCE;
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private final BervanViewConfig bervanViewConfig;
     private final LowCodeClassDetailsService lowCodeDetailsService;
 

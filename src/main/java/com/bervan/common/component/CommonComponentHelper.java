@@ -13,8 +13,9 @@ import java.util.*;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
-@Slf4j
+import com.bervan.logging.JsonLogger;
 public class CommonComponentHelper<ID extends Serializable, T extends PersistableData<ID>> implements ComponentHelper<ID, T> {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     protected final Class<T> tClass;
     protected final Map<String, List<String>> dynamicMultiDropdownAllValues = new HashMap<>();
     protected final Map<String, List<String>> dynamicDropdownAllValues = new HashMap<>();
