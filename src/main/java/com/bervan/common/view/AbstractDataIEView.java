@@ -10,12 +10,12 @@ import com.bervan.common.service.BaseService;
 import com.bervan.ieentities.BaseExcelExport;
 import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -24,13 +24,13 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Slf4j
 public abstract class AbstractDataIEView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final BaseService<ID, T> dataService;
     protected final MenuNavigationComponent pageLayout;
     protected final BervanViewConfig bervanViewConfig;
     protected final AbstractFiltersLayout<ID, T> filtersLayout;
     protected final Button exportButton = new BervanButton("Prepare data for export");
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private final Class<T> classToExport;
     protected Upload upload;
     @Value("${file.service.storage.folder}")

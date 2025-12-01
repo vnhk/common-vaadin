@@ -4,6 +4,7 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.AbstractPageView;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -11,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
@@ -19,10 +19,10 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 
-@Slf4j
 public class EditItemDialog<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
     protected final ComponentHelper<ID, T> componentHelper;
     protected final BaseService<ID, T> service;
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private final BervanViewConfig bervanViewConfig;
     @Setter
     private Function<T, T> customizeSavingInEditFormFunction = t -> t;

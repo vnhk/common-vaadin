@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -15,10 +16,10 @@ import java.time.format.DateTimeFormatter;
         name = "logs",
         indexes = {
                 @Index(name = "idx_application_name", columnList = "applicationName"),
-                @Index(name = "idx_line_number", columnList = "lineNumber"),
                 @Index(name = "idx_log_level", columnList = "logLevel"),
                 @Index(name = "idx_class_name", columnList = "className"),
                 @Index(name = "idx_method_name", columnList = "methodName"),
+                @Index(name = "idx_process_name", columnList = "processName"),
                 @Index(name = "idx_timestamp", columnList = "timestamp")
         }
 )
@@ -37,11 +38,19 @@ public class LogEntity extends BervanBaseEntity<Long> implements PersistableTabl
     private String logLevel;
     private String className;
     private String methodName;
+    private String processName;
+    private String packageName;
+    private String route;
     private LocalDateTime timestamp;
 
     @Size(max = MAX_LOG_MESSAGE_LENGTH)
     @Column(columnDefinition = "MEDIUMTEXT")
     private String message;
+
+    @Lob
+    @Size(max = 5000000)
+    @Column(columnDefinition = "LONGTEXT")
+    private String json;
 
     @Transient
     private String fullLog;
@@ -50,6 +59,9 @@ public class LogEntity extends BervanBaseEntity<Long> implements PersistableTabl
     }
 
     public String getFullLog() {
+        if (json != null && !json.isEmpty()) {
+            return json;
+        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss:SSS");
         return String.format("%s %s:%s:%d - %s", timestamp.format(formatter), className, methodName, lineNumber, message);
     }

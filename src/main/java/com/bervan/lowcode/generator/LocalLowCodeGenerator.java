@@ -2,7 +2,6 @@ package com.bervan.lowcode.generator;
 
 import com.bervan.lowcode.LowCodeClass;
 import com.bervan.lowcode.LowCodeClassDetails;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -60,18 +59,17 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
                 import com.bervan.common.service.BaseService;
                 import com.bervan.core.model.BervanLogger;
                 import com.bervan.common.view.AbstractBervanTableView;
-                import lombok.extern.slf4j.Slf4j;
-                
+                import com.bervan.logging.JsonLogger;
                 import java.util.UUID;
                 
                 """);
         content.append("\n");
         content.append("// Low-Code START\n");
 
-        content.append("@Slf4j");
         content.append("public abstract class ").append(className)
                 .append(" extends AbstractBervanTableView<UUID, ").append(obj.getClassName()).append("> {\n");
         content.append("    public static final String ROUTE_NAME = \"").append(obj.getRouteName()).append("\";\n\n");
+        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass());");
         content.append("    protected ").append(className).append("(BaseService<UUID,").append(obj.getClassName())
                 .append("> service, BervanViewConfig bervanViewConfig) {\n");
         content.append("        super(layout, service, bervanViewConfig, ").append(className).append(".class);\n");
@@ -178,19 +176,17 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
                 import com.bervan.common.service.BaseService;
                 import com.bervan.history.model.BaseRepository;
                 import org.springframework.stereotype.Service;
-                import lombok.extern.slf4j.Slf4j;
+                import com.bervan.logging.JsonLogger;
                 
                 import java.util.List;
                 import java.util.UUID;
                 """);
         content.append("\n");
         content.append("// Low-Code START\n");
-        content.append("""
-                @Service
-                @Slf4j
-                """);
+        content.append("@Service\n");
         content.append("public class ").append(obj.getClassName()).append("Service")
                 .append(" extends BaseService<UUID, ").append(obj.getClassName()).append("> {\n\n");
+        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass());");
         content.append("    public ").append(obj.getClassName()).append("Service(BaseRepository<").append(obj.getClassName()).append(", UUID> repository, SearchService searchService) {\n");
         content.append("        super(repository, searchService);\n");
         content.append("    }\n\n");

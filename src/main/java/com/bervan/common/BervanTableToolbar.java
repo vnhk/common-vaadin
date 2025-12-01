@@ -9,6 +9,7 @@ import com.bervan.common.view.AbstractDataIEView;
 import com.bervan.common.view.AbstractPageView;
 import com.bervan.encryption.EncryptionService;
 import com.bervan.ieentities.ExcelIEEntity;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -20,7 +21,6 @@ import com.vaadin.flow.component.html.Input;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,13 +29,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
 public class BervanTableToolbar<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
     protected final List<Checkbox> checkboxes;
     protected final List<T> data;
     protected final Class<?> tClass;
     protected final BervanViewConfig bervanViewConfig;
     protected final GridActionService<ID, T> gridActionService;
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     protected Checkbox selectAllCheckbox;
     protected Button checkboxDeleteButton;
     protected Button checkboxExportButton;

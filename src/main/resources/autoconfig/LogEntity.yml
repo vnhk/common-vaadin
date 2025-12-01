@@ -4,9 +4,9 @@ columns:
     internalName: "level"
     inSaveForm: false
     inEditForm: false
-    inTable: true
+    inTable: false
     required: false
-    strValues: ["DEBUG", "INFO", "WARN", "ERROR"]
+    strValues: [ "DEBUG", "INFO", "WARN", "ERROR" ]
 
   - field: timestamp
     displayName: "Timestamp"
@@ -16,6 +16,50 @@ columns:
     inTable: false
     required: false
 
+  - field: class
+    displayName: "Class"
+    internalName: "class"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+
+  - field: message
+    displayName: "Message"
+    internalName: "message"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+
+  - field: processName
+    displayName: "Process Name"
+    internalName: "processName"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+
+  - field: json
+    displayName: "JSON"
+    internalName: "json"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+    filterable: false
+    fetchable: true
+
+  - field: packageName
+    displayName: "Package"
+    internalName: "package"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+    filterable: true
+    fetchable: true
+
   - field: fullLog
     displayName: "Log"
     internalName: "log"
@@ -23,3 +67,5 @@ columns:
     inEditForm: false
     inTable: true
     required: false
+    fetchable: false
+    extension: "JsonLogViewerColumn"

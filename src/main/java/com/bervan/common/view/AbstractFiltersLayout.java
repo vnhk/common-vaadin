@@ -47,7 +47,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Class<T> tClass;
     protected final TextField allFieldsTextSearch;
     protected final TextField stringQuerySearch;
-    protected final Set<String> filterableFields = new HashSet<>();
+    protected final Set<String> filterableTextFields = new HashSet<>();
     protected final Div searchForm;
     protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected HorizontalLayout autoFiltersRow;
@@ -58,8 +58,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         this.defaultFilterValuesContainer = defaultFilterValuesContainer;
         this.bervanViewConfig = bervanViewConfig;
 
-        List<Field> vaadinTableColumns = getVaadinTableColumns();
-        filterableFields.addAll(getFilterableFields(vaadinTableColumns)); //later configure in each class example @VaadinColumn filterable=true
+        filterableTextFields.addAll(getFilterableTextFields());
 
         allFieldsTextSearch = getFilter();
         stringQuerySearch = getFilter();
@@ -105,11 +104,11 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     public void addFilterableFields(String fieldName) {
-        filterableFields.add(fieldName);
+        filterableTextFields.add(fieldName);
     }
 
     public void removeFilterableFields(String fieldName) {
-        filterableFields.remove(fieldName);
+        filterableTextFields.remove(fieldName);
     }
 
     protected void reverseFilters() {
@@ -136,7 +135,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     private void createCriteriaForTextInputs(SearchRequest request) {
-        for (String filterableField : filterableFields) {
+        for (String filterableField : filterableTextFields) {
             String value = allFieldsTextSearch.getValue();
             if (!value.isBlank()) {
                 request.addCriterion("TEXT_FILTER_GROUP", Operator.OR_OPERATOR, tClass, filterableField, SearchOperation.LIKE_OPERATION, "%" + value + "%");
@@ -214,7 +213,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 createCriteriaForTextContaining(field.getName().toUpperCase() + "_TEXT_FIELD_GROUP", request, field, textField);
             }
         }
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     protected void createCriteriaForTextContaining(String groupId, SearchRequest request, Field field, BervanTextField textField) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LIKE_OPERATION, "%" + textField.getValue() + "%");
@@ -260,7 +259,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 createCriteriaBigDecimalLessOrEqual(field.getName().toUpperCase() + "_BIG_DECIMAL_FIELD_GROUP", request, field, bervanFieldTo);
             }
         }
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     protected void createCriteriaBigDecimalGreaterOrEqual(String groupId, SearchRequest request, Field field, BervanBigDecimalField bervanField) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, bervanField.getValue());
@@ -302,10 +301,8 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.LESS_EQUAL_OPERATION, date.getValue());
     }
 
-    protected List<String> getFilterableFields(List<Field> vaadinTableColumns) {
-        return new ArrayList<>(vaadinTableColumns.stream().filter(e -> e.getType().equals(String.class))
-                .map(Field::getName)
-                .toList());
+    protected Set<String> getFilterableTextFields() {
+        return bervanViewConfig.getFilterableFieldNames(tClass, String.class);
     }
 
     public void removeFilters() {

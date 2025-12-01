@@ -27,8 +27,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
-@Slf4j
+import com.bervan.logging.JsonLogger;
 public abstract class AbstractBervanEntityView<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     protected final List<T> data = new LinkedList<>();
     protected final BaseService<ID, T> service;
     protected final VerticalLayout contentLayout = new VerticalLayout();
@@ -242,6 +243,13 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
 
     protected List<Field> getVaadinTableFields() {
         Set<String> fieldNames = bervanViewConfig.getFieldNames(tClass);
+        return Arrays.stream(tClass.getDeclaredFields())
+                .filter(e -> fieldNames.contains(e.getName()))
+                .toList();
+    }
+
+    protected List<Field> getFetchableVaadinTableFields() {
+        Set<String> fieldNames = bervanViewConfig.getFetchableFieldNames(tClass);
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> fieldNames.contains(e.getName()))
                 .toList();

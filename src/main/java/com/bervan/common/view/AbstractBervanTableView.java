@@ -5,10 +5,7 @@ import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
 import com.bervan.common.component.BervanComboBox;
-import com.bervan.common.component.table.builders.ColumnForGridBuilder;
-import com.bervan.common.component.table.builders.ImageColumnGridBuilder;
-import com.bervan.common.component.table.builders.LocalDateTimeBuilder;
-import com.bervan.common.component.table.builders.TextColumnGridBuilder;
+import com.bervan.common.component.table.builders.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
@@ -16,6 +13,8 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
 import com.bervan.ieentities.ExcelIEEntity;
+import com.bervan.logging.BaseProcessContext;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -39,7 +38,6 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -55,11 +53,11 @@ import java.util.stream.Collectors;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
-@Slf4j
 public abstract class AbstractBervanTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractBervanEntityView<ID, T> implements AfterNavigationObserver {
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
     private static final List<ColumnForGridBuilder> columnGridBuilders = new ArrayList<>(Arrays.asList(
             LocalDateTimeBuilder.getInstance(),
+            JsonLogColumnGridBuilder.getInstance(),
             ImageColumnGridBuilder.getInstance(),
             TextColumnGridBuilder.getInstance()
     ));
@@ -72,6 +70,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected final List<Checkbox> checkboxes = new ArrayList<>();
     protected final List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
     protected final Set<String> currentlySortedColumns = new HashSet<>();
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     protected int pageNumber = 0;
     protected int maxPages = 0;
     protected long allFound = 0;
@@ -93,6 +92,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected String globalTmpDir;
     protected GridActionService<ID, T> gridActionService;
     protected ProgressBar gridProgressBar = new ProgressBar();
+    protected String processName;
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
         refreshData();
@@ -151,9 +151,17 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                 });
 
             } catch (Exception e) {
-                log.error("Error while refreshing grid data", e);
+                log.error(buildContext(), "Error while refreshing grid data", e);
             }
         });
+    }
+
+    private Map.Entry<String, Map<String, Object>> buildContext() {
+        BaseProcessContext baseProcessContext = BaseProcessContext.builder()
+                .processName(processName)
+                .route(pageLayout.getCurrentRouteName())
+                .build();
+        return baseProcessContext.map();
     }
 
     @Override
@@ -355,7 +363,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                 });
                 checkboxes.add(checkbox);
             } catch (Exception e) {
-                log.error("Could not create checkbox column in table!", e);
+                log.error(buildContext(), "Could not create checkbox column in table!", e);
                 showErrorNotification("Could not checkbox create column in table!");
             }
         };
@@ -445,7 +453,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             return collect;
 
         } catch (Exception e) {
-            log.error("Could not load table!", e);
+            log.error(buildContext(), "Could not load table!", e);
             throw new RuntimeException(e);
         }
     }
@@ -456,11 +464,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected List<String> getFieldsToFetchForTable() {
         List<String> result = new ArrayList<>();
-        for (Field vaadinTableColumn : getVaadinTableFields()) {
+        for (Field vaadinTableColumn : getFetchableVaadinTableFields()) {
             if (Collection.class.isAssignableFrom(vaadinTableColumn.getType()) ||
                     Map.class.isAssignableFrom(vaadinTableColumn.getType())) {
                 continue;
             }
+
             result.add(vaadinTableColumn.getName());
         }
         result.add("id");
@@ -620,7 +629,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
                     postSaveActions(save);
                 } catch (Exception e) {
-                    log.error("Could not save new item!", e);
+                    log.error(buildContext(), "Could not save new item!", e);
                     showErrorNotification("Could not save new item!");
                 }
                 dialog.close();
@@ -628,7 +637,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
             dialogLayout.add(headerLayout, formLayout, buttonsLayout);
         } catch (Exception e) {
-            log.error("Error during using creation modal. Check columns name or create custom modal!", e);
+            log.error(buildContext(), "Error during using creation modal. Check columns name or create custom modal!", e);
             showErrorNotification("Error during using creation modal. Check columns name or create custom modal!");
         }
     }

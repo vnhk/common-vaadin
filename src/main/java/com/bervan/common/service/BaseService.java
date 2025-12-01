@@ -10,9 +10,9 @@ import com.bervan.common.search.model.SearchResponse;
 import com.bervan.common.search.model.SortDirection;
 import com.bervan.history.model.BaseRepository;
 import com.bervan.ieentities.ExcelIEEntity;
+import com.bervan.logging.JsonLogger;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.Entity;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +22,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 
-@Slf4j
 public abstract class BaseService<ID extends Serializable, T extends PersistableData<ID>> {
     protected final SearchService searchService;
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private final Class<T> entityType;
     protected BaseRepository<T, ID> repository;
 

@@ -3,19 +3,18 @@ package com.bervan.common.component;
 import com.bervan.common.component.builders.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
-@Slf4j
 public class CommonComponentUtils {
-
     public static final List<ComponentForFieldBuilder> componentBuilders = new ArrayList<>(Arrays.asList(
+            JsonLogFieldBuilder.getInstance(),
             IntegerListFieldBuilder.getInstance(),
             IntegerFieldBuilder.getInstance(),
             StringListFieldBuilder.getInstance(),
@@ -29,6 +28,7 @@ public class CommonComponentUtils {
             ImageFieldBuilder.getInstance(),
             NotSupportedFieldBuilder.getInstance()
     ));
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
 
     private CommonComponentUtils() {
 

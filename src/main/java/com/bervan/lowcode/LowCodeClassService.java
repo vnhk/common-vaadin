@@ -3,16 +3,16 @@ package com.bervan.lowcode;
 import com.bervan.common.search.SearchService;
 import com.bervan.common.service.BaseService;
 import com.bervan.history.model.BaseRepository;
+import com.bervan.logging.JsonLogger;
 import com.bervan.lowcode.generator.LowCodeGenerator;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
-@Slf4j
 public class LowCodeClassService extends BaseService<UUID, LowCodeClass> {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private final LowCodeGenerator lowCodeGenerator;
     private final LowCodeClassDetailsService lowCodeClassDetailsService;
 

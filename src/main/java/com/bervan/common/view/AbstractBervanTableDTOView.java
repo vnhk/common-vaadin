@@ -10,22 +10,22 @@ import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
 import com.bervan.core.service.DTOMapper;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import lombok.extern.slf4j.Slf4j;
 import org.vaadin.olli.ClipboardHelper;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 
-@Slf4j
 @Deprecated
 public abstract class AbstractBervanTableDTOView<ID extends Serializable, T extends PersistableTableData<ID>, DTO extends BaseDTO<ID>> extends AbstractBervanTableView<ID, T> {
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
     private Class<DTO> dtoClass;
 
     public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, Class<T> tClass, Class<DTO> dtoClass, BervanViewConfig bervanViewConfig) {

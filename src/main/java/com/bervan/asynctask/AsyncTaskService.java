@@ -8,8 +8,8 @@ import com.bervan.common.service.AuthService;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.user.User;
 import com.bervan.history.model.BaseRepository;
+import com.bervan.logging.JsonLogger;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +20,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
-@Slf4j
 public class AsyncTaskService extends BaseService<UUID, AsyncTask> {
     private static AsyncTaskService instance;
+    private final JsonLogger log = JsonLogger.getLogger(getClass());
 
     protected AsyncTaskService(BaseRepository<AsyncTask, UUID> repository, SearchService searchService) {
         super(repository, searchService);
