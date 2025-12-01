@@ -1,5 +1,6 @@
 package com.bervan.common;
 
+import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.BervanHistoryEntity;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
@@ -10,6 +11,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
@@ -87,10 +89,16 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     @Override
     protected void historyPreHistorySave(AbstractBaseHistoryEntity<ID> history) {
         BervanHistoryEntity entity = (BervanHistoryEntity) history;
+        BervanBaseEntity<ID> ownerEntity = (BervanBaseEntity<ID>) history.getEntity();
 
         if (entity.getOwners() == null || entity.getOwners().size() == 0) {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            entity.addOwner(user);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null && entity.getOwners() != null && entity.getOwners().size() == 1) {
+                entity.addOwner(ownerEntity.getOwners().iterator().next());
+            } else {
+                User user = (User) authentication.getPrincipal();
+                entity.addOwner(user);
+            }
         }
 
         if (entity.getId() == null) {
