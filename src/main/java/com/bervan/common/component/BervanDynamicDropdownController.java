@@ -1,5 +1,7 @@
 package com.bervan.common.component;
 
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -17,6 +19,7 @@ public class BervanDynamicDropdownController extends VerticalLayout implements A
         comboBox.setRequiredIndicatorVisible(isRequired);
         comboBox.setRequired(isRequired);
         setSpacing(false);
+        setPadding(false);
         setValue(initialValue);
 
         add(comboBox);
@@ -34,15 +37,24 @@ public class BervanDynamicDropdownController extends VerticalLayout implements A
     }
 
     @Override
+    public void setWidth(String width) {
+        comboBox.setWidth(width);
+    }
+
+    @Override
     public void setWidthFull() {
         comboBox.setWidthFull();
         super.setWidthFull();
     }
 
     private void initListener() {
-        comboBox.addValueChangeListener(event -> {
+        addValueChangeListener(event -> {
             validate();
         });
+    }
+
+    public void addValueChangeListener(HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<String>, String>> componentValueChangeEventValueChangeListener) {
+        comboBox.addValueChangeListener(componentValueChangeEventValueChangeListener);
     }
 
     @Override
