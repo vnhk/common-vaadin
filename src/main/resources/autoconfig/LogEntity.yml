@@ -39,6 +39,12 @@ columns:
     inEditForm: false
     inTable: false
     required: false
+    filterable: true
+    #todo add dynamic values, not only predefined, load all on startup
+    strValues:
+      - "loadRecommendations"
+      - "loadStockPrices"
+      - "addProducts"
 
   - field: json
     displayName: "JSON"
@@ -88,4 +94,5 @@ columns:
     inTable: true
     required: false
     fetchable: false
+    filterable: false
     extension: "JsonLogViewerColumn"
