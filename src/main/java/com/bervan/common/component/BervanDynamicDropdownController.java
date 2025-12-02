@@ -38,7 +38,12 @@ public class BervanDynamicDropdownController extends VerticalLayout implements A
 
     @Override
     public void setWidth(String width) {
-        comboBox.setWidth(width);
+        if (width == null) {
+            return;
+        }
+        if (comboBox != null) {
+            comboBox.setWidth(width);
+        }
     }
 
     @Override
