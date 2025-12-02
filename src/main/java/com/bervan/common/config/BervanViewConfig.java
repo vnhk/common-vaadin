@@ -27,6 +27,9 @@ public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoC
 
     public Set<String> getFilterableFieldNames(Class<?> tClass, Class<?> typeName) {
         Map<String, ClassViewAutoConfigColumn> stringClassViewAutoConfigColumnMap = get(tClass.getSimpleName());
+        if (stringClassViewAutoConfigColumnMap == null) {
+            return Set.of();
+        }
         return stringClassViewAutoConfigColumnMap.entrySet().stream()
                 .filter(e -> e.getValue().isFilterable())
                 .filter(e -> CommonComponentUtils.hasTypMatch(tClass, e.getValue(), typeName.getTypeName()))
