@@ -60,6 +60,26 @@ columns:
     filterable: true
     fetchable: true
 
+  - field: methodName
+    displayName: "Method"
+    internalName: "method"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+    filterable: true
+    fetchable: true
+
+  - field: className
+    displayName: "Class"
+    internalName: "class"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+    filterable: true
+    fetchable: true
+
   - field: fullLog
     displayName: "Log"
     internalName: "log"
