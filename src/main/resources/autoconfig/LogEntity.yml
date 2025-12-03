@@ -45,6 +45,7 @@ columns:
       - "loadRecommendations"
       - "loadStockPrices"
       - "addProducts"
+      - "N/A"
 
   - field: json
     displayName: "JSON"

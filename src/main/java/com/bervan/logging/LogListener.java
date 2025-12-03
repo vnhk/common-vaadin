@@ -35,8 +35,8 @@ public class LogListener {
             entity.setLineNumber(logMessage.getLineNumber());
             entity.setMethodName(logMessage.getMethodName());
             entity.setPackageName(logMessage.getPackageName());
-            entity.setProcessName(logMessage.getProcessName());
-            entity.setRoute(logMessage.getRoute());
+            entity.setProcessName(getProcessName(logMessage));
+            entity.setRoute(getRoute(logMessage));
             entity.setJson(logMessage.getJson());
 
             if (entity.getMessage().length() > MAX_LOG_MESSAGE_LENGTH) {
@@ -49,6 +49,22 @@ public class LogListener {
             //don't do anything, we don't want to have infinite loop of logs
         }
 
+    }
+
+    private String getRoute(LogMessage logMessage) {
+        String route = logMessage.getRoute();
+        if (route == null || route.isEmpty()) {
+            return "N/A";
+        }
+        return route;
+    }
+
+    private String getProcessName(LogMessage logMessage) {
+        String processName = logMessage.getProcessName();
+        if (processName == null || processName.isEmpty()) {
+            return "N/A";
+        }
+        return processName;
     }
 
     private String truncateLogMessage(String logMessage) {
