@@ -28,6 +28,6 @@ public class LogEntityProcessNameLoader implements DynamicConfigLoader {
 
     @Override
     public @NotNull List<String> getDynamicStrValuesMap() {
-        return logService.loadProcessNames();
+        return logService.loadProcessNames().stream().filter(s -> s != null && !s.isBlank()).toList();
     }
 }

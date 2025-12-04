@@ -183,16 +183,16 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         }
     }
 
-    private void createCriteriaForStrValues(Field field, ClassViewAutoConfigColumn config, List<String> config1, SearchRequest request) {
+    private void createCriteriaForStrValues(Field field, ClassViewAutoConfigColumn config, List<String> values, SearchRequest request) {
         long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
                 .filter(e -> e.getValue().getValue()).count();
 
 
-        if (selectedCount == config.getStrValues().size()) {
+        if (selectedCount == values.size()) {
             return;
         }
 
-        for (String key : config1) {
+        for (String key : values) {
             createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
         }
     }
@@ -296,7 +296,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             operator = SearchOperation.EQUALS_OPERATION;
             request.addCriterion("TABLE_FILTER_CHECKBOXES_FOR_" + field.getName().toUpperCase() + "_GROUP", Operator.OR_OPERATOR, tClass, field.getName(), operator, key);
         }
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     protected void createCriteriaForDateGreaterEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, date.getValue());
@@ -330,7 +330,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     protected void toggleFiltersMenu() {
         searchForm.setVisible(!searchForm.isVisible());
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     protected List<Field> getVaadinTableColumns() {
         Set<String> fieldNames = bervanViewConfig.getFieldNames(tClass);
@@ -345,37 +345,42 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         List<Field> fields = getVaadinTableColumns();
         for (Field field : fields) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
-            if ((config.getStrValues() != null && !config.getStrValues().isEmpty())
-                    || (config.getIntValues() != null && !config.getIntValues().isEmpty())) {
-                FlexLayout fieldLayout = new FlexLayout();
-                fieldLayout.setFlexWrap(FlexLayout.FlexWrap.WRAP);
-                fieldLayout.getStyle()
-                        .set("gap", "0.5rem")
-                        .set("align-items", "flex-start");
-                fieldLayout.setWidthFull();
-
-                checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
-                if (config.isDynamicStrValues() && config.getDynamicStrValuesMap() != null
-                        && !config.getDynamicStrValuesMap().isEmpty()) {
-                    buildStrValuesFilter(config.getDynamicStrValuesMap(), field, fieldLayout);
-                } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
-                    buildStrValuesFilter(config.getStrValues(), field, fieldLayout);
-                } else {
-                    for (Integer val : config.getIntValues()) {
-                        Checkbox checkbox = new Checkbox(val.toString());
-                        checkbox.setValue(getOrDefaultCheckboxValue(field, val));
-                        checkbox.getStyle()
-                                .set("margin-top", "20px")
-                                .set("min-width", "fit-content")
-                                .set("white-space", "nowrap");
-
-                        checkboxFiltersMap.get(field).put(val, checkbox);
-                        fieldLayout.add(checkbox);
-                    }
-                }
-
-                fieldLayouts.add(createSearchSection(config.getDisplayName(), fieldLayout));
+            if (!config.isFilterable()) {
+                continue;
             }
+
+            if (config.getStrValues() == null && config.getIntValues() == null && !config.isDynamicStrValues()) {
+                continue;
+            }
+
+            FlexLayout fieldLayout = new FlexLayout();
+            fieldLayout.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+            fieldLayout.getStyle()
+                    .set("gap", "0.5rem")
+                    .set("align-items", "flex-start");
+            fieldLayout.setWidthFull();
+
+            checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
+            if (config.isDynamicStrValues() && config.getDynamicStrValuesMap() != null
+                    && !config.getDynamicStrValuesMap().isEmpty()) {
+                buildStrValuesFilter(config.getDynamicStrValuesMap(), field, fieldLayout);
+            } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
+                buildStrValuesFilter(config.getStrValues(), field, fieldLayout);
+            } else {
+                for (Integer val : config.getIntValues()) {
+                    Checkbox checkbox = new Checkbox(val.toString());
+                    checkbox.setValue(getOrDefaultCheckboxValue(field, val));
+                    checkbox.getStyle()
+                            .set("margin-top", "20px")
+                            .set("min-width", "fit-content")
+                            .set("white-space", "nowrap");
+
+                    checkboxFiltersMap.get(field).put(val, checkbox);
+                    fieldLayout.add(checkbox);
+                }
+            }
+
+            fieldLayouts.add(createSearchSection(config.getDisplayName(), fieldLayout));
         }
 
 

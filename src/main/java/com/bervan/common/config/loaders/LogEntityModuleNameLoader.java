@@ -28,6 +28,6 @@ public class LogEntityModuleNameLoader implements DynamicConfigLoader {
 
     @Override
     public @NotNull List<String> getDynamicStrValuesMap() {
-        return logService.loadModulesNames();
+        return logService.loadModulesNames().stream().filter(s -> s != null && !s.isBlank()).toList();
     }
 }
