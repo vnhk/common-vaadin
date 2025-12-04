@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class OneValueService implements BaseOneValueService<OneValue> {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final OneValueRepository repository;
     private final OneValueHistoryRepository historyRepository;
 

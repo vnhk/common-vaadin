@@ -115,7 +115,7 @@ public class TableClassUtils {
         for (Map.Entry<Class<?>, List<Field>> fields : classfields.entrySet()) {
             for (Field field : fields.getValue()) {
                 ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
-                if (field.getType().equals(String.class)) {
+                if (isStringFilterableNotPredefinedValue(field, config)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
                     BervanTextField bervanField = new BervanTextField();
@@ -130,6 +130,12 @@ public class TableClassUtils {
         }
 
         return filtersMap;
+    }
+
+    private static boolean isStringFilterableNotPredefinedValue(Field field, ClassViewAutoConfigColumn config) {
+        return field.getType().equals(String.class)
+                && config.getStrValues() == null && config.getDynamicStrValuesMap() == null &&
+                !config.isDynamicStrValues();
     }
 
     public static Map<Field, Map<String, BervanIntegerField>> buildIntegerFieldFiltersMenu(List<Class<?>> classes, List<Component> filtersLayout, BervanViewConfig bervanViewConfig) {

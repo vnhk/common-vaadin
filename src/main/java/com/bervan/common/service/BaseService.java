@@ -24,7 +24,7 @@ import java.util.*;
 
 public abstract class BaseService<ID extends Serializable, T extends PersistableData<ID>> {
     protected final SearchService searchService;
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final Class<T> entityType;
     protected BaseRepository<T, ID> repository;
 

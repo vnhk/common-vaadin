@@ -15,7 +15,7 @@ import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
 import com.bervan.logging.JsonLogger;
 public class CommonComponentHelper<ID extends Serializable, T extends PersistableData<ID>> implements ComponentHelper<ID, T> {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     protected final Class<T> tClass;
     protected final Map<String, List<String>> dynamicMultiDropdownAllValues = new HashMap<>();
     protected final Map<String, List<String>> dynamicDropdownAllValues = new HashMap<>();

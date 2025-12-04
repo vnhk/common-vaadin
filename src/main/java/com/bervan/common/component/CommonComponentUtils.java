@@ -28,7 +28,7 @@ public class CommonComponentUtils {
             ImageFieldBuilder.getInstance(),
             NotSupportedFieldBuilder.getInstance()
     ));
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     private CommonComponentUtils() {
 

@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Service
 public class HistoryAsyncTaskService extends BaseService<UUID, HistoryAsyncTask> {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     protected HistoryAsyncTaskService(BaseRepository<HistoryAsyncTask, UUID> repository, SearchService searchService) {
         super(repository, searchService);

@@ -36,6 +36,7 @@ public class LogListener {
             entity.setMethodName(logMessage.getMethodName());
             entity.setPackageName(logMessage.getPackageName());
             entity.setProcessName(getProcessName(logMessage));
+            entity.setModuleName(getModuleName(logMessage));
             entity.setRoute(getRoute(logMessage));
             entity.setJson(logMessage.getJson());
 
@@ -49,6 +50,14 @@ public class LogListener {
             //don't do anything, we don't want to have infinite loop of logs
         }
 
+    }
+
+    private String getModuleName(LogMessage logMessage) {
+        String moduleName = logMessage.getModuleName();
+        if (moduleName == null || moduleName.isEmpty()) {
+            return "N/A";
+        }
+        return moduleName;
     }
 
     private String getRoute(LogMessage logMessage) {

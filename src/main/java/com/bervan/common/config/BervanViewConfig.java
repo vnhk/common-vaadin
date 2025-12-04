@@ -4,12 +4,12 @@ import com.bervan.common.component.CommonComponentUtils;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoConfigColumn>> {
-
     public Set<String> getFieldNames(Class<?> tClass) {
         if (!containsKey(tClass.getSimpleName())) {
             return Set.of();

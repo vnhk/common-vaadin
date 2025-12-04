@@ -15,7 +15,7 @@ import java.lang.reflect.Field;
 
 public class TextColumnGridBuilder implements ColumnForGridBuilder {
     private static final TextColumnGridBuilder INSTANCE = new TextColumnGridBuilder();
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     private TextColumnGridBuilder() {
 

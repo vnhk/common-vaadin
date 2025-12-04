@@ -40,12 +40,17 @@ columns:
     inTable: false
     required: false
     filterable: true
-    #todo add dynamic values, not only predefined, load all on startup
-    strValues:
-      - "loadRecommendations"
-      - "loadStockPrices"
-      - "addProducts"
-      - "N/A"
+    dynamicStrValues: true
+
+  - field: moduleName
+    displayName: "Module"
+    internalName: "moduleName"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+    filterable: true
+    dynamicStrValues: true
 
   - field: json
     displayName: "JSON"

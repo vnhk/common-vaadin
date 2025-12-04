@@ -69,7 +69,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("public abstract class ").append(className)
                 .append(" extends AbstractBervanTableView<UUID, ").append(obj.getClassName()).append("> {\n");
         content.append("    public static final String ROUTE_NAME = \"").append(obj.getRouteName()).append("\";\n\n");
-        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass());");
+        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass(), MODULE_NAME);");
         content.append("    protected ").append(className).append("(BaseService<UUID,").append(obj.getClassName())
                 .append("> service, BervanViewConfig bervanViewConfig) {\n");
         content.append("        super(layout, service, bervanViewConfig, ").append(className).append(".class);\n");
@@ -186,7 +186,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("@Service\n");
         content.append("public class ").append(obj.getClassName()).append("Service")
                 .append(" extends BaseService<UUID, ").append(obj.getClassName()).append("> {\n\n");
-        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass());");
+        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass(), MODULE_NAME);");
         content.append("    public ").append(obj.getClassName()).append("Service(BaseRepository<").append(obj.getClassName()).append(", UUID> repository, SearchService searchService) {\n");
         content.append("        super(repository, searchService);\n");
         content.append("    }\n\n");

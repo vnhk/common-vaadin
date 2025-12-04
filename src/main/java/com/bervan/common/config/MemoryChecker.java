@@ -3,7 +3,7 @@ package com.bervan.common.config;
 import com.bervan.logging.JsonLogger;
 
 public class MemoryChecker {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     //    @Scheduled(cron = "0 */5 * * * *")
     public void checkMemory() {

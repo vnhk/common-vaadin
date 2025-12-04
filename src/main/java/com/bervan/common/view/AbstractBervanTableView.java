@@ -70,7 +70,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected final List<Checkbox> checkboxes = new ArrayList<>();
     protected final List<Button> buttonsForCheckboxesForVisibilityChange = new ArrayList<>();
     protected final Set<String> currentlySortedColumns = new HashSet<>();
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     protected int pageNumber = 0;
     protected int maxPages = 0;
     protected long allFound = 0;

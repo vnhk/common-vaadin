@@ -22,7 +22,7 @@ import java.util.Map;
 @Component
 @Profile("!test && !it && !debug")
 public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements SmartLifecycle {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     private final RabbitTemplate rabbitTemplate;
     private final String applicationName;
@@ -53,11 +53,13 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
         String method = null;
         String route = null;
         String packageName = null;
+        String moduleName = null;
         Integer line = null;
         try {
             json = objectMapper.readValue(decodedString, Map.class);
             packageName = getVal(json, "package");
             className = getVal(json, "class");
+            moduleName = getVal(json, "moduleName");
             method = getVal(json, "method");
             String lineStr = getVal(json, "line");
             if (lineStr != null) {
@@ -84,6 +86,7 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
                     packageName,
                     className,
                     method,
+                    moduleName,
                     processName,
                     route,
                     line,
@@ -101,6 +104,7 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
                     null,
                     null,
                     null,
+                    moduleName,
                     processName,
                     route,
                     null,

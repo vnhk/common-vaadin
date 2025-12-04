@@ -11,13 +11,15 @@ import java.util.Map;
 
 public class JsonLogger {
     private final Logger logger;
+    private String moduleName;
 
-    private JsonLogger(Class<?> cl) {
+    private JsonLogger(Class<?> cl, String moduleName) {
         this.logger = (Logger) LoggerFactory.getLogger(cl);
+        this.moduleName = moduleName;
     }
 
-    public static JsonLogger getLogger(Class<?> cl) {
-        return new JsonLogger(cl);
+    public static JsonLogger getLogger(Class<?> cl, String moduleName) {
+        return new JsonLogger(cl, moduleName);
     }
 
     public void error(String message, Throwable e) {
@@ -112,6 +114,20 @@ public class JsonLogger {
         if (!logger.isEnabledForLevel(level)) {
             return;
         }
+
+        if (params == null || params.length == 0) {
+            //append module name as new field in json
+            StructuredArgument structuredArgument = StructuredArguments.keyValue("moduleName", moduleName);
+            params = new Object[1];
+            System.arraycopy(params, 0, params, 1, 0);
+            params[0] = structuredArgument;
+        } else {
+            Object[] newParams = new Object[params.length + 1];
+            System.arraycopy(params, 0, newParams, 0, params.length);
+            newParams[params.length] = StructuredArguments.keyValue("moduleName", moduleName);
+            params = newParams;
+        }
+
         logger.log(null, this.getClass().getName(), level.toInt(), message, params, throwable);
     }
 }

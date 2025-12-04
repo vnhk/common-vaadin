@@ -17,7 +17,7 @@ import java.util.Collection;
 
 public class ImageColumnGridBuilder implements ColumnForGridBuilder {
     private static final ImageColumnGridBuilder INSTANCE = new ImageColumnGridBuilder();
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     private ImageColumnGridBuilder() {
 

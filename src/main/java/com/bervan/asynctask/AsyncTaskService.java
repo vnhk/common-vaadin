@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class AsyncTaskService extends BaseService<UUID, AsyncTask> {
     private static AsyncTaskService instance;
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     protected AsyncTaskService(BaseRepository<AsyncTask, UUID> repository, SearchService searchService) {
         super(repository, searchService);

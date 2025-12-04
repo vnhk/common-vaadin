@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Service
 public class LowCodeClassService extends BaseService<UUID, LowCodeClass> {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final LowCodeGenerator lowCodeGenerator;
     private final LowCodeClassDetailsService lowCodeClassDetailsService;
 

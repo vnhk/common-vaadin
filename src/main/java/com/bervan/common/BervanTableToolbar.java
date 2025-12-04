@@ -35,7 +35,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     protected final Class<?> tClass;
     protected final BervanViewConfig bervanViewConfig;
     protected final GridActionService<ID, T> gridActionService;
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     protected Checkbox selectAllCheckbox;
     protected Button checkboxDeleteButton;
     protected Button checkboxExportButton;

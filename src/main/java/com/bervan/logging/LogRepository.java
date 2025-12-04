@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public interface LogRepository extends BaseRepository<LogEntity, Long> {
@@ -27,5 +28,12 @@ public interface LogRepository extends BaseRepository<LogEntity, Long> {
     void deleteOldLogs(@Param("cutoff") LocalDateTime cutoff);
 
     @Query("SELECT DISTINCT applicationName FROM LogEntity")
-     Set<String> findAllApplicationNames();
+    Set<String> findAllApplicationNames();
+
+    @Query("SELECT DISTINCT processName FROM LogEntity")
+    List<String> findAllProcessNames();
+
+    @Query("SELECT DISTINCT moduleName FROM LogEntity")
+    List<String> findAllModulesNames();
 }
+

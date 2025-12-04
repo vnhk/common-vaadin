@@ -39,6 +39,7 @@ public class LogEntity extends BervanBaseEntity<Long> implements PersistableTabl
     private String className;
     private String methodName;
     private String processName;
+    private String moduleName;
     private String packageName;
     private String route;
     private LocalDateTime timestamp;

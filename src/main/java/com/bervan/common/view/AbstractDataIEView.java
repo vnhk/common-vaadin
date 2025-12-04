@@ -30,7 +30,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
     protected final BervanViewConfig bervanViewConfig;
     protected final AbstractFiltersLayout<ID, T> filtersLayout;
     protected final Button exportButton = new BervanButton("Prepare data for export");
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final Class<T> classToExport;
     protected Upload upload;
     @Value("${file.service.storage.folder}")

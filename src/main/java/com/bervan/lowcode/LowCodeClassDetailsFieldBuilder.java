@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder {
     private static LowCodeClassDetailsFieldBuilder INSTANCE;
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final BervanViewConfig bervanViewConfig;
     private final LowCodeClassDetailsService lowCodeDetailsService;
 

@@ -14,7 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Service
 public class EmailService {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     @Value("${email-service-api-key}")
     private String API_KEY;

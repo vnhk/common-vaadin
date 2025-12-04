@@ -29,7 +29,7 @@ import java.util.*;
 
 import com.bervan.logging.JsonLogger;
 public abstract class AbstractBervanEntityView<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     protected final List<T> data = new LinkedList<>();
     protected final BaseService<ID, T> service;
     protected final VerticalLayout contentLayout = new VerticalLayout();

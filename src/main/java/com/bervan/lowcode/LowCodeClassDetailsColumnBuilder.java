@@ -17,7 +17,7 @@ import java.lang.reflect.Field;
 
 public class LowCodeClassDetailsColumnBuilder implements ColumnForGridBuilder {
     private static final LowCodeClassDetailsColumnBuilder INSTANCE = new LowCodeClassDetailsColumnBuilder();
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
 
     private LowCodeClassDetailsColumnBuilder() {
 

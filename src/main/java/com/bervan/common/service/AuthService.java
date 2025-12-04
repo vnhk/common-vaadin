@@ -13,7 +13,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class AuthService {
-    private final static JsonLogger log = JsonLogger.getLogger(AuthService.class);
+    private final static JsonLogger log = JsonLogger.getLogger(AuthService.class, "common");
 
     public static UUID getLoggedUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

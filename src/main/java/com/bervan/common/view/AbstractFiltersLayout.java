@@ -159,24 +159,15 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     }
 
     private void createCriteriaForCheckboxFilters(SearchRequest request) {
-
-
         for (Field field : checkboxFiltersMap.keySet()) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
 
-            if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
-                //are all checkbox selected? if so does not make sense create criteria
-                long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
-                        .filter(e -> e.getValue().getValue()).count();
-
-
-                if (selectedCount == config.getStrValues().size()) {
-                    continue;
-                }
-
-                for (String key : config.getStrValues()) {
-                    createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
-                }
+            if (config.isDynamicStrValues() && config.getDynamicStrValuesMap() != null && !config.getDynamicStrValuesMap().isEmpty()) {
+                //are all checkboxes selected? if so does not make sense create criteria
+                createCriteriaForStrValues(field, config, config.getDynamicStrValuesMap(), request);
+            } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
+                //are all checkboxes selected? if so does not make sense create criteria
+                createCriteriaForStrValues(field, config, config.getStrValues(), request);
             } else if (config.getIntValues() != null && !config.getIntValues().isEmpty()) {
                 long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
                         .filter(e -> e.getValue().getValue()).count();
@@ -189,6 +180,20 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                     createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
                 }
             }
+        }
+    }
+
+    private void createCriteriaForStrValues(Field field, ClassViewAutoConfigColumn config, List<String> config1, SearchRequest request) {
+        long selectedCount = checkboxFiltersMap.get(field).entrySet().stream()
+                .filter(e -> e.getValue().getValue()).count();
+
+
+        if (selectedCount == config.getStrValues().size()) {
+            return;
+        }
+
+        for (String key : config1) {
+            createCriteriaForCheckbox(request, field, checkboxFiltersMap.get(field).get(key), key);
         }
     }
 
@@ -259,7 +264,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 createCriteriaBigDecimalLessOrEqual(field.getName().toUpperCase() + "_BIG_DECIMAL_FIELD_GROUP", request, field, bervanFieldTo);
             }
         }
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     protected void createCriteriaBigDecimalGreaterOrEqual(String groupId, SearchRequest request, Field field, BervanBigDecimalField bervanField) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, bervanField.getValue());
@@ -291,7 +296,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             operator = SearchOperation.EQUALS_OPERATION;
             request.addCriterion("TABLE_FILTER_CHECKBOXES_FOR_" + field.getName().toUpperCase() + "_GROUP", Operator.OR_OPERATOR, tClass, field.getName(), operator, key);
         }
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     protected void createCriteriaForDateGreaterEqual(String groupId, SearchRequest request, Field field, BervanDateTimePicker date) {
         request.addCriterion(groupId, Operator.AND_OPERATOR, tClass, field.getName(), SearchOperation.GREATER_EQUAL_OPERATION, date.getValue());
@@ -350,19 +355,11 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 fieldLayout.setWidthFull();
 
                 checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
-
-                if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
-                    for (String val : config.getStrValues()) {
-                        Checkbox checkbox = new Checkbox(val);
-                        checkbox.setValue(getOrDefaultCheckboxValue(field, val));
-                        checkbox.getStyle()
-                                .set("margin-top", "20px")
-                                .set("min-width", "fit-content")
-                                .set("white-space", "nowrap");
-
-                        checkboxFiltersMap.get(field).put(val, checkbox);
-                        fieldLayout.add(checkbox);
-                    }
+                if (config.isDynamicStrValues() && config.getDynamicStrValuesMap() != null
+                        && !config.getDynamicStrValuesMap().isEmpty()) {
+                    buildStrValuesFilter(config.getDynamicStrValuesMap(), field, fieldLayout);
+                } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
+                    buildStrValuesFilter(config.getStrValues(), field, fieldLayout);
                 } else {
                     for (Integer val : config.getIntValues()) {
                         Checkbox checkbox = new Checkbox(val.toString());
@@ -404,6 +401,20 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         Div filtersSection = createSearchSection("Filters",
                 createDynamicFiltersLayout(fieldLayouts));
         autoFiltersRow = createSearchSectionRow(filtersSection);
+    }
+
+    private void buildStrValuesFilter(List<String> config, Field field, FlexLayout fieldLayout) {
+        for (String val : config) {
+            Checkbox checkbox = new Checkbox(val);
+            checkbox.setValue(getOrDefaultCheckboxValue(field, val));
+            checkbox.getStyle()
+                    .set("margin-top", "20px")
+                    .set("min-width", "fit-content")
+                    .set("white-space", "nowrap");
+
+            checkboxFiltersMap.get(field).put(val, checkbox);
+            fieldLayout.add(checkbox);
+        }
     }
 
     private Boolean getOrDefaultCheckboxValue(Field field, Object val) {

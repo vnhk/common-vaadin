@@ -25,7 +25,7 @@ import java.util.*;
 
 @Deprecated
 public abstract class AbstractBervanTableDTOView<ID extends Serializable, T extends PersistableTableData<ID>, DTO extends BaseDTO<ID>> extends AbstractBervanTableView<ID, T> {
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private Class<DTO> dtoClass;
 
     public AbstractBervanTableDTOView(MenuNavigationComponent pageLayout, BaseService<ID, T> service, Class<T> tClass, Class<DTO> dtoClass, BervanViewConfig bervanViewConfig) {

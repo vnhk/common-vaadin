@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -24,5 +25,13 @@ public class LogService extends BaseService<Long, LogEntity> {
 
     public Set<String> loadAppsName() {
         return ((LogRepository) repository).findAllApplicationNames();
+    }
+
+    public List<String> loadProcessNames() {
+        return ((LogRepository) repository).findAllProcessNames();
+    }
+
+    public List<String> loadModulesNames() {
+        return ((LogRepository) repository).findAllModulesNames();
     }
 }

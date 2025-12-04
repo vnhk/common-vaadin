@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @Setter
 public class ClassViewAutoConfigColumn {
+    private List<String> dynamicStrValuesMap;
     private String field;
     private String internalNameField;
     private String internalName;
@@ -22,7 +23,8 @@ public class ClassViewAutoConfigColumn {
     private boolean filterable = true;
     private String extension;
     private Object defaultValue;
-    private boolean required;
+    private boolean required = false;
+    private boolean dynamicStrValues = false;
     private boolean sortable; // needs to be updated in yaml file!
     private Integer min;
     private Integer max;

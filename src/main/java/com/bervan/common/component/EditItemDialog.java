@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class EditItemDialog<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
     protected final ComponentHelper<ID, T> componentHelper;
     protected final BaseService<ID, T> service;
-    private final JsonLogger log = JsonLogger.getLogger(getClass());
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final BervanViewConfig bervanViewConfig;
     @Setter
     private Function<T, T> customizeSavingInEditFormFunction = t -> t;
