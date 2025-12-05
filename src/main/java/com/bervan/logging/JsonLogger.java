@@ -128,6 +128,10 @@ public class JsonLogger {
             params = newParams;
         }
 
-        logger.log(null, this.getClass().getName(), level.toInt(), message, params, throwable);
+        try {
+            logger.log(null, this.getClass().getName(), level.toInt(), message, params, throwable);
+        } catch (Exception e) {
+            logger.error("Could not log message!", e);
+        }
     }
 }
