@@ -88,6 +88,19 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
         return search.getResultList();
     }
 
+    public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection) {
+        SearchRequest result = buildLoadSearchRequestData(request);
+        result.merge(request);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        options.setSortField(sortField);
+        options.setSortDirection(sortDirection);
+        options.setPage(pageable.getPageNumber());
+        options.setPageSize(pageable.getPageSize());
+        options.isCountQuery(false);
+        SearchResponse<T> search = searchService.search(result, options);
+        return (search.getResultList());
+    }
+
     public Set<T> load(SearchRequest request, Pageable pageable) {
         SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
