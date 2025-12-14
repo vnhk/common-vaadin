@@ -4,7 +4,7 @@ import com.bervan.lowcode.LowCodeClass;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-@Profile("production")
+@Profile("production || it")
 @Service
 public class NotLocalLowCodeGenerator implements LowCodeGenerator {
     @Override
