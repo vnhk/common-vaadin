@@ -9,6 +9,7 @@ import com.bervan.common.component.table.builders.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.PersistableTableOwnedData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;

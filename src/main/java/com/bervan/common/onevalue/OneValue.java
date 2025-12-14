@@ -1,7 +1,7 @@
 package com.bervan.common.onevalue;
 
 import com.bervan.common.model.BaseOneValue;
-import com.bervan.common.model.BervanBaseEntity;
+import com.bervan.common.model.BervanOwnedBaseEntity;
 import com.bervan.common.model.PersistableData;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"name", "owner.id"})
 )
-public class OneValue extends BervanBaseEntity<UUID> implements BaseOneValue, PersistableData<UUID>, ExcelIEEntity<UUID> {
+public class OneValue extends BervanOwnedBaseEntity<UUID> implements BaseOneValue, PersistableData<UUID>, ExcelIEEntity<UUID> {
 
     @Id
     private UUID id;

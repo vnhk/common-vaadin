@@ -2,6 +2,7 @@ package com.bervan.common.component.table.builders;
 
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.PersistableTableOwnedData;
 import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.renderer.ComponentRenderer;

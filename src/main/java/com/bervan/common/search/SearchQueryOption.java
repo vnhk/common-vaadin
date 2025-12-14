@@ -1,6 +1,6 @@
 package com.bervan.common.search;
 
-import com.bervan.common.model.BervanBaseEntity;
+import com.bervan.common.model.BervanOwnedBaseEntity;
 import com.bervan.common.search.model.SortDirection;
 import jakarta.validation.constraints.NotNull;
 
@@ -15,7 +15,7 @@ public class SearchQueryOption {
     private Integer page = 0;
     @NotNull
     private Integer pageSize = 50;
-    private Class<? extends BervanBaseEntity> entityToFind;
+    private Class<? extends BervanOwnedBaseEntity> entityToFind;
     private List<String> columnsToFetch;
     private boolean countQuery;
 
@@ -23,7 +23,7 @@ public class SearchQueryOption {
 
     }
 
-    public SearchQueryOption(Class<? extends BervanBaseEntity> entityToFind) {
+    public SearchQueryOption(Class<? extends BervanOwnedBaseEntity> entityToFind) {
         this.entityToFind = entityToFind;
     }
 
@@ -59,11 +59,11 @@ public class SearchQueryOption {
         this.pageSize = pageSize;
     }
 
-    public Class<? extends BervanBaseEntity> getEntityToFind() {
+    public Class<? extends BervanOwnedBaseEntity> getEntityToFind() {
         return entityToFind;
     }
 
-    public void setEntityToFind(Class<? extends BervanBaseEntity> entityToFind) {
+    public void setEntityToFind(Class<? extends BervanOwnedBaseEntity> entityToFind) {
         this.entityToFind = entityToFind;
     }
 

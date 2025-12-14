@@ -1,6 +1,7 @@
 package com.bervan.encryption;
 
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.PersistableTableOwnedData;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;

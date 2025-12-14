@@ -1,7 +1,7 @@
 package com.bervan.common;
 
-import com.bervan.common.model.BervanBaseEntity;
-import com.bervan.common.model.BervanHistoryEntity;
+import com.bervan.common.model.BervanHistoryOwnedEntity;
+import com.bervan.common.model.BervanOwnedBaseEntity;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.user.User;
 import com.bervan.history.model.AbstractBaseHistoryEntity;
@@ -39,9 +39,11 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     @Override
     @PreAuthorize("hasRole('USER')")
     public <S extends T> @NotNull S save(S entity) {
-        if (!(entity instanceof User) && (entity.getOwners() == null || entity.getOwners().size() == 0)) {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            entity.addOwner(user);
+        if (entity instanceof BervanOwnedBaseEntity<?> ownedBaseEntity) {
+            if (!(ownedBaseEntity instanceof User) && (ownedBaseEntity.getOwners() == null || ownedBaseEntity.getOwners().isEmpty())) {
+                User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                ownedBaseEntity.addOwner(user);
+            }
         }
 
         trimStringValues(entity);
@@ -78,9 +80,11 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     @Override
     @PreAuthorize("hasRole('USER')")
     public <S extends T> S saveWithoutHistory(S entity) {
-        if (entity.getOwners() == null || entity.getOwners().size() == 0) {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            entity.addOwner(user);
+        if (entity instanceof BervanOwnedBaseEntity<?> ownedBaseEntity) {
+            if (ownedBaseEntity.getOwners() == null || ownedBaseEntity.getOwners().isEmpty()) {
+                User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                ownedBaseEntity.addOwner(user);
+            }
         }
         return super.saveWithoutHistory(entity);
     }
@@ -88,8 +92,8 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
 
     @Override
     protected void historyPreHistorySave(AbstractBaseHistoryEntity<ID> history) {
-        BervanHistoryEntity entity = (BervanHistoryEntity) history;
-        BervanBaseEntity<ID> ownerEntity = (BervanBaseEntity<ID>) history.getEntity();
+        BervanHistoryOwnedEntity entity = (BervanHistoryOwnedEntity) history;
+        BervanOwnedBaseEntity<ID> ownerEntity = (BervanOwnedBaseEntity<ID>) history.getEntity();
 
         if (entity.getOwners() == null || entity.getOwners().size() == 0) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

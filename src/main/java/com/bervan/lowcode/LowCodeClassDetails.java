@@ -1,7 +1,7 @@
 package com.bervan.lowcode;
 
-import com.bervan.common.model.BervanBaseEntity;
-import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.BervanOwnedBaseEntity;
+import com.bervan.common.model.PersistableTableOwnedData;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class LowCodeClassDetails extends BervanBaseEntity<UUID> implements PersistableTableData<UUID> {
+public class LowCodeClassDetails extends BervanOwnedBaseEntity<UUID> implements PersistableTableOwnedData<UUID> {
     @Id
     private UUID id;
     private String field;

@@ -1,6 +1,6 @@
 package com.bervan.common.search;
 
-import com.bervan.common.model.BervanBaseEntity;
+import com.bervan.common.model.BervanOwnedBaseEntity;
 import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchCriteria;
 import com.bervan.common.search.model.SearchResponse;
@@ -58,7 +58,7 @@ public class SearchService {
         try {
             init();
             validateOptions(options);
-            Class<? extends BervanBaseEntity> entityToFind = getEntityToFind(options);
+            Class<? extends BervanOwnedBaseEntity> entityToFind = getEntityToFind(options);
 
             SortDirection sortDirection = options.getSortDirection();
             String sortField = options.getSortField();
@@ -66,7 +66,7 @@ public class SearchService {
             Integer pageSize = options.getPageSize();
 
             CriteriaQuery mainQuery;
-            Root<? extends BervanBaseEntity> root;
+            Root<? extends BervanOwnedBaseEntity> root;
 
             if (options.getColumnsToFetch() != null && !options.getColumnsToFetch().isEmpty()) {
                 mainQuery = criteriaBuilder.createQuery(Object[].class);
@@ -146,14 +146,14 @@ public class SearchService {
         }
     }
 
-    private Class<? extends BervanBaseEntity> getEntityToFind(SearchQueryOption options) {
+    private Class<? extends BervanOwnedBaseEntity> getEntityToFind(SearchQueryOption options) {
         return options.getEntityToFind();
     }
 
-    private Long getHowManyItemsExist(SearchRequest searchRequest, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Long getHowManyItemsExist(SearchRequest searchRequest, Class<? extends BervanOwnedBaseEntity> entityToFind) throws NoSuchFieldException {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<? extends BervanBaseEntity> newR = countQuery.from(entityToFind);
+        Root<? extends BervanOwnedBaseEntity> newR = countQuery.from(entityToFind);
         Predicate predicate = buildMainPredicate(searchRequest, newR, entityToFind);
         if (predicate != null) {
             countQuery.select(cb.count(newR)).where(predicate);
@@ -168,7 +168,7 @@ public class SearchService {
         return sortDirection.equals(SortDirection.ASC);
     }
 
-    private Predicate buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanBaseEntity> root, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Predicate buildMainPredicate(SearchRequest searchRequest, Root<? extends BervanOwnedBaseEntity> root, Class<? extends BervanOwnedBaseEntity> entityToFind) throws NoSuchFieldException {
         Map<String, Predicate> groupPredicate = new HashMap<>();
 
         Group lastProcessed = null;
@@ -259,7 +259,7 @@ public class SearchService {
         return criteriaBuilder.and(groupPredicate.values().toArray(Predicate[]::new));
     }
 
-    private Predicate buildPredicateForNotCollection(From root, Class<? extends BervanBaseEntity> entityToFind, Criterion queryCriterion) throws NoSuchFieldException {
+    private Predicate buildPredicateForNotCollection(From root, Class<? extends BervanOwnedBaseEntity> entityToFind, Criterion queryCriterion) throws NoSuchFieldException {
         String field = queryCriterion.type + "." + queryCriterion.attr;
         SearchCriteria entityCriterion = new SearchCriteria(field, null, getValue(queryCriterion.value, field, entityToFind));
 
@@ -285,7 +285,7 @@ public class SearchService {
         return predicate;
     }
 
-    private Field getDeclaredField(String fieldName, Field field, Class<? extends BervanBaseEntity> entity) throws NoSuchFieldException {
+    private Field getDeclaredField(String fieldName, Field field, Class<? extends BervanOwnedBaseEntity> entity) throws NoSuchFieldException {
         try {
             return field.getType().getDeclaredField(fieldName);
         } catch (NoSuchFieldException e) {
@@ -317,7 +317,7 @@ public class SearchService {
         return value;
     }
 
-    private Object getValue(Object value, String field, Class<? extends BervanBaseEntity> entityToFind) throws NoSuchFieldException {
+    private Object getValue(Object value, String field, Class<? extends BervanOwnedBaseEntity> entityToFind) throws NoSuchFieldException {
         String[] subObjects = field.split("\\.");
         String fst = subObjects[0];
         int i = 1;

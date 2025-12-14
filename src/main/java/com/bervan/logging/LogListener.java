@@ -1,7 +1,5 @@
 package com.bervan.logging;
 
-import com.bervan.common.user.User;
-import com.bervan.common.user.UserRepository;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -13,14 +11,9 @@ import static com.bervan.logging.LogEntity.MAX_LOG_MESSAGE_LENGTH;
 public class LogListener {
 
     private final LogRepository logRepository;
-    private final UserRepository userRepository;
-    private final User commonUser;
 
-    public LogListener(LogRepository logRepository, UserRepository userRepository) {
+    public LogListener(LogRepository logRepository) {
         this.logRepository = logRepository;
-        this.userRepository = userRepository;
-        commonUser = userRepository.findByUsername("COMMON_USER").get();
-
     }
 
     @RabbitListener(queues = "LOGS_QUEUE", concurrency = "1")
@@ -44,7 +37,6 @@ public class LogListener {
                 entity.setMessage(truncateLogMessage(entity.getMessage()));
             }
 
-            entity.addOwner(commonUser);
             logRepository.save(entity);
         } catch (Throwable e) {
             //don't do anything, we don't want to have infinite loop of logs

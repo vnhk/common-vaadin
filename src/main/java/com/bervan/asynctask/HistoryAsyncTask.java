@@ -1,7 +1,7 @@
 package com.bervan.asynctask;
 
-import com.bervan.common.model.BervanHistoryEntity;
-import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.BervanHistoryOwnedEntity;
+import com.bervan.common.model.PersistableTableOwnedData;
 import com.bervan.history.model.HistoryField;
 import com.bervan.history.model.HistoryOwnerEntity;
 import com.bervan.history.model.HistorySupported;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @HistorySupported
 @Getter
 @Setter
-public class HistoryAsyncTask extends BervanHistoryEntity<UUID> implements PersistableTableData<UUID> {
+public class HistoryAsyncTask extends BervanHistoryOwnedEntity<UUID> implements PersistableTableOwnedData<UUID> {
     @Id
     private UUID id;
     @HistoryField

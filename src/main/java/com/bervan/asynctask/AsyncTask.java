@@ -1,7 +1,7 @@
 package com.bervan.asynctask;
 
-import com.bervan.common.model.BervanBaseEntity;
-import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.BervanOwnedBaseEntity;
+import com.bervan.common.model.PersistableTableOwnedData;
 import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import jakarta.persistence.*;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @HistorySupported
-public class AsyncTask extends BervanBaseEntity<UUID> implements PersistableTableData<UUID> {
+public class AsyncTask extends BervanOwnedBaseEntity<UUID> implements PersistableTableOwnedData<UUID> {
     @Id
     private UUID id;
     private String status;

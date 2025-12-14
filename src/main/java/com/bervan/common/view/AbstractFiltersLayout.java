@@ -330,14 +330,14 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     protected void toggleFiltersMenu() {
         searchForm.setVisible(!searchForm.isVisible());
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     protected List<Field> getVaadinTableColumns() {
         Set<String> fieldNames = bervanViewConfig.getFieldNames(tClass);
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> fieldNames.contains(e.getName()))
                 .toList();
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     protected void buildFiltersMenu() {
         List<Component> fieldLayouts = new ArrayList<>();

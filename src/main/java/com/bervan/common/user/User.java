@@ -1,7 +1,7 @@
 package com.bervan.common.user;
 
-import com.bervan.common.model.BervanBaseEntity;
-import com.bervan.common.model.PersistableTableData;
+import com.bervan.common.model.BervanOwnedBaseEntity;
+import com.bervan.common.model.PersistableTableOwnedData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,7 +13,7 @@ import java.util.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class User extends BervanBaseEntity<UUID> implements PersistableTableData<UUID>, UserDetails {
+public class User extends BervanOwnedBaseEntity<UUID> implements PersistableTableOwnedData<UUID>, UserDetails {
     @Id
     private UUID id;
     private String username;

@@ -1,7 +1,7 @@
 package com.bervan.common.service;
 
 
-import com.bervan.common.model.BervanBaseEntity;
+import com.bervan.common.model.BervanOwnedBaseEntity;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.search.SearchQueryOption;
 import com.bervan.common.search.SearchRequest;
@@ -64,7 +64,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
 
     public Set<T> load(Pageable pageable) {
         SearchRequest result = buildLoadSearchRequestData(new SearchRequest());
-        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanOwnedBaseEntity>) entityType);
         options.setSortField("id");
         options.setPage(pageable.getPageNumber());
         options.setPageSize(pageable.getPageSize());
@@ -77,7 +77,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection, List<String> columnsToFetch) {
         SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
-        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanOwnedBaseEntity>) entityType);
         options.setSortField(sortField);
         options.setColumnsToFetch(columnsToFetch);
         options.setSortDirection(sortDirection);
@@ -91,7 +91,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     public List<T> load(SearchRequest request, Pageable pageable, String sortField, SortDirection sortDirection) {
         SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
-        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanOwnedBaseEntity>) entityType);
         options.setSortField(sortField);
         options.setSortDirection(sortDirection);
         options.setPage(pageable.getPageNumber());
@@ -104,7 +104,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     public Set<T> load(SearchRequest request, Pageable pageable) {
         SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
-        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanOwnedBaseEntity>) entityType);
         options.setSortField("id");
         options.setPage(pageable.getPageNumber());
         options.setPageSize(pageable.getPageSize());
@@ -129,7 +129,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     public long loadCount(SearchRequest request) {
         SearchRequest result = buildLoadSearchRequestData(request);
         result.merge(request);
-        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanOwnedBaseEntity>) entityType);
         options.isCountQuery(true);
 
         SearchResponse<T> search = searchService.search(result, options);
@@ -138,7 +138,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
 
     public long loadCount() {
         SearchRequest result = buildLoadSearchRequestData(new SearchRequest());
-        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanBaseEntity>) entityType);
+        SearchQueryOption options = new SearchQueryOption((Class<? extends BervanOwnedBaseEntity>) entityType);
         options.isCountQuery(true);
 
         SearchResponse<T> search = searchService.search(result, options);
@@ -182,11 +182,16 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
                     Optional<T> byId = repository.findById(excelIEEntity.getId());
                     if (byId.isPresent()) {
                         T inDbItem = byId.get();
-                        if (AuthService.hasAccess(inDbItem.getOwners())) {
+                        if (inDbItem instanceof BervanOwnedBaseEntity<?> inDbOwned) {
+                            if (AuthService.hasAccess(inDbOwned.getOwners())) {
+                                checkDifferencesAndUpdate(inDbItem, (T) excelIEEntity);
+                                repository.save(inDbItem);
+                            } else {
+                                throw new RuntimeException("User is trying to update item that does not belong to him! ID=" + inDbItem.getId());
+                            }
+                        } else {
                             checkDifferencesAndUpdate(inDbItem, (T) excelIEEntity);
                             repository.save(inDbItem);
-                        } else {
-                            throw new RuntimeException("User is trying to update item that does not belong to him! ID=" + inDbItem.getId());
                         }
                     } else {
                         repository.save(((T) excelIEEntity));

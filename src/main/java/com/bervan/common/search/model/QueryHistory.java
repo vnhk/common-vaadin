@@ -1,6 +1,6 @@
 package com.bervan.common.search.model;
 
-import com.bervan.common.model.BervanBaseEntity;
+import com.bervan.common.model.BervanOwnedBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class QueryHistory extends BervanBaseEntity<UUID> {
+public class QueryHistory extends BervanOwnedBaseEntity<UUID> {
     @Id
     private UUID id;
     @Size(max = 100)
