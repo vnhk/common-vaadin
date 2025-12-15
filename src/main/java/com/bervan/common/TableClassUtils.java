@@ -134,7 +134,7 @@ public class TableClassUtils {
 
     private static boolean isStringFilterableNotPredefinedValue(Field field, ClassViewAutoConfigColumn config) {
         return field.getType().equals(String.class)
-                && config.getStrValues() == null && config.getDynamicStrValuesMap() == null &&
+                && config.getStrValues() == null && config.getDynamicStrValuesList() == null &&
                 !config.isDynamicStrValues();
     }
 

@@ -162,9 +162,9 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         for (Field field : checkboxFiltersMap.keySet()) {
             ClassViewAutoConfigColumn config = buildColumnConfig(field, bervanViewConfig);
 
-            if (config.isDynamicStrValues() && config.getDynamicStrValuesMap() != null && !config.getDynamicStrValuesMap().isEmpty()) {
+            if (config.isDynamicStrValues() && config.getDynamicStrValuesList() != null && !config.getDynamicStrValuesList().isEmpty()) {
                 //are all checkboxes selected? if so does not make sense create criteria
-                createCriteriaForStrValues(field, config, config.getDynamicStrValuesMap(), request);
+                createCriteriaForStrValues(field, config, config.getDynamicStrValuesList(), request);
             } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
                 //are all checkboxes selected? if so does not make sense create criteria
                 createCriteriaForStrValues(field, config, config.getStrValues(), request);
@@ -361,9 +361,9 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             fieldLayout.setWidthFull();
 
             checkboxFiltersMap.putIfAbsent(field, new HashMap<>());
-            if (config.isDynamicStrValues() && config.getDynamicStrValuesMap() != null
-                    && !config.getDynamicStrValuesMap().isEmpty()) {
-                buildStrValuesFilter(config.getDynamicStrValuesMap(), field, fieldLayout);
+            if (config.isDynamicStrValues() && config.getDynamicStrValuesList() != null
+                    && !config.getDynamicStrValuesList().isEmpty()) {
+                buildStrValuesFilter(config.getDynamicStrValuesList(), field, fieldLayout);
             } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
                 buildStrValuesFilter(config.getStrValues(), field, fieldLayout);
             } else {

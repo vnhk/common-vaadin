@@ -8,7 +8,7 @@ import java.util.List;
 @Getter
 @Setter
 public class ClassViewAutoConfigColumn {
-    private List<String> dynamicStrValuesMap;
+    private List<String> dynamicStrValuesList;
     private String field;
     private String internalNameField;
     private String internalName;

@@ -71,11 +71,11 @@ public class ViewAutoConfigLoader {
                 throw new RuntimeException("Dynamic string values is not supported for " + fieldName + " column!");
             }
 
-            if (fieldConfig.getDynamicStrValuesMap() != null) {
+            if (fieldConfig.getDynamicStrValuesList() != null) {
                 log.info("Refreshing dynamic values for {}", fieldName);
             }
 
-            fieldConfig.setDynamicStrValuesMap(loader.getDynamicStrValuesMap());
+            fieldConfig.setDynamicStrValuesList(loader.getDynamicStrValuesMap());
         }
     }
 }

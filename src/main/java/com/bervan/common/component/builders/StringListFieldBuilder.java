@@ -21,12 +21,16 @@ public class StringListFieldBuilder implements ComponentForFieldBuilder {
     @Override
     public AutoConfigurableField<String> build(Field field, Object item, Object value, ClassViewAutoConfigColumn config) {
         BervanComboBox comboBox = new BervanComboBox<>(config.getDisplayName(), config.isRequired());
+        if(config.isDynamicStrValues()) {
+            return buildComponentForComboBox(config.getDynamicStrValuesList(), comboBox, (String) value);
+        }
         return buildComponentForComboBox(config.getStrValues(), comboBox, (String) value);
     }
 
     @Override
     public boolean supports(String typeName, ClassViewAutoConfigColumn config) {
-        return config.getStrValues() != null && !config.getStrValues().isEmpty();
+        return (config.getStrValues() != null && !config.getStrValues().isEmpty())
+                || config.isDynamicStrValues() && config.getDynamicStrValuesList() != null && !config.getDynamicStrValuesList().isEmpty();
     }
 
     private AutoConfigurableField buildComponentForComboBox(List values, BervanComboBox comboBox, String initVal) {
