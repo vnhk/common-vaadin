@@ -45,5 +45,11 @@ public class BervanButton extends Button {
 
     public BervanButton(String buttonText, Icon icon) {
         super(buttonText, icon);
+        addClassName(className);
+    }
+
+    public BervanButton(String buttonText, Icon icon, BervanButtonStyle bervanButtonStyle) {
+        super(buttonText, icon);
+        addClassName(bervanButtonStyle.getClassName());
     }
 }
