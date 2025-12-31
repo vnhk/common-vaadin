@@ -33,7 +33,7 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
     private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     private final Class<T> classToExport;
     protected Upload upload;
-    @Value("${file.service.storage.folder}")
+    @Value("${file.service.storage.folder.main}")
     protected String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     protected String globalTmpDir;

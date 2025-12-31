@@ -87,7 +87,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected AbstractFiltersLayout<ID, T> filtersLayout;
     protected BervanTableToolbar<ID, T> tableToolbarActions;
     protected String sortField;
-    @Value("${file.service.storage.folder}")
+    @Value("${file.service.storage.folder.main}")
     protected String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     protected String globalTmpDir;
