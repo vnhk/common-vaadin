@@ -106,7 +106,7 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
                 User user = (User) authentication.getPrincipal();
                 entity.addOwner(user);
             } else if (lastHistory.isPresent()) {
-                BervanOwnedBaseEntity<ID> last = (BervanOwnedBaseEntity<ID>) lastHistory.get();
+                BervanHistoryOwnedEntity<ID> last = (BervanHistoryOwnedEntity<ID>) lastHistory.get();
                 last.getOwners().forEach(entity::addOwner);
             }
         }
