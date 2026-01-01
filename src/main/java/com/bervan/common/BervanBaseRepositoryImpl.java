@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,14 +95,19 @@ public class BervanBaseRepositoryImpl<T extends PersistableData<ID>, ID extends 
     protected void historyPreHistorySave(AbstractBaseHistoryEntity<ID> history) {
         BervanHistoryOwnedEntity entity = (BervanHistoryOwnedEntity) history;
         BervanOwnedBaseEntity<ID> ownerEntity = (BervanOwnedBaseEntity<ID>) history.getEntity();
+        Optional<? extends AbstractBaseHistoryEntity<ID>> lastHistory = ownerEntity.getHistoryEntities().stream().filter(e -> e instanceof BervanHistoryOwnedEntity)
+                .max(Comparator.comparing((AbstractBaseHistoryEntity<ID> e) -> e.getUpdateDate()));
 
-        if (entity.getOwners() == null || entity.getOwners().size() == 0) {
+        if (entity.getOwners() == null || entity.getOwners().isEmpty()) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null && entity.getOwners() != null && entity.getOwners().size() == 1) {
                 entity.addOwner(ownerEntity.getOwners().iterator().next());
-            } else {
+            } else if (authentication != null && authentication.getPrincipal() instanceof User) {
                 User user = (User) authentication.getPrincipal();
                 entity.addOwner(user);
+            } else if (lastHistory.isPresent()) {
+                BervanOwnedBaseEntity<ID> last = (BervanOwnedBaseEntity<ID>) lastHistory.get();
+                last.getOwners().forEach(entity::addOwner);
             }
         }
 
