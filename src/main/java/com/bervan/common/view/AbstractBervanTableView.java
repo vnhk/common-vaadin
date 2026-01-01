@@ -9,7 +9,6 @@ import com.bervan.common.component.table.builders.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
-import com.bervan.common.model.PersistableTableOwnedData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.service.GridActionService;
@@ -153,6 +152,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
             } catch (Exception e) {
                 log.error(buildContext(), "Error while refreshing grid data", e);
+            } finally {
+                showGridLoadingProgress(false);
             }
         });
     }
@@ -427,10 +428,16 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         try {
             SearchRequest request = filtersLayout.buildCombinedFilters();
 
-            if (columnSorted != null && sortDirection != null) {
-                sortField = columnSorted.getKey();
+            if (sortDirection != null) {
+                if (columnSorted != null) {
+                    sortField = columnSorted.getKey();
+                } else if (sortField == null) {
+                    sortField = "id";
+                }
                 if (sortDirection != SortDirection.ASCENDING) {
                     this.sortDir = com.bervan.common.search.model.SortDirection.DESC;
+                } else {
+                    this.sortDir = com.bervan.common.search.model.SortDirection.ASC;
                 }
             } else {
                 sortField = "id";
