@@ -18,6 +18,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Profile("!test && !it && !debug")
@@ -141,7 +144,13 @@ public class QueueAppender extends ConsoleAppender<ILoggingEvent> implements Sma
         Logger rootLogger = loggerContext.getLogger("ROOT");
         AppenderDelegator<ILoggingEvent> delegate = (AppenderDelegator<ILoggingEvent>) rootLogger.getAppender("JSON_APPENDER");
         this.encoder = delegate.getEncoder();
-        delegate.setDelegateAndReplayBuffer(this);
+
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.schedule(() -> {
+            delegate.setDelegateAndReplayBuffer(this);
+            scheduler.shutdown();
+        }, 2, TimeUnit.MINUTES);
     }
 
     @Override
