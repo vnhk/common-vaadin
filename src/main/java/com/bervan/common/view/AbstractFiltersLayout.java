@@ -337,7 +337,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         return Arrays.stream(tClass.getDeclaredFields())
                 .filter(e -> fieldNames.contains(e.getName()))
                 .toList();
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     protected void buildFiltersMenu() {
         List<Component> fieldLayouts = new ArrayList<>();
@@ -366,7 +366,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 buildStrValuesFilter(config.getDynamicStrValuesList(), field, fieldLayout);
             } else if (config.getStrValues() != null && !config.getStrValues().isEmpty()) {
                 buildStrValuesFilter(config.getStrValues(), field, fieldLayout);
-            } else {
+            } else if (config.getIntValues() != null && !config.getIntValues().isEmpty()) {
                 for (Integer val : config.getIntValues()) {
                     Checkbox checkbox = new Checkbox(val.toString());
                     checkbox.setValue(getOrDefaultCheckboxValue(field, val));
@@ -406,7 +406,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         Div filtersSection = createSearchSection("Filters",
                 createDynamicFiltersLayout(fieldLayouts));
         autoFiltersRow = createSearchSectionRow(filtersSection);
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     private void buildStrValuesFilter(List<String> config, Field field, FlexLayout fieldLayout) {
         for (String val : config) {

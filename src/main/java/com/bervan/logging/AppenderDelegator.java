@@ -12,7 +12,7 @@ import java.util.ArrayList;
 @Getter
 public class AppenderDelegator<E> extends UnsynchronizedAppenderBase<E> {
 
-    private final ArrayList<E> logBuffer = new ArrayList<>(1024);
+    private final ArrayList<E> logBuffer = new ArrayList<>(10240);
     private Appender<E> delegate;
     private Encoder<E> encoder;
 
