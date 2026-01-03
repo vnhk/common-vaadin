@@ -58,7 +58,7 @@ public class EmailService {
             );
             System.out.println("Email sent! Response: " + response.getBody());
         } catch (Exception e) {
-            System.err.println("Email sending failed: " + e.getMessage());
+            log.error("Email sending failed: " + e.getMessage());
         }
     }
 }
