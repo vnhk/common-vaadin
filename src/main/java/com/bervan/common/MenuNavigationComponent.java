@@ -15,6 +15,7 @@ import java.util.Map;
 
 public abstract class MenuNavigationComponent extends VerticalLayout {
     protected final Map<String, Button> buttons = new HashMap<>();
+    @Getter
     protected MenuButtonsRow menuButtonsRow = new MenuButtonsRow();
     @Getter
     protected String currentRouteName;
