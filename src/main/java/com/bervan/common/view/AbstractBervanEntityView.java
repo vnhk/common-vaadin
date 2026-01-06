@@ -71,10 +71,13 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     }
 
 
-    protected boolean matchesAnyColumn(Object item, String filterText) {
+    protected boolean matchesAnyColumn(Object item, String filterText, List<String> columns) {
         try {
             for (Field field : item.getClass().getDeclaredFields()) {
                 field.setAccessible(true); // Allow access to private fields
+                if (!columns.contains(field.getName())) {
+                    continue;
+                }
                 Object value = field.get(item);
 
                 if (value != null) {
