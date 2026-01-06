@@ -6,6 +6,7 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableData;
 import com.bervan.common.service.BaseService;
+import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -16,7 +17,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.olli.ClipboardHelper;
 
@@ -27,15 +27,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
-import com.bervan.logging.JsonLogger;
 public abstract class AbstractBervanEntityView<ID extends Serializable, T extends PersistableData<ID>> extends AbstractPageView {
-    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     protected final List<T> data = new LinkedList<>();
     protected final BaseService<ID, T> service;
     protected final VerticalLayout contentLayout = new VerticalLayout();
     protected final Class<T> tClass;
     protected final BervanViewConfig bervanViewConfig;
     protected final EditItemDialog<ID, T> editItemDialog;
+    private final JsonLogger log = JsonLogger.getLogger(getClass(), "common");
     protected T item;
     protected final Button editButton = new BervanButton("✎", e -> openEditDialog());
     protected boolean buildDetails = true;
@@ -70,6 +69,26 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
         }
         add(contentLayout);
     }
+
+
+    protected boolean matchesAnyColumn(Object item, String filterText) {
+        try {
+            for (Field field : item.getClass().getDeclaredFields()) {
+                field.setAccessible(true); // Allow access to private fields
+                Object value = field.get(item);
+
+                if (value != null) {
+                    if (String.valueOf(value).toLowerCase().contains(filterText)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return item.toString().toLowerCase().contains(filterText);
+        }
+        return false;
+    }
+
 
     protected String getCopyValue(Field field, T item, String clickedColumn, AutoConfigurableField componentWithValue) {
         try {

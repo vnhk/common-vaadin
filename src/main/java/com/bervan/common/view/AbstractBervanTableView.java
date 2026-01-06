@@ -97,6 +97,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected final Button refreshTable = new BervanButton(new Icon(VaadinIcon.REFRESH), e -> {
         refreshData();
     });
+    protected boolean searchBarVisible = true;
 
     public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanViewConfig bervanViewConfig, Class<T> tClass) {
         super(pageLayout, service, bervanViewConfig, tClass);
@@ -236,7 +237,16 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         gridLoadingOverlay.setHeight("20px");
         contentLayout.setSpacing(false);
         contentLayout.setPadding(false);
-        contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay, grid, selectedItemsCountLabel, paginationBar, addButton);
+
+        if (searchBarVisible) {
+            contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay,
+                    filtersLayout.allFieldsTextSearch,
+                    grid, selectedItemsCountLabel, paginationBar, addButton);
+        } else {
+            contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay,
+                    grid, selectedItemsCountLabel, paginationBar, addButton);
+        }
+
 
         if (pageLayout != null) {
             add(pageLayout);

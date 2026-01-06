@@ -10,6 +10,7 @@ import com.bervan.common.search.SearchRequestQueryTranslator;
 import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -72,6 +73,11 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         queryWithHelp.setAlignItems(FlexComponent.Alignment.END);
 
         searchForm = getSearchForm(applyFiltersButton, queryWithHelp);
+        allFieldsTextSearch.addKeyPressListener(keyPressEvent -> {
+            if (keyPressEvent.getKey().equals(Key.ENTER)) {
+                applyFiltersButton.click();
+            }
+        });
         add(filtersButton, searchForm);
         removeFiltersButton.setVisible(false);
     }
@@ -406,7 +412,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         Div filtersSection = createSearchSection("Filters",
                 createDynamicFiltersLayout(fieldLayouts));
         autoFiltersRow = createSearchSectionRow(filtersSection);
-    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
+    }
 
     private void buildStrValuesFilter(List<String> config, Field field, FlexLayout fieldLayout) {
         for (String val : config) {
@@ -420,7 +426,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             checkboxFiltersMap.get(field).put(val, checkbox);
             fieldLayout.add(checkbox);
         }
-    }
+    }    protected final Button removeFiltersButton = new BervanButton("Reset filters", e -> removeFilters());
 
     private Boolean getOrDefaultCheckboxValue(Field field, Object val) {
         return defaultFilterValuesContainer.checkboxFiltersMapDefaultValues.getOrDefault(field, new HashMap<>()).getOrDefault(val, true);
