@@ -57,7 +57,6 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("""
                 import com.bervan.common.config.BervanViewConfig;
                 import com.bervan.common.service.BaseService;
-                import com.bervan.core.model.BervanLogger;
                 import com.bervan.common.view.AbstractBervanTableView;
                 import com.bervan.logging.JsonLogger;
                 import java.util.UUID;
@@ -69,10 +68,10 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("public abstract class ").append(className)
                 .append(" extends AbstractBervanTableView<UUID, ").append(obj.getClassName()).append("> {\n");
         content.append("    public static final String ROUTE_NAME = \"").append(obj.getRouteName()).append("\";\n\n");
-        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass(), MODULE_NAME);");
+        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass(), MODULE_NAME);\n");
         content.append("    protected ").append(className).append("(BaseService<UUID,").append(obj.getClassName())
                 .append("> service, BervanViewConfig bervanViewConfig) {\n");
-        content.append("        super(layout, service, bervanViewConfig, ").append(className).append(".class);\n");
+        content.append("        super(layout, service, bervanViewConfig, ").append(obj.getClassName()).append(".class);\n");
         content.append("    }\n\n");
         content.append("}\n");
         content.append("// Low-Code END\n");
@@ -186,7 +185,7 @@ public class LocalLowCodeGenerator implements LowCodeGenerator {
         content.append("@Service\n");
         content.append("public class ").append(obj.getClassName()).append("Service")
                 .append(" extends BaseService<UUID, ").append(obj.getClassName()).append("> {\n\n");
-        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass(), MODULE_NAME);");
+        content.append("    private final JsonLogger log = JsonLogger.getLogger(getClass(), MODULE_NAME);\n");
         content.append("    public ").append(obj.getClassName()).append("Service(BaseRepository<").append(obj.getClassName()).append(", UUID> repository, SearchService searchService) {\n");
         content.append("        super(repository, searchService);\n");
         content.append("    }\n\n");

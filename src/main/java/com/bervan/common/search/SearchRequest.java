@@ -30,6 +30,7 @@ public class SearchRequest {
         groupToUpdate.criteriaIds.add(criteriaId);
     }
 
+    //and operator by default
     public void addCriterion(String groupId, Class<?> objectType, String fieldPath, SearchOperation fieldValueOperator, Object value) {
         addCriterion(groupId, Operator.AND_OPERATOR, objectType, fieldPath, fieldValueOperator, value);
     }

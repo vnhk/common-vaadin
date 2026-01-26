@@ -45,7 +45,7 @@ public class LowCodeClassDetailsFieldBuilder implements ComponentForFieldBuilder
         return VaadinLowCodeClassDetailsColumn.class.getSimpleName().equals(config.getExtension());
     }
 
-    //If works use this logic for autogeneration with default extension that will build it automatically, but there will be a problem with service
+    //If works - use this logic for autogeneration with default extension that will build it automatically, but there will be a problem with service
     //because it is not generic, so at least build abstract core class with logic and then override it for service and code generation
     //will generate it automatically with throw RuntimeException and comment where to override and use it.
     //or just use cascade and service is not needed at all.
