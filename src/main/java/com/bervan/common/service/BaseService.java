@@ -238,4 +238,8 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     public T findById(ID id) {
         return repository.findById(id).orElse(null);
     }
+
+    public List<T> loadById(Set<ID> ids) {
+        return repository.findAllById(ids);
+    }
 }
