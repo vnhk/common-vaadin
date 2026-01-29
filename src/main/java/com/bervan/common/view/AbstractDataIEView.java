@@ -3,6 +3,7 @@ package com.bervan.common.view;
 
 import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.BervanButton;
+import com.bervan.common.component.BervanButtonStyle;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchRequest;
@@ -12,7 +13,12 @@ import com.bervan.ieentities.BaseExcelImport;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
@@ -21,7 +27,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 
 import java.io.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public abstract class AbstractDataIEView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
@@ -71,14 +80,45 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
                 showErrorNotification("Upload failed"));
 
         exportButton.addClickListener(buttonClickEvent -> {
-            StreamResource resource = prepareDownloadResource();
-            Anchor downloadLink = new Anchor(resource, "Export");
-            downloadLink.getElement().setAttribute("download", true);
+            Dialog dialog = new Dialog("Select columns to export");
+            dialog.setModal(true);
+            dialog.setWidth("60vw");
+            HorizontalLayout dialogTopBarLayout = getDialogTopBarLayout(dialog);
+            dialog.add(dialogTopBarLayout);
 
-            add(downloadLink);
-            remove(exportButton);
-            remove(upload);
-            add(upload);
+            List<Field> notStaticFields = Arrays.stream(classToExport.getDeclaredFields())
+                    .filter(e -> !Modifier.isStatic(e.getModifiers())).toList();
+
+            List<Checkbox> checkboxes = new ArrayList<>();
+            for (Field declaredField : notStaticFields) {
+                Checkbox checkbox = new Checkbox(declaredField.getName());
+                checkbox.setValue(true);
+                checkboxes.add(checkbox);
+                dialog.add(checkbox);
+            }
+
+            dialog.add(new Hr());
+
+            //uncheck all button
+            HorizontalLayout verticalLayout = new HorizontalLayout();
+            BervanButton uncheckAllButton = new BervanButton("Uncheck all", (click) -> checkboxes.forEach(e -> e.setValue(false)), BervanButtonStyle.WARNING);
+            verticalLayout.add(uncheckAllButton);
+
+            verticalLayout.add(new BervanButton("Export", (click) -> {
+                List<String> fields = checkboxes.stream().filter(e -> e.getValue()).map(e -> e.getLabel()).toList();
+                StreamResource resource = prepareDownloadResource(fields);
+                Anchor downloadLink = new Anchor(resource, "Export");
+                downloadLink.getElement().setAttribute("download", true);
+
+                dialog.close();
+
+                AbstractDataIEView.this.add(downloadLink);
+                AbstractDataIEView.this.remove(exportButton);
+                AbstractDataIEView.this.remove(upload);
+                AbstractDataIEView.this.add(upload);
+            }, BervanButtonStyle.WARNING));
+            dialog.add(verticalLayout);
+            dialog.open();
         });
 
         add(upload);
@@ -115,9 +155,10 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
 
     }
 
-    public StreamResource prepareDownloadResource() {
+    public StreamResource prepareDownloadResource(List<String> fields) {
         try {
             BaseExcelExport baseExcelExport = new BaseExcelExport();
+            baseExcelExport.setColumnsToExport(fields);
             List<ExcelIEEntity<?>> dataToExport = getDataToExport();
             log.info("Found " + dataToExport.size() + " to be exported!");
             if (dataToExport.isEmpty()) {
@@ -125,7 +166,8 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
                 return null;
             }
             Workbook workbook = baseExcelExport.exportExcel(dataToExport, null);
-            File saved = baseExcelExport.save(workbook, pathToFileStorage + globalTmpDir, "export" + LocalDateTime.now() + ".xlsx");
+            File saved = baseExcelExport.save(workbook, pathToFileStorage + globalTmpDir, "export" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd_MM_yyyy_DD_mm_ss")) + ".xlsx");
+
             String filename = saved.getName();
 
             return new StreamResource(filename, () -> {
