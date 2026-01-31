@@ -53,6 +53,11 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Set<String> filterableTextFields = new HashSet<>();
     protected final Div searchForm;
     protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
+    {
+        filtersButton.addClassName("bervan-icon-btn");
+        filtersButton.addClassName("primary");
+        filtersButton.getElement().setAttribute("title", "Toggle filters");
+    }
     protected HorizontalLayout autoFiltersRow;
 
     // Quick filter support for column headers
@@ -128,10 +133,18 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         filterableTextFields.addAll(getFilterableTextFields());
 
         allFieldsTextSearch = getFilter();
+        allFieldsTextSearch.setPlaceholder("Search all fields...");
+        allFieldsTextSearch.addClassName("bervan-filter-input");
+
         stringQuerySearch = getFilter();
+        stringQuerySearch.setPlaceholder("e.g. name ~ 'test' & status = 'active'");
+        stringQuerySearch.addClassName("bervan-query-input");
+
         Icon questionIcon = VaadinIcon.QUESTION_CIRCLE.create();
         Button helpButton = new Button(questionIcon);
-        helpButton.getElement().setAttribute("title", "Click");
+        helpButton.addClassName("bervan-icon-btn");
+        helpButton.addClassName("info");
+        helpButton.getElement().setAttribute("title", "Show query syntax help");
         helpButton.addClickListener(e -> showHelpDialog());
 
         HorizontalLayout queryWithHelp = new HorizontalLayout(stringQuerySearch, helpButton);
@@ -164,15 +177,152 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
 
     private void showHelpDialog() {
         Dialog helpDialog = new Dialog();
-        helpDialog.setWidth("50%");
-        helpDialog.setHeaderTitle("Available fields");
-        for (Field declaredField : tClass.getDeclaredFields()) {
-            helpDialog.add(new H5(declaredField.getName()));
-            helpDialog.add(new Hr());
+        helpDialog.setWidth("70%");
+        helpDialog.setMaxWidth("800px");
+        helpDialog.setHeaderTitle("Query Syntax Help");
+        helpDialog.addClassName("bervan-help-dialog");
+
+        // Create content layout
+        Div content = new Div();
+        content.getStyle().set("max-height", "60vh");
+        content.getStyle().set("overflow-y", "auto");
+        content.getStyle().set("padding", "var(--bervan-spacing-md)");
+
+        // Operators section
+        Div operatorsSection = new Div();
+        operatorsSection.add(new H5("Comparison Operators"));
+        operatorsSection.add(new Hr());
+
+        FlexLayout operatorsGrid = new FlexLayout();
+        operatorsGrid.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        operatorsGrid.getStyle().set("gap", "var(--bervan-spacing-sm)");
+        operatorsGrid.getStyle().set("margin-bottom", "var(--bervan-spacing-md)");
+
+        for (SearchRequestQueryTranslator.OperatorInfo op : SearchRequestQueryTranslator.getSupportedOperators()) {
+            Div opCard = createOperatorCard(op.symbol, op.description, op.example);
+            operatorsGrid.add(opCard);
         }
-        Button closeButton = new Button("Close", e -> helpDialog.close());
+        operatorsSection.add(operatorsGrid);
+        content.add(operatorsSection);
+
+        // Logical operators section
+        Div logicalSection = new Div();
+        logicalSection.add(new H5("Logical Operators"));
+        logicalSection.add(new Hr());
+
+        FlexLayout logicalGrid = new FlexLayout();
+        logicalGrid.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        logicalGrid.getStyle().set("gap", "var(--bervan-spacing-sm)");
+        logicalGrid.getStyle().set("margin-bottom", "var(--bervan-spacing-md)");
+
+        for (SearchRequestQueryTranslator.OperatorInfo op : SearchRequestQueryTranslator.getLogicalOperators()) {
+            Div opCard = createOperatorCard(op.symbol, op.description, op.example);
+            logicalGrid.add(opCard);
+        }
+        logicalSection.add(logicalGrid);
+        content.add(logicalSection);
+
+        // Available fields section
+        Div fieldsSection = new Div();
+        fieldsSection.add(new H5("Available Fields"));
+        fieldsSection.add(new Hr());
+
+        FlexLayout fieldsGrid = new FlexLayout();
+        fieldsGrid.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        fieldsGrid.getStyle().set("gap", "var(--bervan-spacing-xs)");
+        fieldsGrid.getStyle().set("margin-bottom", "var(--bervan-spacing-md)");
+
+        List<String> availableFields = SearchRequestQueryTranslator.getAvailableFields(tClass);
+        for (String fieldName : availableFields) {
+            Div fieldChip = new Div();
+            fieldChip.setText(fieldName);
+            fieldChip.addClassName("bervan-field-chip");
+            fieldChip.getStyle()
+                    .set("background", "var(--bervan-surface-2)")
+                    .set("padding", "var(--bervan-spacing-xs) var(--bervan-spacing-sm)")
+                    .set("border-radius", "var(--bervan-border-radius-sm)")
+                    .set("font-family", "var(--bervan-font-mono)")
+                    .set("font-size", "var(--bervan-font-size-sm)")
+                    .set("color", "var(--bervan-accent)");
+            fieldsGrid.add(fieldChip);
+        }
+        fieldsSection.add(fieldsGrid);
+        content.add(fieldsSection);
+
+        // Examples section
+        Div examplesSection = new Div();
+        examplesSection.add(new H5("Example Queries"));
+        examplesSection.add(new Hr());
+
+        Div examplesList = new Div();
+        examplesList.getStyle().set("font-family", "var(--bervan-font-mono)");
+        examplesList.getStyle().set("font-size", "var(--bervan-font-size-sm)");
+        examplesList.getStyle().set("background", "var(--bervan-surface-2)");
+        examplesList.getStyle().set("padding", "var(--bervan-spacing-md)");
+        examplesList.getStyle().set("border-radius", "var(--bervan-border-radius-md)");
+
+        String[] examples = {
+                "name = 'John'",
+                "name ~ 'test'",
+                "price >= 100 & price <= 500",
+                "status != 'inactive'",
+                "(name ~ 'a' | name ~ 'b') & active = true",
+                "deletedDate IS NULL",
+                "status IN ('active', 'pending')"
+        };
+        for (String example : examples) {
+            Div exampleLine = new Div();
+            exampleLine.setText(example);
+            exampleLine.getStyle().set("margin-bottom", "var(--bervan-spacing-xs)");
+            exampleLine.getStyle().set("color", "var(--bervan-text-primary)");
+            examplesList.add(exampleLine);
+        }
+        examplesSection.add(examplesList);
+        content.add(examplesSection);
+
+        helpDialog.add(content);
+
+        Button closeButton = new BervanButton("Close", e -> helpDialog.close());
+        closeButton.addClassName("bervan-icon-btn");
+        closeButton.addClassName("primary");
         helpDialog.getFooter().add(closeButton);
         helpDialog.open();
+    }
+
+    private Div createOperatorCard(String symbol, String description, String example) {
+        Div card = new Div();
+        card.getStyle()
+                .set("background", "var(--bervan-surface-1)")
+                .set("padding", "var(--bervan-spacing-sm)")
+                .set("border-radius", "var(--bervan-border-radius-md)")
+                .set("border", "1px solid var(--bervan-border-color)")
+                .set("min-width", "180px")
+                .set("flex", "1 1 auto");
+
+        Div symbolDiv = new Div();
+        symbolDiv.setText(symbol);
+        symbolDiv.getStyle()
+                .set("font-family", "var(--bervan-font-mono)")
+                .set("font-weight", "bold")
+                .set("color", "var(--bervan-primary)")
+                .set("font-size", "var(--bervan-font-size-md)");
+
+        Div descDiv = new Div();
+        descDiv.setText(description);
+        descDiv.getStyle()
+                .set("color", "var(--bervan-text-secondary)")
+                .set("font-size", "var(--bervan-font-size-sm)");
+
+        Div exampleDiv = new Div();
+        exampleDiv.setText(example);
+        exampleDiv.getStyle()
+                .set("font-family", "var(--bervan-font-mono)")
+                .set("font-size", "var(--bervan-font-size-xs)")
+                .set("color", "var(--bervan-text-tertiary)")
+                .set("margin-top", "var(--bervan-spacing-xs)");
+
+        card.add(symbolDiv, descDiv, exampleDiv);
+        return card;
     }
 
     public void addFilterableFields(String fieldName) {
@@ -223,9 +373,10 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             return null;
         }
 
-        if (Arrays.stream(tClass.getDeclaredFields()).anyMatch(e -> e.getName().equals("deleted"))) {
-            value += " & deleted != true";
-        }
+        // Don't add deleted != true here - BaseService.buildLoadSearchRequestData
+        // already handles this properly with (deleted = false OR deleted IS NULL)
+        // Adding deleted != true here would incorrectly exclude NULL deleted rows
+        // because in SQL: NULL != true returns NULL (falsy), not TRUE
 
         return SearchRequestQueryTranslator.translateQuery(value, tClass);
     }
@@ -442,10 +593,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
                 for (Integer val : config.getIntValues()) {
                     Checkbox checkbox = new Checkbox(val.toString());
                     checkbox.setValue(getOrDefaultCheckboxValue(field, val));
-                    checkbox.getStyle()
-                            .set("margin-top", "20px")
-                            .set("min-width", "fit-content")
-                            .set("white-space", "nowrap");
+                    checkbox.addClassName("bervan-filter-checkbox");
 
                     checkboxFiltersMap.get(field).put(val, checkbox);
                     fieldLayout.add(checkbox);
@@ -484,10 +632,7 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         for (String val : config) {
             Checkbox checkbox = new Checkbox(val);
             checkbox.setValue(getOrDefaultCheckboxValue(field, val));
-            checkbox.getStyle()
-                    .set("margin-top", "20px")
-                    .set("min-width", "fit-content")
-                    .set("white-space", "nowrap");
+            checkbox.addClassName("bervan-filter-checkbox");
 
             checkboxFiltersMap.get(field).put(val, checkbox);
             fieldLayout.add(checkbox);
@@ -503,15 +648,19 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
             return new Div();
         }
 
-        FlexLayout mainContainer = new FlexLayout();
-        mainContainer.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        // Use CSS Grid for uniform sizing - 2 columns on desktop, 1 on mobile
+        Div mainContainer = new Div();
         mainContainer.getStyle()
-                .set("gap", "0.5rem")
-                .set("align-items", "flex-start");
-        mainContainer.setWidthFull();
+                .set("display", "grid")
+                .set("grid-template-columns", "repeat(2, 1fr)")
+                .set("gap", "var(--bervan-spacing-md)")
+                .set("width", "100%");
 
         for (Component fieldLayout : fieldLayouts) {
-            fieldLayout.getStyle().set("flex", "0 0 auto");
+            // Each filter section takes equal width
+            fieldLayout.getStyle()
+                    .set("min-width", "0")  // Prevent overflow
+                    .set("width", "100%");
             mainContainer.add(fieldLayout);
         }
 

@@ -281,3 +281,111 @@
     pointer-events: none;
     z-index: 1;
 }
+
+/* ===== Modern Filter Panel ===== */
+.bervan-filter-panel {
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-lg);
+    padding: var(--bervan-spacing-md);
+    margin-bottom: var(--bervan-spacing-md);
+}
+
+.bervan-filter-section {
+    background: var(--bervan-surface-1);
+    border: var(--bervan-border-width) solid var(--bervan-border-color);
+    border-radius: var(--bervan-border-radius-md);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    margin: var(--bervan-spacing-xs);
+}
+
+.bervan-filter-section-title {
+    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-xs);
+    font-weight: var(--bervan-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--bervan-spacing-sm);
+}
+
+.bervan-filter-input {
+    background: var(--bervan-surface-2);
+    border: var(--bervan-border-width) solid var(--bervan-border-color);
+    border-radius: var(--bervan-border-radius-md);
+    color: var(--bervan-text-primary);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    transition: border-color var(--bervan-transition-fast), box-shadow var(--bervan-transition-fast);
+}
+
+.bervan-filter-input:focus {
+    outline: none;
+    border-color: var(--bervan-primary);
+    box-shadow: 0 0 0 3px rgba(var(--bervan-primary-rgb), 0.2);
+}
+
+.bervan-filter-checkbox {
+    background: var(--bervan-surface-2);
+    border-radius: var(--bervan-border-radius-sm);
+    padding: var(--bervan-spacing-xs) var(--bervan-spacing-sm);
+    margin: var(--bervan-spacing-xs);
+    transition: background var(--bervan-transition-fast);
+}
+
+.bervan-filter-checkbox:hover {
+    background: var(--bervan-surface-hover);
+}
+
+.bervan-filter-actions {
+    display: flex;
+    gap: var(--bervan-spacing-sm);
+    justify-content: center;
+    padding: var(--bervan-spacing-md);
+    border-top: var(--bervan-border-width) solid var(--bervan-border-color);
+    margin-top: var(--bervan-spacing-md);
+}
+
+/* ===== Query Input ===== */
+.bervan-query-input {
+    font-family: var(--bervan-font-mono);
+    background: var(--bervan-surface-2);
+    border: var(--bervan-border-width) solid var(--bervan-border-color);
+    border-radius: var(--bervan-border-radius-md);
+    color: var(--bervan-text-primary);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+}
+
+.bervan-query-input::placeholder {
+    color: var(--bervan-text-tertiary);
+}
+
+.bervan-query-input:focus {
+    outline: none;
+    border-color: var(--bervan-accent);
+    box-shadow: 0 0 0 3px rgba(var(--bervan-accent-rgb), 0.2);
+}
+
+/* ===== Filter Grid Layout ===== */
+.search-form {
+    width: 100%;
+}
+
+.search-section {
+    box-sizing: border-box;
+}
+
+/* Make filter sections equal height and width */
+.bervan-filter-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive grid - 1 column on mobile */
+@media (max-width: 768px) {
+    .search-form > div[style*="grid"] {
+        grid-template-columns: 1fr !important;
+    }
+}

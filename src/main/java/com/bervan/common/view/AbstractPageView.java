@@ -37,31 +37,16 @@ public abstract class AbstractPageView extends VerticalLayout {
     public static Div createSearchSection(String title, Object... components) {
         Div section = new Div();
         section.addClassName("search-section");
-        section.getStyle()
-                .set("margin-bottom", "0")
-                .set("margin-left", "10px")
-                .set("margin-right", "10px")
-                .set("padding", "0.5rem")
-                .set("background", "var(--lumo-base-color)")
-                .set("border-radius", "var(--lumo-border-radius-s)")
-                .set("border", "1px solid var(--lumo-contrast-10pct)")
-                .set("height", "fit-content")
-                .set("min-height", "120px")
-                .set("min-width", "0"); // Allows flex items to shrink
+        section.addClassName("bervan-filter-section");
+        section.setWidthFull();
 
         H3 sectionTitle = new H3(title);
-        sectionTitle.getStyle()
-                .set("margin", "0 0 0.5rem 0")
-                .set("font-size", "var(--lumo-font-size-s)")
-                .set("font-weight", "600")
-                .set("color", "var(--lumo-secondary-text-color)");
+        sectionTitle.addClassName("bervan-filter-section-title");
 
         section.add(sectionTitle);
         for (Object component : components) {
             section.add((Component) component);
         }
-
-        section.getStyle().set("flex", "1");
 
         return section;
     }
@@ -76,37 +61,32 @@ public abstract class AbstractPageView extends VerticalLayout {
 
     public static HorizontalLayout getSearchActionButtonsLayout(Button... buttons) {
         HorizontalLayout actionButtons = new HorizontalLayout();
+        for (Button button : buttons) {
+            button.addClassName("bervan-icon-btn");
+        }
         actionButtons.add(buttons);
         actionButtons.setSpacing(true);
         actionButtons.setJustifyContentMode(JustifyContentMode.CENTER);
-        actionButtons.getStyle()
-                .set("margin-top", "1rem")
-                .set("margin-left", "10px")
-                .set("margin-bottom", "1rem");
         return actionButtons;
     }
 
-    public static Div /**/getSearchForm(Component titleComponent, HorizontalLayout actionButtons, HorizontalLayout... formSearchSectionRows) {
+    public static Div getSearchForm(Component titleComponent, HorizontalLayout actionButtons, HorizontalLayout... formSearchSectionRows) {
         VerticalLayout searchForm = new VerticalLayout();
         searchForm.addClassName("search-form");
         searchForm.setSpacing(true);
         searchForm.setPadding(false);
         searchForm.setWidthFull();
         searchForm.add(formSearchSectionRows);
+
+        // Modern action buttons styling
+        actionButtons.addClassName("bervan-filter-actions");
         searchForm.add(actionButtons);
 
         Div searchContainer = new Div();
         searchContainer.addClassName("search-container");
-        searchContainer.getStyle()
-                .set("background", "var(--lumo-contrast-5pct)")
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("margin-bottom", "2rem")
-                .set("width", "100%");
+        searchContainer.addClassName("bervan-filter-panel");
 
         if (titleComponent != null) {
-            titleComponent.getStyle().set("margin-left", "10px")
-                    .set("margin-top", "1rem")
-                    .set("margin-bottom", "1rem");
             searchContainer.add(titleComponent, searchForm);
         } else {
             searchContainer.add(searchForm);

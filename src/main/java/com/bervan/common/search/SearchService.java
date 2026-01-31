@@ -247,8 +247,36 @@ public class SearchService {
             mergedGroupExists = true;
         }
 
+        // Collect all groups that are part of any mergedGroup (as inner groups)
+        Set<String> groupsInMergedGroups = new HashSet<>();
+        for (Map<Operator, List<String>> mergedGroupValue : searchRequest.mergedGroups.values()) {
+            for (List<String> innerGroups : mergedGroupValue.values()) {
+                groupsInMergedGroups.addAll(innerGroups);
+            }
+        }
+
+        // Find standalone groups (not part of any merged group, and not a merged group itself)
+        List<Predicate> standalonePredicates = new ArrayList<>();
+        for (Map.Entry<String, Predicate> entry : groupPredicate.entrySet()) {
+            String groupId = entry.getKey();
+            // Skip if this group is inside a merged group OR is the FINAL_GROUP itself
+            if (!groupsInMergedGroups.contains(groupId) &&
+                !searchRequest.mergedGroups.containsKey(groupId)) {
+                standalonePredicates.add(entry.getValue());
+            }
+        }
+
         if (groupPredicate.containsKey(FINAL_GROUP_CONSTANT)) {
-            return groupPredicate.get(FINAL_GROUP_CONSTANT);
+            Predicate finalGroupPredicate = groupPredicate.get(FINAL_GROUP_CONSTANT);
+
+            // If there are standalone groups (like OWNER_ACCESS_GROUP, DELETED_FALSE_CRITERIA_GROUP),
+            // combine them with FINAL_GROUP using AND
+            if (!standalonePredicates.isEmpty()) {
+                standalonePredicates.add(finalGroupPredicate);
+                return criteriaBuilder.and(standalonePredicates.toArray(Predicate[]::new));
+            }
+
+            return finalGroupPredicate;
         }
 
         if (mergedGroupExists) {
@@ -273,12 +301,17 @@ public class SearchService {
                     predicate = SearchOperationsHelper.greaterEqual(root, criteriaBuilder, entityCriterion);
             case LESS_EQUAL_OPERATION ->
                     predicate = SearchOperationsHelper.lessEqual(root, criteriaBuilder, entityCriterion);
+            case GREATER_OPERATION ->
+                    predicate = SearchOperationsHelper.greaterThan(root, criteriaBuilder, entityCriterion);
+            case LESS_OPERATION ->
+                    predicate = SearchOperationsHelper.lessThan(root, criteriaBuilder, entityCriterion);
             case LIKE_OPERATION -> predicate = SearchOperationsHelper.contains(root, criteriaBuilder, entityCriterion);
             case NOT_EQUALS_OPERATION ->
                     predicate = SearchOperationsHelper.notEqual(root, criteriaBuilder, entityCriterion);
             case NOT_LIKE_OPERATION ->
                     predicate = SearchOperationsHelper.notContains(root, criteriaBuilder, entityCriterion);
             case IN_OPERATION -> predicate = SearchOperationsHelper.in(root, entityCriterion);
+            case NOT_IN_OPERATION -> predicate = SearchOperationsHelper.notIn(root, entityCriterion);
 
             default -> log.error("NULL PREDICATE, INVALID OPERATOR!!!");
         }

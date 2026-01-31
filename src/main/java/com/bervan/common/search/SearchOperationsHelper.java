@@ -98,13 +98,68 @@ public class SearchOperationsHelper {
         return getExpression(root, entityCriterion.getField()).in(((Collection) value));
     }
 
+    public static Predicate notIn(From root, SearchCriteria entityCriterion) {
+        Object value = entityCriterion.getValue();
+        return getExpression(root, entityCriterion.getField()).in(((Collection) value)).not();
+    }
+
+    public static Predicate greaterThan(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
+        Path expression = getExpression(root, entityCriterion.getField());
+        Object value = entityCriterion.getValue();
+
+        if (value instanceof Number) {
+            return criteriaBuilder.greaterThan(expression, (Comparable) value);
+        } else if (value instanceof LocalDate) {
+            return criteriaBuilder.greaterThan(expression, (Comparable) value);
+        } else if (value instanceof LocalTime) {
+            return criteriaBuilder.greaterThan(expression, (Comparable) value);
+        } else if (value instanceof LocalDateTime) {
+            return criteriaBuilder.greaterThan(expression, (Comparable) value);
+        } else {
+            throw new IllegalArgumentException("Unsupported type for greaterThan operation: " + value.getClass());
+        }
+    }
+
+    public static Predicate lessThan(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
+        Path expression = getExpression(root, entityCriterion.getField());
+        Object value = entityCriterion.getValue();
+
+        if (value instanceof Number) {
+            return criteriaBuilder.lessThan(expression, (Comparable) value);
+        } else if (value instanceof LocalDate) {
+            return criteriaBuilder.lessThan(expression, (Comparable) value);
+        } else if (value instanceof LocalTime) {
+            return criteriaBuilder.lessThan(expression, (Comparable) value);
+        } else if (value instanceof LocalDateTime) {
+            return criteriaBuilder.lessThan(expression, (Comparable) value);
+        } else {
+            throw new IllegalArgumentException("Unsupported type for lessThan operation: " + value.getClass());
+        }
+    }
+
     public static Predicate contains(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
-        entityCriterion.setValue("%" + entityCriterion.getValue() + "%");
+        String value = String.valueOf(entityCriterion.getValue());
+        // Only add wildcards if not already present (translator may have added them)
+        if (!value.startsWith("%")) {
+            value = "%" + value;
+        }
+        if (!value.endsWith("%")) {
+            value = value + "%";
+        }
+        entityCriterion.setValue(value);
         return like(root, criteriaBuilder, entityCriterion);
     }
 
     public static Predicate notContains(From root, CriteriaBuilder criteriaBuilder, SearchCriteria entityCriterion) {
-        entityCriterion.setValue("%" + entityCriterion.getValue() + "%");
+        String value = String.valueOf(entityCriterion.getValue());
+        // Only add wildcards if not already present (translator may have added them)
+        if (!value.startsWith("%")) {
+            value = "%" + value;
+        }
+        if (!value.endsWith("%")) {
+            value = value + "%";
+        }
+        entityCriterion.setValue(value);
         return notLike(root, criteriaBuilder, entityCriterion);
     }
 }

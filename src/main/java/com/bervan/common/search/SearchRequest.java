@@ -92,6 +92,12 @@ public class SearchRequest {
     public void merge(SearchRequest request) {
         groups.addAll(request.groups);
         criteria.addAll(request.criteria);
+        // Also merge the mergedGroups (hierarchical group structure)
+        for (Map.Entry<String, Map<Operator, List<String>>> entry : request.mergedGroups.entrySet()) {
+            if (!mergedGroups.containsKey(entry.getKey())) {
+                mergedGroups.put(entry.getKey(), new HashMap<>(entry.getValue()));
+            }
+        }
     }
 
     public void mergeGroup(String newGroup, Operator operator, String... groups) {

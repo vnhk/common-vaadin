@@ -15,7 +15,6 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.table.BervanTableConfig;
 import com.bervan.common.view.table.BervanTableState;
-import com.bervan.common.view.table.MultiSortState;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.bervan.logging.BaseProcessContext;
 import com.bervan.logging.JsonLogger;
@@ -92,6 +91,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected Grid.Column<T> columnSorted = null;
     protected AbstractFiltersLayout<ID, T> filtersLayout;
     protected BervanTableToolbar<ID, T> tableToolbarActions;
+    protected HorizontalLayout topTableActions;
     protected String sortField;
     @Value("${file.service.storage.folder.main}")
     protected String pathToFileStorage;
@@ -107,7 +107,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     // Modern table features
     protected BervanTableConfig tableConfig;
     protected BervanTableState tableState;
-    protected MultiSortState multiSortState;
     protected BervanFloatingToolbar floatingToolbar;
     protected BervanPageSizeSelector pageSizeSelector;
     protected Map<String, Grid.Column<T>> columnMap = new HashMap<>();
@@ -170,11 +169,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             pageSize = tableConfig.getDefaultPageSize();
         }
 
-        // Initialize multi-sort state
-        if (tableConfig.isMultiColumnSortEnabled()) {
-            multiSortState = new MultiSortState();
-        }
-
         // Initialize table state for persistence
         String stateKey = tableConfig.getStateKeyPrefix() + "-" + getClass().getSimpleName();
         tableState = new BervanTableState(getClass().getSimpleName(), tableConfig.getStateKeyPrefix());
@@ -211,6 +205,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     grid.setItems(data);
                     grid.getDataProvider().refreshAll();
                     updateSelectedItemsLabel();
+                    hideFloatingToolbar();
                 });
 
             } catch (Exception e) {
@@ -243,8 +238,9 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             grid.addClassName("bervan-modern-table");
         }
 
-        newItemButton.addClassName("option-button");
-        newItemButton.addClassName("primary-action-button");
+        newItemButton.addClassName("bervan-icon-btn");
+        newItemButton.addClassName("primary");
+        newItemButton.getElement().setAttribute("title", "Add new item");
 
         currentPage.addClassName("option-button");
         currentPage.addClassName("page-indicator-button");
@@ -280,10 +276,14 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         goToPage.setMaxWidth("120px");
         goToPage.addClassName("page-select");
 
-        HorizontalLayout topTableActions = new HorizontalLayout();
+        topTableActions = new HorizontalLayout();
         topTableActions.addClassName("table-actions-bar");
-        refreshTable.addClassName("refresh-button");
-        topTableActions.add(new VerticalLayout(refreshTable));
+        topTableActions.setWidthFull();
+        topTableActions.setJustifyContentMode(JustifyContentMode.CENTER);
+        topTableActions.setAlignItems(Alignment.CENTER);
+        refreshTable.addClassName("bervan-icon-btn");
+        refreshTable.getElement().setAttribute("title", "Refresh");
+        topTableActions.add(refreshTable);
 
         selectedItemsCountLabel.setVisible(checkboxesColumnsEnabled);
         selectedItemsCountLabel.addClassName("selection-counter");
@@ -332,6 +332,9 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         }
 
         topTableActions.add(newItemButton);
+
+        // Hook for subclasses to add custom buttons to topTableActions
+        customizeTopTableActions(topTableActions);
 
         buildToolbarActionBar();
 
@@ -541,7 +544,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
 
     /**
-     * Clears all selections.
+     * Clears all selections and hides the floating toolbar.
      */
     protected void clearSelection() {
         if (selectAllCheckbox != null) {
@@ -551,7 +554,16 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             checkbox.setValue(false);
         }
         updateSelectedItemsLabel();
-        updateFloatingToolbar();
+        hideFloatingToolbar();
+    }
+
+    /**
+     * Hides the floating toolbar by setting count to 0.
+     */
+    protected void hideFloatingToolbar() {
+        if (floatingToolbar != null) {
+            floatingToolbar.setSelectedCount(0);
+        }
     }
 
     /**
@@ -818,6 +830,14 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected void customizePreLoad(SearchRequest request) {
 
+    }
+
+    /**
+     * Hook for subclasses to add custom buttons to the top table actions bar.
+     * Called after the Add button is added but before the toolbar action bar is built.
+     */
+    protected void customizeTopTableActions(HorizontalLayout topTableActions) {
+        // Override in subclasses to add custom buttons
     }
 
     protected long countAll(SearchRequest request, Collection<T> collect) {

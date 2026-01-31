@@ -149,7 +149,7 @@ public abstract class BaseService<ID extends Serializable, T extends Persistable
     private SearchRequest buildLoadSearchRequestData(SearchRequest request) {
         SearchRequest searchRequest = new SearchRequest();
 
-        if (!request.containsGroup(SearchRequest.OWNER_ACCESS_GROUP) && request.isAddOwnerCriterion() && entityType.isAssignableFrom(BervanOwnedBaseEntity.class)) {
+        if (!request.containsGroup(SearchRequest.OWNER_ACCESS_GROUP) && request.isAddOwnerCriterion() && BervanOwnedBaseEntity.class.isAssignableFrom(entityType)) {
             searchRequest.addOwnerAccessCriteria(entityType);
         }
 
