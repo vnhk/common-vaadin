@@ -1,0 +1,84 @@
+/**
+ * Bervan Modern - Dark Theme
+ * Default theme with dark color scheme
+ */
+
+[data-bervan-theme="dark"],
+.bervan-theme-dark,
+:root {
+    /* ===== Surface Colors ===== */
+    --bervan-surface-0: #0f172a;
+    --bervan-surface-1: rgba(30, 41, 59, 0.8);
+    --bervan-surface-2: rgba(51, 65, 85, 0.6);
+    --bervan-surface-3: rgba(71, 85, 105, 0.4);
+    --bervan-surface-hover: rgba(71, 85, 105, 0.5);
+    --bervan-surface-selected: rgba(99, 102, 241, 0.2);
+
+    /* ===== Background ===== */
+    --bervan-bg-body: #0f172a;
+    --bervan-bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+
+    /* ===== Text Colors ===== */
+    --bervan-text-primary: rgba(255, 255, 255, 0.95);
+    --bervan-text-secondary: rgba(255, 255, 255, 0.7);
+    --bervan-text-tertiary: rgba(255, 255, 255, 0.5);
+    --bervan-text-disabled: rgba(255, 255, 255, 0.3);
+
+    /* ===== Glass Effect ===== */
+    --bervan-glass-bg: rgba(17, 25, 40, 0.75);
+    --bervan-glass-bg-light: rgba(255, 255, 255, 0.05);
+    --bervan-glass-border: rgba(255, 255, 255, 0.18);
+
+    /* ===== Border ===== */
+    --bervan-border-color: rgba(255, 255, 255, 0.1);
+
+    /* ===== Scrollbar ===== */
+    --bervan-scrollbar-track: rgba(255, 255, 255, 0.05);
+    --bervan-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+    --bervan-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+
+    color-scheme: dark;
+}
+
+/* ===== Dark Theme Scrollbar ===== */
+[data-bervan-theme="dark"] ::-webkit-scrollbar,
+.bervan-theme-dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+[data-bervan-theme="dark"] ::-webkit-scrollbar-track,
+.bervan-theme-dark ::-webkit-scrollbar-track {
+    background: var(--bervan-scrollbar-track);
+    border-radius: 4px;
+}
+
+[data-bervan-theme="dark"] ::-webkit-scrollbar-thumb,
+.bervan-theme-dark ::-webkit-scrollbar-thumb {
+    background: var(--bervan-scrollbar-thumb);
+    border-radius: 4px;
+}
+
+[data-bervan-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+.bervan-theme-dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--bervan-scrollbar-thumb-hover);
+}
+
+/* ===== Dark Theme Selection ===== */
+[data-bervan-theme="dark"] ::selection,
+.bervan-theme-dark ::selection {
+    background: rgba(var(--bervan-primary-rgb), 0.4);
+    color: var(--bervan-text-primary);
+}
+
+/* ===== Dark Input Focus ===== */
+[data-bervan-theme="dark"] input:focus,
+[data-bervan-theme="dark"] select:focus,
+[data-bervan-theme="dark"] textarea:focus,
+.bervan-theme-dark input:focus,
+.bervan-theme-dark select:focus,
+.bervan-theme-dark textarea:focus {
+    outline: none;
+    border-color: var(--bervan-primary);
+    box-shadow: 0 0 0 3px rgba(var(--bervan-primary-rgb), 0.2);
+}

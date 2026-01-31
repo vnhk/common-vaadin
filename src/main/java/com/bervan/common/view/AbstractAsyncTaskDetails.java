@@ -32,7 +32,7 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
         String taskId = event.getRouteParameters().get("___url_parameter").orElse(UUID.randomUUID().toString());
         this.item = service.loadById(UUID.fromString(taskId)).get();
         renderCommonComponents();
-        addButton.setVisible(false);
+        newItemButton.setVisible(false);
         editButton.setVisible(false);
 
         AbstractBervanTableView<UUID, HistoryAsyncTask> historyOwnerCriteria = new AbstractBervanTableView<>(pageLayout, historyService, bervanViewConfig, HistoryAsyncTask.class) {
@@ -45,7 +45,7 @@ public class AbstractAsyncTaskDetails extends AbstractBervanEntityView<UUID, Asy
                 request.addCriterion("HISTORY_OWNER_CRITERIA", HistoryAsyncTask.class, "asyncTask.id", SearchOperation.EQUALS_OPERATION, taskId);
             }
         };
-        historyOwnerCriteria.addButton.setVisible(false);
+        historyOwnerCriteria.newItemButton.setVisible(false);
         add(historyOwnerCriteria);
         historyOwnerCriteria.renderCommonComponents();
     }

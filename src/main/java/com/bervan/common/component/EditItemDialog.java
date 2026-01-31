@@ -26,6 +26,8 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
     private final BervanViewConfig bervanViewConfig;
     @Setter
     private Function<T, T> customizeSavingInEditFormFunction = t -> t;
+    @Setter
+    private Function<T, T> customizePostEditFunction = t -> t;
 
     public EditItemDialog(ComponentHelper<ID, T> componentHelper, BaseService<ID, T> service, BervanViewConfig bervanViewConfig) {
         this.componentHelper = componentHelper;
@@ -65,6 +67,7 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
                     .filter(e -> fieldNames.contains(e.getName()))
                     .toList();
 
+            item = service.findById(item.getId()); // take item from db
             // Build form fields based on VaadinBervanColumn annotations
             for (Field field : declaredFields) {
                 AutoConfigurableField componentWithValue = componentHelper.buildComponentForField(bervanViewConfig, field, item, false);
@@ -117,9 +120,8 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
                     T updatedItem = customizeSavingInEditForm(itemFinal);
 
                     // Save the item
-                    T existing = service.findById(updatedItem.getId()); // take item from db
-                    BeanUtils.copyProperties(updatedItem, existing, "id", "historyEntities"); // copy updated values to existing item
-                    updatedItem = service.save(existing); // save existing (updated) item
+                    BeanUtils.copyProperties(updatedItem, itemFinal, "id", "historyEntities"); // copy updated values to existing item
+                    updatedItem = service.save(itemFinal); // save existing (updated) item
                     //todo fix for DTOs it also doesn't work in prod, its not related to the new auto config
                     //new DTOMapper(bervan new ArrayList<>()).map(updatedItem); should be used
                     //new dto implementation should be created
@@ -176,7 +178,7 @@ public class EditItemDialog<ID extends Serializable, T extends PersistableData<I
      * Override this method to add custom post-edit logic.
      */
     protected void postEditItemActions(T updatedItem) {
-
+        customizePostEditFunction.apply(updatedItem);
     }
 
     /**

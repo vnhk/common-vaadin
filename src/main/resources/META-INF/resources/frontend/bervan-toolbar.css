@@ -1,0 +1,315 @@
+/**
+ * Bervan Modern - Toolbar Styles
+ */
+
+/* ===== Base Toolbar ===== */
+.bervan-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-toolbar-gap);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    min-height: var(--bervan-toolbar-height);
+}
+
+.bervan-toolbar.bervan-glass {
+    background: var(--bervan-toolbar-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-lg);
+}
+
+/* ===== Floating Toolbar ===== */
+.bervan-floating-toolbar {
+    position: fixed;
+    bottom: var(--bervan-spacing-xl);
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-md);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-lg);
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-full);
+    box-shadow: var(--bervan-shadow-xl), var(--bervan-shadow-glow);
+    z-index: var(--bervan-z-fixed);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform var(--bervan-transition-spring),
+                opacity var(--bervan-transition-normal),
+                visibility var(--bervan-transition-normal);
+}
+
+.bervan-floating-toolbar.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ===== Toolbar Divider ===== */
+.bervan-toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--bervan-border-color);
+    margin: 0 var(--bervan-spacing-xs);
+}
+
+/* ===== Toolbar Section ===== */
+.bervan-toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-xs);
+}
+
+.bervan-toolbar-section-title {
+    color: var(--bervan-text-tertiary);
+    font-size: var(--bervan-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: var(--bervan-spacing-sm);
+}
+
+/* ===== Icon Button ===== */
+.bervan-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--bervan-icon-btn-size);
+    height: var(--bervan-icon-btn-size);
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--bervan-border-radius-md);
+    color: var(--bervan-text-secondary);
+    cursor: pointer;
+    transition: all var(--bervan-transition-fast);
+    position: relative;
+}
+
+.bervan-icon-btn:hover {
+    background: var(--bervan-surface-hover);
+    color: var(--bervan-text-primary);
+}
+
+.bervan-icon-btn:active {
+    transform: scale(0.95);
+}
+
+.bervan-icon-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.bervan-icon-btn iron-icon,
+.bervan-icon-btn vaadin-icon {
+    width: var(--bervan-icon-size);
+    height: var(--bervan-icon-size);
+}
+
+/* ===== Icon Button Variants ===== */
+.bervan-icon-btn.primary {
+    color: var(--bervan-primary);
+}
+
+.bervan-icon-btn.primary:hover {
+    background: rgba(var(--bervan-primary-rgb), 0.2);
+    color: var(--bervan-primary-hover);
+}
+
+.bervan-icon-btn.accent {
+    color: var(--bervan-accent);
+}
+
+.bervan-icon-btn.accent:hover {
+    background: rgba(var(--bervan-accent-rgb), 0.2);
+    color: var(--bervan-accent-hover);
+}
+
+.bervan-icon-btn.success {
+    color: var(--bervan-success);
+}
+
+.bervan-icon-btn.success:hover {
+    background: rgba(var(--bervan-success-rgb), 0.2);
+    color: var(--bervan-success-hover);
+}
+
+.bervan-icon-btn.warning {
+    color: var(--bervan-warning);
+}
+
+.bervan-icon-btn.warning:hover {
+    background: rgba(var(--bervan-warning-rgb), 0.2);
+    color: var(--bervan-warning-hover);
+}
+
+.bervan-icon-btn.danger {
+    color: var(--bervan-danger);
+}
+
+.bervan-icon-btn.danger:hover {
+    background: rgba(var(--bervan-danger-rgb), 0.2);
+    color: var(--bervan-danger-hover);
+}
+
+/* ===== Icon Button with Label ===== */
+.bervan-icon-btn-labeled {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--bervan-spacing-xs);
+    padding: var(--bervan-spacing-xs) var(--bervan-spacing-sm);
+    width: auto;
+    height: auto;
+    min-height: var(--bervan-icon-btn-size);
+}
+
+.bervan-icon-btn-labeled .btn-label {
+    font-size: var(--bervan-font-size-sm);
+    font-weight: var(--bervan-font-weight-medium);
+}
+
+/* ===== Tooltip ===== */
+.bervan-icon-btn[data-tooltip] {
+    position: relative;
+}
+
+.bervan-icon-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    padding: 4px 8px;
+    background: var(--bervan-surface-0);
+    border: var(--bervan-border-width) solid var(--bervan-border-color);
+    border-radius: var(--bervan-border-radius-sm);
+    color: var(--bervan-text-primary);
+    font-size: var(--bervan-font-size-xs);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all var(--bervan-transition-fast);
+    z-index: var(--bervan-z-tooltip);
+}
+
+.bervan-icon-btn[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* ===== Dropdown Button ===== */
+.bervan-dropdown-btn {
+    position: relative;
+}
+
+.bervan-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    min-width: 160px;
+    padding: var(--bervan-spacing-xs) 0;
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-md);
+    box-shadow: var(--bervan-shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--bervan-transition-fast);
+    z-index: var(--bervan-z-dropdown);
+}
+
+.bervan-dropdown-btn.open .bervan-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(4px);
+}
+
+.bervan-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-sm);
+    cursor: pointer;
+    transition: all var(--bervan-transition-fast);
+}
+
+.bervan-dropdown-item:hover {
+    background: var(--bervan-surface-hover);
+    color: var(--bervan-text-primary);
+}
+
+.bervan-dropdown-item iron-icon,
+.bervan-dropdown-item vaadin-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+}
+
+.bervan-dropdown-divider {
+    height: 1px;
+    margin: var(--bervan-spacing-xs) 0;
+    background: var(--bervan-border-color);
+}
+
+/* ===== Selection Count Badge ===== */
+.bervan-selection-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--bervan-primary);
+    border-radius: var(--bervan-border-radius-full);
+    color: white;
+    font-size: 11px;
+    font-weight: var(--bervan-font-weight-bold);
+    margin-right: var(--bervan-spacing-sm);
+}
+
+/* ===== Column Toggle ===== */
+.bervan-column-toggle {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.bervan-column-toggle-item {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    cursor: pointer;
+    transition: background var(--bervan-transition-fast);
+}
+
+.bervan-column-toggle-item:hover {
+    background: var(--bervan-surface-hover);
+}
+
+.bervan-column-toggle-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--bervan-primary);
+}
+
+.bervan-column-toggle-item label {
+    flex: 1;
+    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-sm);
+    cursor: pointer;
+}
+
+/* ===== Export Dropdown ===== */
+.bervan-export-dropdown .bervan-dropdown-item vaadin-icon {
+    color: var(--bervan-accent);
+}

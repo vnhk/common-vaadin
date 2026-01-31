@@ -1,0 +1,283 @@
+/**
+ * Bervan Modern - Glassmorphism Effects & Animations
+ */
+
+/* ===== Glass Panel Base ===== */
+.bervan-glass {
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-lg);
+    box-shadow: var(--bervan-glass-shadow);
+}
+
+.bervan-glass-light {
+    background: var(--bervan-glass-bg-light);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-lg);
+}
+
+/* ===== Glass Card ===== */
+.bervan-glass-card {
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-xl);
+    box-shadow: var(--bervan-glass-shadow);
+    padding: var(--bervan-spacing-lg);
+    transition: transform var(--bervan-transition-normal),
+                box-shadow var(--bervan-transition-normal);
+}
+
+.bervan-glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--bervan-shadow-xl);
+}
+
+/* ===== Animated Gradient Border ===== */
+.bervan-gradient-border {
+    position: relative;
+    background: var(--bervan-glass-bg);
+    border-radius: var(--bervan-border-radius-lg);
+}
+
+.bervan-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(
+        45deg,
+        var(--bervan-primary),
+        var(--bervan-accent),
+        var(--bervan-primary)
+    );
+    border-radius: inherit;
+    z-index: -1;
+    background-size: 200% 200%;
+    animation: bervan-gradient-shift 3s ease infinite;
+}
+
+@keyframes bervan-gradient-shift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* ===== Glow Effects ===== */
+.bervan-glow {
+    box-shadow: var(--bervan-shadow-glow);
+}
+
+.bervan-glow-hover:hover {
+    box-shadow: var(--bervan-shadow-glow);
+}
+
+.bervan-glow-primary {
+    box-shadow: 0 0 20px rgba(var(--bervan-primary-rgb), 0.4);
+}
+
+.bervan-glow-accent {
+    box-shadow: 0 0 20px rgba(var(--bervan-accent-rgb), 0.4);
+}
+
+.bervan-glow-success {
+    box-shadow: 0 0 20px rgba(var(--bervan-success-rgb), 0.4);
+}
+
+.bervan-glow-danger {
+    box-shadow: 0 0 20px rgba(var(--bervan-danger-rgb), 0.4);
+}
+
+/* ===== Fade Animations ===== */
+.bervan-fade-in {
+    animation: bervan-fade-in var(--bervan-transition-normal) ease-out;
+}
+
+@keyframes bervan-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.bervan-fade-in-up {
+    animation: bervan-fade-in-up var(--bervan-transition-normal) ease-out;
+}
+
+@keyframes bervan-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bervan-fade-in-down {
+    animation: bervan-fade-in-down var(--bervan-transition-normal) ease-out;
+}
+
+@keyframes bervan-fade-in-down {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Scale Animations ===== */
+.bervan-scale-in {
+    animation: bervan-scale-in var(--bervan-transition-spring);
+}
+
+@keyframes bervan-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ===== Slide Animations ===== */
+.bervan-slide-in-left {
+    animation: bervan-slide-in-left var(--bervan-transition-normal) ease-out;
+}
+
+@keyframes bervan-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.bervan-slide-in-right {
+    animation: bervan-slide-in-right var(--bervan-transition-normal) ease-out;
+}
+
+@keyframes bervan-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ===== Pulse Animation ===== */
+.bervan-pulse {
+    animation: bervan-pulse 2s infinite;
+}
+
+@keyframes bervan-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ===== Shimmer Loading Effect ===== */
+.bervan-shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--bervan-surface-1) 0%,
+        var(--bervan-surface-2) 50%,
+        var(--bervan-surface-1) 100%
+    );
+    background-size: 200% 100%;
+    animation: bervan-shimmer 1.5s infinite;
+}
+
+@keyframes bervan-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* ===== Floating Animation ===== */
+.bervan-float {
+    animation: bervan-float 3s ease-in-out infinite;
+}
+
+@keyframes bervan-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* ===== Ripple Effect ===== */
+.bervan-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.bervan-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.bervan-ripple:active::after {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+    transition: width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+/* ===== Blur Backdrop ===== */
+.bervan-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: var(--bervan-z-modal-backdrop);
+}
+
+/* ===== Noise Texture Overlay ===== */
+.bervan-noise::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 1;
+}

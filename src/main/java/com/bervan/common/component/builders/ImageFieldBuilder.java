@@ -5,12 +5,10 @@ import com.bervan.common.component.BervanImageController;
 import com.bervan.common.component.CommonComponentUtils;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.VaadinImageBervanColumn;
+import org.hibernate.collection.spi.PersistentBag;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class ImageFieldBuilder implements ComponentForFieldBuilder {
 
@@ -40,8 +38,10 @@ public class ImageFieldBuilder implements ComponentForFieldBuilder {
         if (CommonComponentUtils.hasTypMatch(value.getClass(), config, String.class.getTypeName())) {
             imageSources.add((String) value);
             component = new BervanImageController(imageSources);
-        } else if (CommonComponentUtils.hasTypMatch(value.getClass(), config, List.class.getTypeName())
-                || CommonComponentUtils.hasTypMatch(value.getClass(), config, LinkedList.class.getTypeName()) ||
+        } else if (CommonComponentUtils.hasTypMatch(value.getClass(), config, List.class.getTypeName()) ||
+                CommonComponentUtils.hasTypMatch(value.getClass(), config, PersistentBag.class.getTypeName()) ||
+                CommonComponentUtils.hasTypMatch(value.getClass(), config, LinkedList.class.getTypeName()) ||
+                CommonComponentUtils.hasTypMatch(value.getClass(), config, Set.class.getTypeName()) ||
                 CommonComponentUtils.hasTypMatch(value.getClass(), config, ArrayList.class.getTypeName())) {
             if (value != null) {
                 imageSources.addAll((Collection<String>) value);

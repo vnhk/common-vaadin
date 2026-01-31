@@ -20,7 +20,7 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
         sortDirection = SortDirection.DESCENDING;
         sortField = "modificationDate";
         renderCommonComponents();
-        addButton.setVisible(false);
+        newItemButton.setVisible(false);
     }
 
     @Override

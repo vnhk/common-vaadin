@@ -1,0 +1,298 @@
+/**
+ * Bervan Modern - Table Styles
+ */
+
+/* ===== Table Container ===== */
+.bervan-modern-table {
+    --vaadin-grid-cell-background: transparent;
+    font-family: var(--bervan-font-family);
+}
+
+.bervan-modern-table.bervan-glass {
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    border: var(--bervan-border-width) solid var(--bervan-glass-border);
+    border-radius: var(--bervan-border-radius-lg);
+    overflow: hidden;
+}
+
+/* ===== Grid Header ===== */
+.bervan-modern-table vaadin-grid::part(header-cell) {
+    background: var(--bervan-table-header-bg);
+    color: var(--bervan-text-primary);
+    font-weight: var(--bervan-font-weight-semibold);
+    font-size: var(--bervan-font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: var(--bervan-border-width) solid var(--bervan-table-border);
+    padding: var(--bervan-table-cell-padding);
+}
+
+.bervan-modern-table vaadin-grid::part(header-cell):hover {
+    background: var(--bervan-surface-hover);
+}
+
+/* ===== Sortable Header ===== */
+.bervan-modern-table vaadin-grid-sorter {
+    color: var(--bervan-text-primary);
+}
+
+.bervan-modern-table vaadin-grid-sorter::part(content) {
+    flex: 1;
+}
+
+.bervan-modern-table vaadin-grid-sorter::part(indicators) {
+    color: var(--bervan-accent);
+}
+
+.bervan-modern-table vaadin-grid-sorter[direction]::part(indicators) {
+    color: var(--bervan-primary);
+}
+
+/* ===== Grid Body ===== */
+.bervan-modern-table vaadin-grid::part(body-cell) {
+    background: var(--bervan-table-row-bg);
+    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-sm);
+    padding: var(--bervan-table-cell-padding);
+    border-bottom: var(--bervan-border-width) solid var(--bervan-table-border);
+    transition: background var(--bervan-transition-fast);
+}
+
+/* ===== Row Hover ===== */
+.bervan-modern-table vaadin-grid::part(row):hover vaadin-grid::part(body-cell) {
+    background: var(--bervan-table-row-hover);
+}
+
+/* ===== Row Selection ===== */
+.bervan-modern-table vaadin-grid::part(selected-row) vaadin-grid::part(body-cell) {
+    background: var(--bervan-table-row-selected);
+}
+
+/* ===== Striped Rows ===== */
+.bervan-modern-table.striped vaadin-grid::part(even-row) vaadin-grid::part(body-cell) {
+    background: var(--bervan-table-row-stripe);
+}
+
+/* ===== Cell Alignment ===== */
+.bervan-modern-table .top-aligned-cell {
+    vertical-align: top;
+}
+
+.bervan-modern-table .center-aligned-cell {
+    text-align: center;
+}
+
+.bervan-modern-table .right-aligned-cell {
+    text-align: right;
+}
+
+/* ===== Checkbox Column ===== */
+.bervan-modern-table .modern-table-checkbox {
+    --vaadin-checkbox-size: 18px;
+}
+
+.bervan-modern-table .modern-table-checkbox::part(checkbox) {
+    background: transparent;
+    border: 2px solid var(--bervan-text-tertiary);
+    border-radius: var(--bervan-border-radius-sm);
+    transition: all var(--bervan-transition-fast);
+}
+
+.bervan-modern-table .modern-table-checkbox::part(checkbox):hover {
+    border-color: var(--bervan-primary);
+}
+
+.bervan-modern-table .modern-table-checkbox[checked]::part(checkbox) {
+    background: var(--bervan-primary);
+    border-color: var(--bervan-primary);
+}
+
+/* ===== Frozen/Pinned Columns ===== */
+.bervan-modern-table vaadin-grid::part(frozen-cell) {
+    background: var(--bervan-surface-1);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Resizable Columns ===== */
+.bervan-modern-table vaadin-grid::part(resize-handle) {
+    background: var(--bervan-primary);
+    width: 3px;
+    opacity: 0;
+    transition: opacity var(--bervan-transition-fast);
+}
+
+.bervan-modern-table vaadin-grid::part(resize-handle):hover,
+.bervan-modern-table vaadin-grid::part(resize-handle):active {
+    opacity: 1;
+}
+
+/* ===== Multi-Sort Indicator ===== */
+.bervan-sort-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+}
+
+.bervan-sort-priority {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: var(--bervan-primary);
+    color: white;
+    font-size: 10px;
+    font-weight: var(--bervan-font-weight-bold);
+    border-radius: var(--bervan-border-radius-full);
+}
+
+/* ===== Quick Filter in Header ===== */
+.bervan-quick-filter {
+    width: 100%;
+    margin-top: var(--bervan-spacing-xs);
+}
+
+.bervan-quick-filter input {
+    width: 100%;
+    padding: 4px 8px;
+    background: var(--bervan-surface-2);
+    border: var(--bervan-border-width) solid var(--bervan-border-color);
+    border-radius: var(--bervan-border-radius-sm);
+    color: var(--bervan-text-primary);
+    font-size: var(--bervan-font-size-xs);
+    transition: border-color var(--bervan-transition-fast);
+}
+
+.bervan-quick-filter input:focus {
+    outline: none;
+    border-color: var(--bervan-primary);
+}
+
+.bervan-quick-filter input::placeholder {
+    color: var(--bervan-text-tertiary);
+}
+
+/* ===== Empty State ===== */
+.bervan-table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--bervan-spacing-2xl);
+    color: var(--bervan-text-tertiary);
+}
+
+.bervan-table-empty-icon {
+    font-size: 48px;
+    margin-bottom: var(--bervan-spacing-md);
+    opacity: 0.5;
+}
+
+.bervan-table-empty-text {
+    font-size: var(--bervan-font-size-lg);
+}
+
+/* ===== Loading Overlay ===== */
+.bervan-table-loading {
+    position: relative;
+}
+
+.bervan-table-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* ===== Pagination Bar ===== */
+.bervan-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--bervan-spacing-sm);
+    padding: var(--bervan-spacing-md);
+    background: var(--bervan-glass-bg);
+    border-top: var(--bervan-border-width) solid var(--bervan-table-border);
+}
+
+.bervan-pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--bervan-icon-btn-size);
+    height: var(--bervan-icon-btn-size);
+    background: var(--bervan-surface-2);
+    border: none;
+    border-radius: var(--bervan-border-radius-md);
+    color: var(--bervan-text-primary);
+    cursor: pointer;
+    transition: all var(--bervan-transition-fast);
+}
+
+.bervan-pagination-btn:hover:not(:disabled) {
+    background: var(--bervan-surface-hover);
+    color: var(--bervan-primary);
+}
+
+.bervan-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bervan-pagination-info {
+    padding: 0 var(--bervan-spacing-md);
+    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-sm);
+}
+
+/* ===== Page Size Selector ===== */
+.bervan-page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+}
+
+.bervan-page-size-selector label {
+    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-sm);
+}
+
+.bervan-page-size-selector select {
+    padding: 6px 24px 6px 12px;
+    background: var(--bervan-surface-2);
+    border: var(--bervan-border-width) solid var(--bervan-border-color);
+    border-radius: var(--bervan-border-radius-md);
+    color: var(--bervan-text-primary);
+    font-size: var(--bervan-font-size-sm);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.bervan-page-size-selector select:focus {
+    outline: none;
+    border-color: var(--bervan-primary);
+}
+
+/* ===== Selection Counter ===== */
+.bervan-selection-counter {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    background: var(--bervan-surface-selected);
+    border-radius: var(--bervan-border-radius-md);
+    color: var(--bervan-primary);
+    font-size: var(--bervan-font-size-sm);
+    font-weight: var(--bervan-font-weight-medium);
+}

@@ -21,7 +21,18 @@ public class AbstractLowCodeGeneratorView extends AbstractBervanTableView<UUID, 
 
     @Override
     protected void buildToolbarActionBar() {
-        tableToolbarActions = new LowCodeGeneratorToolbar(gridActionService, checkboxes, data, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange, bervanViewConfig)
+        LowCodeGeneratorToolbar toolbar = new LowCodeGeneratorToolbar(checkboxes, data, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange, bervanViewConfig,
+                (Void v) -> {
+                    refreshData();
+                    return v;
+                }, service);
+
+        // Pass floating toolbar for custom actions (if enabled)
+        if (floatingToolbar != null) {
+            toolbar.withFloatingToolbar(floatingToolbar);
+        }
+
+        tableToolbarActions = toolbar
                 .withRunGenerator()
                 .withDeleteButton()
                 .withEditButton(service)

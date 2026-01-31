@@ -27,7 +27,9 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
@@ -52,6 +54,70 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
     protected final Div searchForm;
     protected final Button filtersButton = new BervanButton(new Icon(VaadinIcon.FILTER), e -> toggleFiltersMenu());
     protected HorizontalLayout autoFiltersRow;
+
+    // Quick filter support for column headers
+    @Getter
+    protected final Map<String, QuickFilter> quickFiltersMap = new HashMap<>();
+    protected Consumer<SearchRequest> onQuickFilterChange;
+
+    /**
+     * Quick filter configuration for column headers.
+     */
+    public static class QuickFilter {
+        private final String columnKey;
+        private final String filterType;
+        private String textValue;
+        private Object minValue;
+        private Object maxValue;
+
+        public QuickFilter(String columnKey, String filterType) {
+            this.columnKey = columnKey;
+            this.filterType = filterType;
+        }
+
+        public String getColumnKey() {
+            return columnKey;
+        }
+
+        public String getFilterType() {
+            return filterType;
+        }
+
+        public String getTextValue() {
+            return textValue;
+        }
+
+        public void setTextValue(String textValue) {
+            this.textValue = textValue;
+        }
+
+        public Object getMinValue() {
+            return minValue;
+        }
+
+        public void setMinValue(Object minValue) {
+            this.minValue = minValue;
+        }
+
+        public Object getMaxValue() {
+            return maxValue;
+        }
+
+        public void setMaxValue(Object maxValue) {
+            this.maxValue = maxValue;
+        }
+
+        public boolean hasValue() {
+            return (textValue != null && !textValue.isBlank()) ||
+                   minValue != null || maxValue != null;
+        }
+
+        public void clear() {
+            textValue = null;
+            minValue = null;
+            maxValue = null;
+        }
+    }
 
     public AbstractFiltersLayout(Class<T> tClass, Button applyFiltersButton, DefaultFilterValuesContainer defaultFilterValuesContainer, BervanViewConfig bervanViewConfig) {
         this.tClass = tClass;
@@ -458,7 +524,174 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         return searchField;
     }
 
+    // ==================== Quick Filter API ====================
 
+    /**
+     * Sets the callback to be invoked when quick filters change.
+     */
+    public void setOnQuickFilterChange(Consumer<SearchRequest> callback) {
+        this.onQuickFilterChange = callback;
+    }
 
+    /**
+     * Registers a quick filter for a column.
+     *
+     * @param columnKey The column key
+     * @param filterType The filter type: "text", "number", "date", "boolean", "select"
+     */
+    public QuickFilter registerQuickFilter(String columnKey, String filterType) {
+        QuickFilter filter = new QuickFilter(columnKey, filterType);
+        quickFiltersMap.put(columnKey, filter);
+        return filter;
+    }
 
+    /**
+     * Updates a quick filter value programmatically.
+     */
+    public void setQuickFilterValue(String columnKey, String value) {
+        QuickFilter filter = quickFiltersMap.get(columnKey);
+        if (filter != null) {
+            filter.setTextValue(value);
+            notifyQuickFilterChange();
+        }
+    }
+
+    /**
+     * Updates a quick filter range value programmatically.
+     */
+    public void setQuickFilterRange(String columnKey, Object minValue, Object maxValue) {
+        QuickFilter filter = quickFiltersMap.get(columnKey);
+        if (filter != null) {
+            filter.setMinValue(minValue);
+            filter.setMaxValue(maxValue);
+            notifyQuickFilterChange();
+        }
+    }
+
+    /**
+     * Clears a specific quick filter.
+     */
+    public void clearQuickFilter(String columnKey) {
+        QuickFilter filter = quickFiltersMap.get(columnKey);
+        if (filter != null) {
+            filter.clear();
+            notifyQuickFilterChange();
+        }
+    }
+
+    /**
+     * Clears all quick filters.
+     */
+    public void clearAllQuickFilters() {
+        quickFiltersMap.values().forEach(QuickFilter::clear);
+        notifyQuickFilterChange();
+    }
+
+    /**
+     * Builds combined filters including quick filters.
+     */
+    public SearchRequest buildCombinedFiltersWithQuickFilters() {
+        SearchRequest request = buildCombinedFilters();
+        applyQuickFilters(request);
+        return request;
+    }
+
+    /**
+     * Applies quick filters to a search request.
+     */
+    protected void applyQuickFilters(SearchRequest request) {
+        for (QuickFilter filter : quickFiltersMap.values()) {
+            if (!filter.hasValue()) {
+                continue;
+            }
+
+            String columnKey = filter.getColumnKey();
+            String groupId = "QUICK_FILTER_" + columnKey.toUpperCase();
+
+            switch (filter.getFilterType()) {
+                case "text":
+                    if (filter.getTextValue() != null && !filter.getTextValue().isBlank()) {
+                        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass,
+                                columnKey, SearchOperation.LIKE_OPERATION,
+                                "%" + filter.getTextValue() + "%");
+                    }
+                    break;
+
+                case "number":
+                case "date":
+                    if (filter.getMinValue() != null) {
+                        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass,
+                                columnKey, SearchOperation.GREATER_EQUAL_OPERATION,
+                                filter.getMinValue());
+                    }
+                    if (filter.getMaxValue() != null) {
+                        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass,
+                                columnKey, SearchOperation.LESS_EQUAL_OPERATION,
+                                filter.getMaxValue());
+                    }
+                    break;
+
+                case "boolean":
+                    if (filter.getTextValue() != null && !filter.getTextValue().isBlank()) {
+                        boolean boolValue = "true".equalsIgnoreCase(filter.getTextValue());
+                        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass,
+                                columnKey, SearchOperation.EQUALS_OPERATION,
+                                boolValue);
+                    }
+                    break;
+
+                case "select":
+                    if (filter.getTextValue() != null && !filter.getTextValue().isBlank()) {
+                        request.addCriterion(groupId, Operator.AND_OPERATOR, tClass,
+                                columnKey, SearchOperation.EQUALS_OPERATION,
+                                filter.getTextValue());
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Notifies listeners that quick filters have changed.
+     */
+    protected void notifyQuickFilterChange() {
+        if (onQuickFilterChange != null) {
+            SearchRequest request = buildCombinedFiltersWithQuickFilters();
+            onQuickFilterChange.accept(request);
+        }
+    }
+
+    /**
+     * Gets the filter type for a field based on its Java type.
+     */
+    public String getFilterTypeForField(Field field) {
+        Class<?> type = field.getType();
+
+        if (type == String.class) {
+            return "text";
+        } else if (type == Boolean.class || type == boolean.class) {
+            return "boolean";
+        } else if (type == Integer.class || type == int.class ||
+                   type == Long.class || type == long.class ||
+                   type == Double.class || type == double.class ||
+                   type == Float.class || type == float.class ||
+                   Number.class.isAssignableFrom(type)) {
+            return "number";
+        } else if (type == LocalDateTime.class ||
+                   type == java.time.LocalDate.class ||
+                   type == java.util.Date.class) {
+            return "date";
+        } else if (type.isEnum()) {
+            return "select";
+        }
+
+        return "text";
+    }
+
+    /**
+     * Checks if any quick filter has a value set.
+     */
+    public boolean hasActiveQuickFilters() {
+        return quickFiltersMap.values().stream().anyMatch(QuickFilter::hasValue);
+    }
 }

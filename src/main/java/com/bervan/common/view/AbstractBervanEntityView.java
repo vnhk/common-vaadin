@@ -41,7 +41,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
     protected MenuNavigationComponent pageLayout;
     protected HorizontalLayout topLayout = new HorizontalLayout();
     protected ComponentHelper<ID, T> componentHelper;
-    protected final Button addButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
+    protected final Button newItemButton = new BervanButton(new Icon(VaadinIcon.PLUS), e -> newItemButtonClick());
 
     public AbstractBervanEntityView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, @Autowired BervanViewConfig bervanViewConfig, Class<T> tClass) {
         this.service = service;
@@ -63,7 +63,7 @@ public abstract class AbstractBervanEntityView<ID extends Serializable, T extend
             contentLayout.add(verticalLayout.get());
             contentLayout.add(new Hr());
         }
-        contentLayout.add(new HorizontalLayout(addButton, editButton));
+        contentLayout.add(new HorizontalLayout(newItemButton, editButton));
         if (pageLayout != null) {
             add(pageLayout);
         }

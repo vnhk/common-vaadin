@@ -1,0 +1,103 @@
+/**
+ * Bervan Modern - Light Theme
+ * Light color scheme variant
+ */
+
+[data-bervan-theme="light"],
+.bervan-theme-light {
+    /* ===== Surface Colors ===== */
+    --bervan-surface-0: #ffffff;
+    --bervan-surface-1: rgba(241, 245, 249, 0.9);
+    --bervan-surface-2: rgba(226, 232, 240, 0.8);
+    --bervan-surface-3: rgba(203, 213, 225, 0.6);
+    --bervan-surface-hover: rgba(148, 163, 184, 0.2);
+    --bervan-surface-selected: rgba(99, 102, 241, 0.15);
+
+    /* ===== Background ===== */
+    --bervan-bg-body: #f8fafc;
+    --bervan-bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+
+    /* ===== Text Colors ===== */
+    --bervan-text-primary: rgba(15, 23, 42, 0.95);
+    --bervan-text-secondary: rgba(15, 23, 42, 0.7);
+    --bervan-text-tertiary: rgba(15, 23, 42, 0.5);
+    --bervan-text-disabled: rgba(15, 23, 42, 0.3);
+
+    /* ===== Glass Effect ===== */
+    --bervan-glass-bg: rgba(255, 255, 255, 0.85);
+    --bervan-glass-bg-light: rgba(255, 255, 255, 0.6);
+    --bervan-glass-border: rgba(0, 0, 0, 0.1);
+    --bervan-glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+
+    /* ===== Border ===== */
+    --bervan-border-color: rgba(0, 0, 0, 0.1);
+
+    /* ===== Table ===== */
+    --bervan-table-header-bg: rgba(241, 245, 249, 0.95);
+    --bervan-table-row-stripe: rgba(0, 0, 0, 0.02);
+
+    /* ===== Scrollbar ===== */
+    --bervan-scrollbar-track: rgba(0, 0, 0, 0.05);
+    --bervan-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+    --bervan-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+
+    /* ===== Shadows ===== */
+    --bervan-shadow-glow: 0 0 20px rgba(var(--bervan-primary-rgb), 0.2);
+
+    color-scheme: light;
+}
+
+/* ===== Light Theme Scrollbar ===== */
+[data-bervan-theme="light"] ::-webkit-scrollbar,
+.bervan-theme-light ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+[data-bervan-theme="light"] ::-webkit-scrollbar-track,
+.bervan-theme-light ::-webkit-scrollbar-track {
+    background: var(--bervan-scrollbar-track);
+    border-radius: 4px;
+}
+
+[data-bervan-theme="light"] ::-webkit-scrollbar-thumb,
+.bervan-theme-light ::-webkit-scrollbar-thumb {
+    background: var(--bervan-scrollbar-thumb);
+    border-radius: 4px;
+}
+
+[data-bervan-theme="light"] ::-webkit-scrollbar-thumb:hover,
+.bervan-theme-light ::-webkit-scrollbar-thumb:hover {
+    background: var(--bervan-scrollbar-thumb-hover);
+}
+
+/* ===== Light Theme Selection ===== */
+[data-bervan-theme="light"] ::selection,
+.bervan-theme-light ::selection {
+    background: rgba(var(--bervan-primary-rgb), 0.3);
+    color: var(--bervan-text-primary);
+}
+
+/* ===== Light Input Focus ===== */
+[data-bervan-theme="light"] input:focus,
+[data-bervan-theme="light"] select:focus,
+[data-bervan-theme="light"] textarea:focus,
+.bervan-theme-light input:focus,
+.bervan-theme-light select:focus,
+.bervan-theme-light textarea:focus {
+    outline: none;
+    border-color: var(--bervan-primary);
+    box-shadow: 0 0 0 3px rgba(var(--bervan-primary-rgb), 0.15);
+}
+
+/* ===== Light Theme Icon Adjustments ===== */
+[data-bervan-theme="light"] .bervan-icon-btn,
+.bervan-theme-light .bervan-icon-btn {
+    color: var(--bervan-text-secondary);
+}
+
+/* ===== Light Theme Floating Toolbar ===== */
+[data-bervan-theme="light"] .bervan-floating-toolbar,
+.bervan-theme-light .bervan-floating-toolbar {
+    box-shadow: var(--bervan-shadow-xl);
+}

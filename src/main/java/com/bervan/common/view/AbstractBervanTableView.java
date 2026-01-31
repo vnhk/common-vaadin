@@ -5,21 +5,24 @@ import com.bervan.common.MenuNavigationComponent;
 import com.bervan.common.component.AutoConfigurableField;
 import com.bervan.common.component.BervanButton;
 import com.bervan.common.component.BervanComboBox;
+import com.bervan.common.component.table.BervanFloatingToolbar;
+import com.bervan.common.component.table.BervanPageSizeSelector;
 import com.bervan.common.component.table.builders.*;
 import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
-import com.bervan.common.service.GridActionService;
+import com.bervan.common.view.table.BervanTableConfig;
+import com.bervan.common.view.table.BervanTableState;
+import com.bervan.common.view.table.MultiSortState;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.bervan.logging.BaseProcessContext;
 import com.bervan.logging.JsonLogger;
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
@@ -53,6 +56,10 @@ import java.util.stream.Collectors;
 
 import static com.bervan.common.TableClassUtils.buildColumnConfig;
 
+@CssImport("./bervan-glassmorphism.css")
+@CssImport("./bervan-table.css")
+@CssImport("./bervan-toolbar.css")
+@CssImport("./bervan-variables.css")
 public abstract class AbstractBervanTableView<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractBervanEntityView<ID, T> implements AfterNavigationObserver {
     protected static final String CHECKBOX_COLUMN_KEY = "checkboxColumnKey";
     private static final List<ColumnForGridBuilder> columnGridBuilders = new ArrayList<>(Arrays.asList(
@@ -90,7 +97,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected String pathToFileStorage;
     @Value("${global-tmp-dir.file-storage-relative-path}")
     protected String globalTmpDir;
-    protected GridActionService<ID, T> gridActionService;
     protected ProgressBar gridProgressBar = new ProgressBar();
     protected String processName;
     protected final Button applyFiltersButton = new BervanButton(new Icon(VaadinIcon.SEARCH), e -> applyCombinedFilters());
@@ -98,15 +104,41 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         refreshData();
     });
     protected boolean searchBarVisible = true;
+    // Modern table features
+    protected BervanTableConfig tableConfig;
+    protected BervanTableState tableState;
+    protected MultiSortState multiSortState;
+    protected BervanFloatingToolbar floatingToolbar;
+    protected BervanPageSizeSelector pageSizeSelector;
+    protected Map<String, Grid.Column<T>> columnMap = new HashMap<>();
 
+    /**
+     * Original constructor - maintains backward compatibility.
+     * All modern features are disabled by default.
+     */
     public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service, BervanViewConfig bervanViewConfig, Class<T> tClass) {
+        this(pageLayout, service, bervanViewConfig, tClass, BervanTableConfig.defaults());
+    }
+
+    /**
+     * New constructor for modern features.
+     * Pass a BervanTableConfig to enable specific features.
+     */
+    public AbstractBervanTableView(MenuNavigationComponent pageLayout, @Autowired BaseService<ID, T> service,
+                                   BervanViewConfig bervanViewConfig, Class<T> tClass, BervanTableConfig tableConfig) {
         super(pageLayout, service, bervanViewConfig, tClass);
+        this.tableConfig = BervanTableConfig.builder()
+                .enableAllModernFeatures()
+                .build();
         this.filtersLayout = buildFiltersLayout(tClass);
         addClassName("bervan-table-view");
         countItemsInfo.addClassName("table-pageable-details");
 
         gridProgressBar.setWidth("800px");
         gridProgressBar.setIndeterminate(true);
+
+        // Initialize modern features based on config
+        initializeModernFeatures();
     }
 
     public static void addColumnForGridBuilder(ColumnForGridBuilder columnGridBuilder) {
@@ -117,6 +149,35 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     public static void removeColumnForGridBuilder(ColumnForGridBuilder columnGridBuilder) {
         columnGridBuilders.remove(columnGridBuilder);
+    }
+
+    /**
+     * Initializes modern features based on the table configuration.
+     */
+    protected void initializeModernFeatures() {
+        if (!tableConfig.hasAnyModernFeature()) {
+            return;
+        }
+
+        // Apply glassmorphism styling
+        if (tableConfig.isGlasmorphismEnabled()) {
+            addClassName("bervan-modern-table");
+            addClassName("bervan-glass");
+        }
+
+        // Initialize page size from config
+        if (tableConfig.isPageSizeSelectorEnabled()) {
+            pageSize = tableConfig.getDefaultPageSize();
+        }
+
+        // Initialize multi-sort state
+        if (tableConfig.isMultiColumnSortEnabled()) {
+            multiSortState = new MultiSortState();
+        }
+
+        // Initialize table state for persistence
+        String stateKey = tableConfig.getStateKeyPrefix() + "-" + getClass().getSimpleName();
+        tableState = new BervanTableState(getClass().getSimpleName(), tableConfig.getStateKeyPrefix());
     }
 
     protected void showGridLoadingProgress(boolean show) {
@@ -141,7 +202,8 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         CompletableFuture.runAsync(() -> {
             try {
                 SecurityContextHolder.setContext(context);
-                gridActionService.refreshData(data);
+                data.removeAll(data);
+                data.addAll(loadData());
                 current.access(() -> {
                     reloadItemsCountInfo();
                     updateCurrentPageText();
@@ -176,8 +238,13 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         grid.addItemClickListener(this::doOnColumnClick);
         grid.getColumns().forEach(column -> column.setClassNameGenerator(item -> "top-aligned-cell"));
 
-        addButton.addClassName("option-button");
-        addButton.addClassName("primary-action-button");
+        // Apply modern styling if enabled
+        if (tableConfig.isGlasmorphismEnabled()) {
+            grid.addClassName("bervan-modern-table");
+        }
+
+        newItemButton.addClassName("option-button");
+        newItemButton.addClassName("primary-action-button");
 
         currentPage.addClassName("option-button");
         currentPage.addClassName("page-indicator-button");
@@ -231,6 +298,11 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         paginationBar.setAlignItems(Alignment.CENTER);
         paginationBar.setJustifyContentMode(JustifyContentMode.CENTER);
 
+        // Add page size selector if enabled
+        if (tableConfig.isPageSizeSelectorEnabled()) {
+            addPageSizeSelector(paginationBar);
+        }
+
         countItemsInfo.addClassName("table-info-text");
 
         gridLoadingOverlay.add(gridProgressBar);
@@ -241,10 +313,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         if (searchBarVisible) {
             contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay,
                     filtersLayout.allFieldsTextSearch,
-                    grid, selectedItemsCountLabel, paginationBar, addButton);
+                    grid, selectedItemsCountLabel, paginationBar);
         } else {
             contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay,
-                    grid, selectedItemsCountLabel, paginationBar, addButton);
+                    grid, selectedItemsCountLabel, paginationBar);
         }
 
 
@@ -254,13 +326,242 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         add(contentLayout);
 
-        this.gridActionService = new GridActionService<>(service, filtersLayout, grid, (V) -> loadData());
-        refreshData();
+        // Add floating toolbar if enabled
+        if (tableConfig.isFloatingToolbarEnabled()) {
+            addFloatingToolbar();
+        }
+
+        topTableActions.add(newItemButton);
 
         buildToolbarActionBar();
-        tableToolbarActions.setVisible(checkboxesColumnsEnabled);
 
-        topTableActions.add(tableToolbarActions);
+        if (tableConfig.isFloatingToolbarEnabled()) {
+            tableToolbarActions.setVisible(false);
+        } else {
+            tableToolbarActions.setVisible(checkboxesColumnsEnabled);
+            topTableActions.add(tableToolbarActions);
+        }
+
+        // Setup keyboard navigation if enabled
+        if (tableConfig.isKeyboardNavigationEnabled()) {
+            setupKeyboardNavigation();
+        }
+
+        // Load persisted state
+        if (tableConfig.hasAnyModernFeature() && tableState != null) {
+            loadPersistedState();
+        }
+    }
+
+
+    /**
+     * Adds page size selector to the pagination bar.
+     */
+    protected void addPageSizeSelector(HorizontalLayout paginationBar) {
+        pageSizeSelector = new BervanPageSizeSelector(tableConfig.getPageSizeOptions());
+        pageSizeSelector.setValue(pageSize);
+        pageSizeSelector.setStorageKey(tableConfig.getStateKeyPrefix() + "-pagesize-" + getClass().getSimpleName());
+        pageSizeSelector.addPageSizeChangeListener(e -> {
+            int newSize = e.getValue();
+            if (newSize == -1) {
+                // "All" option - use a large number
+                pageSize = Integer.MAX_VALUE - 1;
+            } else {
+                pageSize = newSize;
+            }
+            pageNumber = 0;
+            refreshData();
+        });
+        paginationBar.addComponentAsFirst(pageSizeSelector);
+    }
+
+    /**
+     * Adds the floating toolbar for bulk actions.
+     * Icon-based toolbar that appears when items are selected.
+     */
+    protected void addFloatingToolbar() {
+        floatingToolbar = new BervanFloatingToolbar();
+        floatingToolbar.setEditEnabled(true);
+        floatingToolbar.setDeleteEnabled(true);
+        floatingToolbar.setExportEnabled(isExportable());
+        floatingToolbar.setSingleSelectOnly(true);
+
+        // Wire up standard actions
+        floatingToolbar.addEditClickListener(e -> handleFloatingToolbarEdit());
+        floatingToolbar.addDeleteClickListener(e -> handleFloatingToolbarDelete());
+        floatingToolbar.addExportClickListener(e -> handleFloatingToolbarExport());
+        floatingToolbar.addCloseClickListener(e -> clearSelection());
+
+        add(floatingToolbar);
+    }
+
+    /**
+     * Handles export action from floating toolbar.
+     * Triggers the existing export dialog with password decryption support.
+     */
+    protected void handleFloatingToolbarExport() {
+        if (tableToolbarActions != null) {
+            // Trigger the export button click programmatically
+            Set<String> selected = getSelectedItemsByCheckbox();
+            if (selected.isEmpty()) {
+                showErrorNotification("Please select items to export");
+                return;
+            }
+
+            List<T> toExport = data.stream()
+                    .filter(e -> e.getId() != null && selected.contains(e.getId().toString()))
+                    .collect(Collectors.toList());
+
+            // Open export dialog directly using the toolbar's method
+            tableToolbarActions.openExportDialog(toExport, service, pathToFileStorage, globalTmpDir);
+        }
+    }
+
+    /**
+     * Returns the floating toolbar for subclasses to add custom actions.
+     */
+    protected BervanFloatingToolbar getFloatingToolbar() {
+        return floatingToolbar;
+    }
+
+    /**
+     * Sets up keyboard navigation shortcuts.
+     */
+    protected void setupKeyboardNavigation() {
+        // Escape - clear selection
+        ShortcutRegistration escapeShortcut = UI.getCurrent().addShortcutListener(
+                () -> clearSelection(),
+                Key.ESCAPE
+        );
+
+        // Delete - delete selected with confirmation
+        ShortcutRegistration deleteShortcut = UI.getCurrent().addShortcutListener(
+                () -> {
+                    if (isAtLeastOneCheckboxSelected()) {
+                        handleFloatingToolbarDelete();
+                    }
+                },
+                Key.DELETE
+        );
+
+        // Ctrl+A - select all
+        ShortcutRegistration selectAllShortcut = UI.getCurrent().addShortcutListener(
+                () -> {
+                    if (selectAllCheckbox != null) {
+                        selectAllCheckbox.setValue(true);
+                    }
+                },
+                Key.KEY_A,
+                com.vaadin.flow.component.KeyModifier.CONTROL
+        );
+    }
+
+    /**
+     * Loads persisted state from localStorage.
+     */
+    protected void loadPersistedState() {
+        if (tableState != null) {
+            tableState.loadFromStorage(state -> {
+                // Apply persisted page size
+                if (tableConfig.isPageSizeSelectorEnabled() && state.getPageSize() > 0) {
+                    pageSize = state.getPageSize();
+                    if (pageSizeSelector != null) {
+                        pageSizeSelector.setValue(pageSize);
+                    }
+                }
+
+                // Apply persisted column visibility
+                if (tableConfig.isColumnToggleEnabled()) {
+                    Map<String, Boolean> visibility = state.getColumnVisibility();
+                    visibility.forEach((key, visible) -> {
+                        Grid.Column<T> column = columnMap.get(key);
+                        if (column != null) {
+                            column.setVisible(visible);
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Handles edit action from floating toolbar.
+     */
+    protected void handleFloatingToolbarEdit() {
+        Set<String> selected = getSelectedItemsByCheckbox();
+        if (selected.size() != 1) {
+            showErrorNotification("Please select exactly one item to edit");
+            return;
+        }
+
+        T item = data.stream()
+                .filter(e -> e.getId() != null && selected.contains(e.getId().toString()))
+                .findFirst()
+                .orElse(null);
+
+        if (item != null && tableToolbarActions != null && tableToolbarActions.getEditItemDialog() != null) {
+            Dialog dialog = new Dialog();
+            dialog.setWidth("60vw");
+            dialog.add(tableToolbarActions.getEditItemDialog().buildEditItemDialog(dialog, item));
+            dialog.open();
+        }
+    }
+
+    /**
+     * Handles delete action from floating toolbar.
+     */
+    protected void handleFloatingToolbarDelete() {
+        Set<String> selected = getSelectedItemsByCheckbox();
+        if (selected.isEmpty()) {
+            return;
+        }
+
+        List<T> toDelete = data.stream()
+                .filter(e -> e.getId() != null && selected.contains(e.getId().toString()))
+                .collect(Collectors.toList());
+
+        com.vaadin.flow.component.confirmdialog.ConfirmDialog confirmDialog =
+                new com.vaadin.flow.component.confirmdialog.ConfirmDialog();
+        confirmDialog.setHeader("Confirm Deletion");
+        confirmDialog.setText("Are you sure you want to delete " + toDelete.size() + " item(s)?");
+        confirmDialog.setConfirmText("Delete");
+        confirmDialog.setConfirmButtonTheme("error primary");
+        confirmDialog.setCancelable(true);
+
+        confirmDialog.addConfirmListener(e -> {
+            for (T item : toDelete) {
+                service.deleteById(item.getId()); //for deleting original
+            }
+            refreshData();
+            showSuccessNotification("Deleted " + toDelete.size() + " item(s)");
+        });
+
+        confirmDialog.open();
+    }
+
+
+    /**
+     * Clears all selections.
+     */
+    protected void clearSelection() {
+        if (selectAllCheckbox != null) {
+            selectAllCheckbox.setValue(false);
+        }
+        for (Checkbox checkbox : checkboxes) {
+            checkbox.setValue(false);
+        }
+        updateSelectedItemsLabel();
+        updateFloatingToolbar();
+    }
+
+    /**
+     * Updates the floating toolbar based on selection.
+     */
+    protected void updateFloatingToolbar() {
+        if (floatingToolbar != null) {
+            int count = (int) checkboxes.stream().filter(AbstractField::getValue).count();
+            floatingToolbar.setSelectedCount(count);
+        }
     }
 
     public void buildGridAutomatically(Grid<T> grid) {
@@ -290,11 +591,13 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
             for (ColumnForGridBuilder columnGridBuilder : columnGridBuilders) {
                 if (columnGridBuilder.supports(config.getExtension(), config, tClass)) {
-                    grid.addColumn(columnGridBuilder.build(vaadinTableColumn, config))
+                    Grid.Column<T> column = grid.addColumn(columnGridBuilder.build(vaadinTableColumn, config))
                             .setHeader(columnName)
                             .setKey(columnInternalName)
                             .setResizable(columnGridBuilder.isResizable())
                             .setSortable(columnGridBuilder.isSortable());
+                    // Store column reference for visibility toggle
+                    columnMap.put(columnInternalName, column);
                     break;
                 }
             }
@@ -342,6 +645,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             }
 
             updateSelectedItemsLabel();
+            updateFloatingToolbar();
         });
     }
 
@@ -361,6 +665,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                             button.setEnabled(isAtLeastOneCheckboxSelected());
                         }
                         updateSelectedItemsLabel();
+                        updateFloatingToolbar();
 
                         boolean flag = checkbox.getValue();
                         for (Checkbox c : checkboxes) {
@@ -386,11 +691,28 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected Set<String> getSelectedItemsByCheckbox() {
-        return gridActionService.getSelectedItemsByCheckbox(checkboxes);
+        return checkboxes.stream()
+                .filter(AbstractField::getValue)
+                .map(Component::getId)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(e -> e.split("checkbox-")[1])
+                .collect(Collectors.toSet());
     }
 
     protected void buildToolbarActionBar() {
-        tableToolbarActions = new BervanTableToolbar<>(gridActionService, checkboxes, data, tClass, bervanViewConfig, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange)
+        BervanTableToolbar<ID, T> toolbar = new BervanTableToolbar<>(checkboxes, data, tClass, bervanViewConfig, selectAllCheckbox, buttonsForCheckboxesForVisibilityChange,
+                (Void v) -> {
+                    refreshData();
+                    return v;
+                }, service);
+
+        // Enable icon buttons when floating toolbar is enabled (modern UI)
+        if (tableConfig.isFloatingToolbarEnabled()) {
+            toolbar.withIconButtons();
+        }
+
+        tableToolbarActions = toolbar
                 .withEditButton(service)
                 .withDeleteButton()
                 .withExportButton(isExportable(), service, pathToFileStorage, globalTmpDir)
@@ -583,11 +905,28 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     }
 
     protected void deleteItemsFromGrid(List<T> items) {
-        gridActionService.deleteItemsFromGrid(data, items, checkboxes);
+        for (T item : items) {
+            service.deleteById(item.getId()); //for deleting original
+        }
     }
 
     protected void removeItemFromGrid(T item) {
-        gridActionService.removeItemFromGrid(item, data, checkboxes);
+        int oldSize = data.size();
+        data.remove(item);
+        if (oldSize == data.size()) {
+            ID id = item.getId();
+            data.removeIf(e -> e.getId().equals(id));
+        }
+
+        ID id = item.getId();
+        if (id != null) {
+            List<Checkbox> checkboxesToRemove = checkboxes.stream()
+                    .filter(AbstractField::getValue)
+                    .filter(e -> e.getId().isPresent())
+                    .filter(e -> e.getId().get().equals("checkbox-" + id))
+                    .toList();
+            checkboxes.removeAll(checkboxesToRemove);
+        }
     }
 
     protected void buildNewItemDialogContent(Dialog dialog, VerticalLayout dialogLayout, HorizontalLayout headerLayout) {
