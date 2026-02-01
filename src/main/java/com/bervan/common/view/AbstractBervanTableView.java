@@ -354,6 +354,9 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         if (tableConfig.hasAnyModernFeature() && tableState != null) {
             loadPersistedState();
         }
+
+        // Initial data load
+        refreshData();
     }
 
 

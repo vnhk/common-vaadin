@@ -4,6 +4,7 @@ import com.bervan.common.component.BervanButton;
 import com.bervan.common.view.MenuButtonsRow;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+@CssImport("./bervan-navigation.css")
 public abstract class MenuNavigationComponent extends VerticalLayout {
     protected final Map<String, Button> buttons = new HashMap<>();
     @Getter

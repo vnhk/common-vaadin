@@ -1,0 +1,191 @@
+/**
+ * Bervan Navigation - Pill Tabs with Glassmorphism
+ * Modern navigation component styling
+ */
+
+/* ===== Navigation Container ===== */
+.menu-container {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+    padding: var(--bervan-spacing-sm);
+
+    /* Glassmorphism effect */
+    background: var(--bervan-glass-bg);
+    backdrop-filter: blur(var(--bervan-glass-blur));
+    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
+    /*border: var(--bervan-border-width) solid var(--bervan-glass-border);*/
+    /*border-radius: var(--bervan-border-radius-full);*/
+    box-shadow: var(--bervan-glass-shadow);
+
+    /* Positioning */
+    margin: var(--bervan-spacing-sm) auto;
+    width: fit-content;
+}
+
+/* ===== Navigation Button (Pill Style) ===== */
+.navigation-button {
+    /* Reset Vaadin button styles */
+    all: unset;
+    box-sizing: border-box;
+
+    /* Pill shape */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    border-radius: var(--bervan-border-radius-full);
+
+    /* Typography */
+    font-family: var(--bervan-font-family);
+    font-size: var(--bervan-font-size-sm);
+    font-weight: var(--bervan-font-weight-medium);
+    color: var(--bervan-text-secondary);
+    white-space: nowrap;
+
+    /* Interaction */
+    cursor: pointer;
+    transition: all var(--bervan-transition-fast);
+
+    /* Background */
+    background: transparent;
+    border: none;
+}
+
+.navigation-button:hover {
+    color: var(--bervan-text-primary);
+    background: var(--bervan-surface-hover);
+}
+
+.navigation-button:active {
+    transform: scale(0.98);
+}
+
+/* ===== Selected/Active Button ===== */
+.navigation-button.selected-route-button {
+    color: white;
+    background: var(--bervan-primary);
+    box-shadow: 0 2px 8px rgba(var(--bervan-primary-rgb), 0.4);
+}
+
+.navigation-button.selected-route-button:hover {
+    background: var(--bervan-primary-hover);
+    box-shadow: 0 4px 12px rgba(var(--bervan-primary-rgb), 0.5);
+}
+
+/* ===== Button Icon Styling ===== */
+.navigation-button vaadin-icon,
+.navigation-button iron-icon,
+.navigation-button [slot="prefix"] {
+    width: var(--bervan-icon-size);
+    height: var(--bervan-icon-size);
+    flex-shrink: 0;
+}
+
+/* ===== Vaadin Button Overrides ===== */
+.navigation-button::part(label) {
+    display: flex;
+    align-items: center;
+    gap: var(--bervan-spacing-sm);
+}
+
+/* Remove Vaadin's default button styling */
+vaadin-button.navigation-button {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    min-width: auto;
+    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
+    border-radius: var(--bervan-border-radius-full);
+    color: var(--bervan-text-secondary);
+    font-weight: var(--bervan-font-weight-medium);
+    transition: all var(--bervan-transition-fast);
+}
+
+vaadin-button.navigation-button:hover {
+    background: var(--bervan-surface-hover);
+    color: var(--bervan-text-primary);
+}
+
+vaadin-button.navigation-button.selected-route-button {
+    background: var(--bervan-primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(var(--bervan-primary-rgb), 0.4);
+}
+
+vaadin-button.navigation-button.selected-route-button:hover {
+    background: var(--bervan-primary-hover);
+}
+
+/* ===== Focus States (Accessibility) ===== */
+.navigation-button:focus-visible {
+    outline: 2px solid var(--bervan-accent);
+    outline-offset: 2px;
+}
+
+/* ===== Responsive: Compact mode on smaller screens ===== */
+@media (max-width: 768px) {
+    .menu-container {
+        padding: var(--bervan-spacing-xs);
+        gap: var(--bervan-spacing-xs);
+        border-radius: var(--bervan-border-radius-lg);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .navigation-button,
+    vaadin-button.navigation-button {
+        padding: var(--bervan-spacing-xs) var(--bervan-spacing-sm);
+        font-size: var(--bervan-font-size-xs);
+    }
+
+    /* Hide text, show only icons on very small screens */
+    @media (max-width: 480px) {
+        .navigation-button span:not(:empty),
+        vaadin-button.navigation-button span:not(:empty) {
+            display: none;
+        }
+
+        .navigation-button,
+        vaadin-button.navigation-button {
+            padding: var(--bervan-spacing-sm);
+        }
+    }
+}
+
+/* ===== Animation: Subtle entrance ===== */
+@keyframes nav-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.menu-container {
+    animation: nav-fade-in var(--bervan-transition-normal) ease-out;
+}
+
+/* ===== Badge support (optional notification count) ===== */
+.navigation-button .nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 var(--bervan-spacing-xs);
+    font-size: 0.7rem;
+    font-weight: var(--bervan-font-weight-bold);
+    color: white;
+    background: var(--bervan-danger);
+    border-radius: var(--bervan-border-radius-full);
+    margin-left: var(--bervan-spacing-xs);
+}
+
+.navigation-button.selected-route-button .nav-badge {
+    background: white;
+    color: var(--bervan-primary);
+}
