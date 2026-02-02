@@ -83,7 +83,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
     protected int pageSize = 50;
     protected HorizontalLayout paginationBar;
     protected Grid<T> grid;
-    protected Span countItemsInfo = new Span("");
+    protected H4 countItemsInfo = new H4("");
     protected boolean checkboxesColumnsEnabled = true;
     protected Checkbox selectAllCheckbox;
     protected SortDirection sortDirection = null;
@@ -131,7 +131,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                 .build();
         this.filtersLayout = buildFiltersLayout(tClass);
         addClassName("bervan-table-view");
-        countItemsInfo.addClassName("table-pageable-details");
+        countItemsInfo.setClassName("selection-counter");
 
         gridProgressBar.setWidth("800px");
         gridProgressBar.setIndeterminate(true);
@@ -283,15 +283,17 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         topTableActions.setAlignItems(Alignment.CENTER);
         refreshTable.addClassName("bervan-icon-btn");
         refreshTable.getElement().setAttribute("title", "Refresh");
-        topTableActions.add(refreshTable);
+
+        // Filters expand/collapse button in toolbar
+        filtersLayout.filtersButton.addClassName("bervan-icon-btn");
+        filtersLayout.filtersButton.getElement().setAttribute("title", "Toggle Filters");
+        topTableActions.add(filtersLayout.filtersButton, refreshTable);
 
         selectedItemsCountLabel.setVisible(checkboxesColumnsEnabled);
         selectedItemsCountLabel.addClassName("selection-counter");
 
         applyFiltersButton.addClassName("option-button");
         applyFiltersButton.addClassName("filter-apply-button");
-
-        topLayout.add(filtersLayout.filtersButton);
 
         paginationBar = new HorizontalLayout(prevPageButton, currentPage, nextPageButton, goToPage);
         paginationBar.addClassName("pagination-bar");
@@ -303,7 +305,13 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             addPageSizeSelector(paginationBar);
         }
 
-        countItemsInfo.addClassName("table-info-text");
+        // Info row below grid: selected items (left) and items count (right)
+        HorizontalLayout belowGridInfoLayout = new HorizontalLayout(selectedItemsCountLabel, countItemsInfo);
+        belowGridInfoLayout.setWidthFull();
+        belowGridInfoLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        belowGridInfoLayout.setAlignItems(Alignment.CENTER);
+        belowGridInfoLayout.getStyle().set("padding", "2px 16px");
+        belowGridInfoLayout.getStyle().set("margin-top", "-4px");
 
         gridLoadingOverlay.add(gridProgressBar);
         gridLoadingOverlay.setHeight("20px");
@@ -311,12 +319,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         contentLayout.setPadding(false);
 
         if (searchBarVisible) {
-            contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay,
+            contentLayout.add(filtersLayout, topTableActions, gridLoadingOverlay,
                     filtersLayout.allFieldsTextSearch,
-                    grid, selectedItemsCountLabel, paginationBar);
+                    grid, belowGridInfoLayout, paginationBar);
         } else {
-            contentLayout.add(topLayout, filtersLayout, countItemsInfo, topTableActions, gridLoadingOverlay,
-                    grid, selectedItemsCountLabel, paginationBar);
+            contentLayout.add(filtersLayout, topTableActions, gridLoadingOverlay,
+                    grid, belowGridInfoLayout, paginationBar);
         }
 
 
