@@ -1,25 +1,23 @@
 /**
  * Bervan Navigation - Pill Tabs with Glassmorphism
- * Modern navigation component styling
+ * Modern navigation component styling - uses theme variables
  */
 
 /* ===== Navigation Container ===== */
 .menu-container {
     display: flex;
     align-items: center;
-    gap: var(--bervan-spacing-sm);
-    padding: var(--bervan-spacing-sm);
+    gap: var(--bervan-spacing-sm, 8px);
+    padding: var(--bervan-spacing-sm, 8px);
 
-    /* Glassmorphism effect */
-    background: var(--bervan-glass-bg);
-    backdrop-filter: blur(var(--bervan-glass-blur));
-    -webkit-backdrop-filter: blur(var(--bervan-glass-blur));
-    /*border: var(--bervan-border-width) solid var(--bervan-glass-border);*/
-    /*border-radius: var(--bervan-border-radius-full);*/
-    box-shadow: var(--bervan-glass-shadow);
+    /* Glassmorphism effect - use theme variables */
+    background: var(--glass-bg, var(--bervan-glass-bg, rgba(17, 25, 40, 0.75)));
+    backdrop-filter: blur(var(--glass-blur, var(--bervan-glass-blur, 16px)));
+    -webkit-backdrop-filter: blur(var(--glass-blur, var(--bervan-glass-blur, 16px)));
+    box-shadow: var(--glass-shadow, var(--bervan-glass-shadow));
 
     /* Positioning */
-    margin: var(--bervan-spacing-sm) auto;
+    margin: var(--bervan-spacing-sm, 8px) auto;
     width: fit-content;
 }
 
@@ -32,20 +30,20 @@
     /* Pill shape */
     display: inline-flex;
     align-items: center;
-    gap: var(--bervan-spacing-sm);
-    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
-    border-radius: var(--bervan-border-radius-full);
+    gap: var(--bervan-spacing-sm, 8px);
+    padding: var(--bervan-spacing-sm, 8px) var(--bervan-spacing-md, 16px);
+    border-radius: var(--bervan-border-radius-full, 9999px);
 
     /* Typography */
     font-family: var(--bervan-font-family);
-    font-size: var(--bervan-font-size-sm);
-    font-weight: var(--bervan-font-weight-medium);
-    color: var(--bervan-text-secondary);
+    font-size: var(--bervan-font-size-sm, 0.875rem);
+    font-weight: var(--bervan-font-weight-medium, 500);
+    color: var(--navigation-button-color, var(--glass-text-secondary, var(--bervan-text-secondary)));
     white-space: nowrap;
 
     /* Interaction */
     cursor: pointer;
-    transition: all var(--bervan-transition-fast);
+    transition: all var(--bervan-transition-fast, 150ms);
 
     /* Background */
     background: transparent;
@@ -53,8 +51,8 @@
 }
 
 .navigation-button:hover {
-    color: var(--bervan-text-primary);
-    background: var(--bervan-surface-hover);
+    color: var(--glass-text-primary, var(--bervan-text-primary));
+    background: var(--glass-btn-hover-bg, var(--bervan-surface-hover));
 }
 
 .navigation-button:active {
@@ -63,30 +61,36 @@
 
 /* ===== Selected/Active Button ===== */
 .navigation-button.selected-route-button {
-    color: white;
-    background: var(--bervan-primary);
-    box-shadow: 0 2px 8px rgba(var(--bervan-primary-rgb), 0.4);
+    color: var(--glass-nav-selected-text, white);
+    background: var(--glass-nav-selected-bg, var(--bervan-primary));
+    box-shadow: var(--glass-nav-selected-glow, 0 2px 8px rgba(var(--bervan-primary-rgb), 0.4));
 }
 
 .navigation-button.selected-route-button:hover {
-    background: var(--bervan-primary-hover);
-    box-shadow: 0 4px 12px rgba(var(--bervan-primary-rgb), 0.5);
+    background: var(--glass-nav-selected-hover, var(--bervan-primary-hover));
+    box-shadow: var(--glass-nav-selected-glow-hover, 0 4px 12px rgba(var(--bervan-primary-rgb), 0.5));
 }
 
 /* ===== Button Icon Styling ===== */
 .navigation-button vaadin-icon,
 .navigation-button iron-icon,
 .navigation-button [slot="prefix"] {
-    width: var(--bervan-icon-size);
-    height: var(--bervan-icon-size);
+    width: var(--bervan-icon-size, 18px);
+    height: var(--bervan-icon-size, 18px);
     flex-shrink: 0;
+    color: var(--lumo-primary-color) !important;
+}
+
+.navigation-button.selected-route-button vaadin-icon,
+.navigation-button.selected-route-button iron-icon {
+    color: var(--glass-nav-selected-text, white) !important;
 }
 
 /* ===== Vaadin Button Overrides ===== */
 .navigation-button::part(label) {
     display: flex;
     align-items: center;
-    gap: var(--bervan-spacing-sm);
+    gap: var(--bervan-spacing-sm, 8px);
 }
 
 /* Remove Vaadin's default button styling */
@@ -95,26 +99,26 @@ vaadin-button.navigation-button {
     border: none;
     box-shadow: none;
     min-width: auto;
-    padding: var(--bervan-spacing-sm) var(--bervan-spacing-md);
-    border-radius: var(--bervan-border-radius-full);
-    color: var(--bervan-text-secondary);
-    font-weight: var(--bervan-font-weight-medium);
-    transition: all var(--bervan-transition-fast);
+    padding: var(--bervan-spacing-sm, 8px) var(--bervan-spacing-md, 16px);
+    border-radius: var(--bervan-border-radius-full, 9999px);
+    color: var(--navigation-button-color, var(--glass-text-secondary, var(--bervan-text-secondary)));
+    font-weight: var(--bervan-font-weight-medium, 500);
+    transition: all var(--bervan-transition-fast, 150ms);
 }
 
 vaadin-button.navigation-button:hover {
-    background: var(--bervan-surface-hover);
-    color: var(--bervan-text-primary);
+    background: var(--glass-btn-hover-bg, var(--bervan-surface-hover));
+    color: var(--glass-text-primary, var(--bervan-text-primary));
 }
 
 vaadin-button.navigation-button.selected-route-button {
-    background: var(--bervan-primary);
-    color: white;
-    box-shadow: 0 2px 8px rgba(var(--bervan-primary-rgb), 0.4);
+    background: var(--glass-nav-selected-bg, var(--bervan-primary));
+    color: var(--glass-nav-selected-text, white);
+    box-shadow: var(--glass-nav-selected-glow, 0 2px 8px rgba(var(--bervan-primary-rgb), 0.4));
 }
 
 vaadin-button.navigation-button.selected-route-button:hover {
-    background: var(--bervan-primary-hover);
+    background: var(--glass-nav-selected-hover, var(--bervan-primary-hover));
 }
 
 /* ===== Focus States (Accessibility) ===== */
@@ -126,17 +130,17 @@ vaadin-button.navigation-button.selected-route-button:hover {
 /* ===== Responsive: Compact mode on smaller screens ===== */
 @media (max-width: 768px) {
     .menu-container {
-        padding: var(--bervan-spacing-xs);
-        gap: var(--bervan-spacing-xs);
-        border-radius: var(--bervan-border-radius-lg);
+        padding: var(--bervan-spacing-xs, 4px);
+        gap: var(--bervan-spacing-xs, 4px);
+        border-radius: var(--bervan-border-radius-lg, 12px);
         flex-wrap: wrap;
         justify-content: center;
     }
 
     .navigation-button,
     vaadin-button.navigation-button {
-        padding: var(--bervan-spacing-xs) var(--bervan-spacing-sm);
-        font-size: var(--bervan-font-size-xs);
+        padding: var(--bervan-spacing-xs, 4px) var(--bervan-spacing-sm, 8px);
+        font-size: var(--bervan-font-size-xs, 0.75rem);
     }
 
     /* Hide text, show only icons on very small screens */
@@ -148,7 +152,7 @@ vaadin-button.navigation-button.selected-route-button:hover {
 
         .navigation-button,
         vaadin-button.navigation-button {
-            padding: var(--bervan-spacing-sm);
+            padding: var(--bervan-spacing-sm, 8px);
         }
     }
 }
@@ -166,7 +170,7 @@ vaadin-button.navigation-button.selected-route-button:hover {
 }
 
 .menu-container {
-    animation: nav-fade-in var(--bervan-transition-normal) ease-out;
+    animation: nav-fade-in var(--bervan-transition-normal, 250ms) ease-out;
 }
 
 /* ===== Badge support (optional notification count) ===== */
@@ -176,16 +180,16 @@ vaadin-button.navigation-button.selected-route-button:hover {
     justify-content: center;
     min-width: 18px;
     height: 18px;
-    padding: 0 var(--bervan-spacing-xs);
+    padding: 0 var(--bervan-spacing-xs, 4px);
     font-size: 0.7rem;
-    font-weight: var(--bervan-font-weight-bold);
+    font-weight: var(--bervan-font-weight-bold, 700);
     color: white;
     background: var(--bervan-danger);
-    border-radius: var(--bervan-border-radius-full);
-    margin-left: var(--bervan-spacing-xs);
+    border-radius: var(--bervan-border-radius-full, 9999px);
+    margin-left: var(--bervan-spacing-xs, 4px);
 }
 
 .navigation-button.selected-route-button .nav-badge {
     background: white;
-    color: var(--bervan-primary);
+    color: var(--glass-primary, var(--bervan-primary));
 }
