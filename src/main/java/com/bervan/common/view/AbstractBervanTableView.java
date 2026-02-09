@@ -653,7 +653,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     }
 
-    private void buildSelectAllCheckboxesComponent() {
+    protected void buildSelectAllCheckboxesComponent() {
         this.selectAllCheckbox = new Checkbox(false);
         this.selectAllCheckbox.addClassName("modern-table-checkbox");
         this.selectAllCheckbox.addClassName("select-all-checkbox");
