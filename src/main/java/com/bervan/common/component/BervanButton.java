@@ -34,6 +34,12 @@ public class BervanButton extends Button {
         addClassName(className);
     }
 
+    public BervanButton(Icon icon, ComponentEventListener<ClickEvent<Button>> clickEventComponentEventListener, BervanButtonStyle bervanButtonStyle) {
+        super(icon, clickEventComponentEventListener);
+        addClassName(bervanButtonStyle.getClassName());
+    }
+
+
     public BervanButton() {
         addClassName(className);
     }

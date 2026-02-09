@@ -5,7 +5,8 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.config.ClassViewAutoConfigColumn;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -69,10 +70,18 @@ public class TableClassUtils {
                 if (field.getType().equals(LocalDateTime.class)) {
                     VerticalLayout fieldLayout = new VerticalLayout();
                     fieldLayout.setWidthFull();
+                    fieldLayout.setSpacing(false);
+                    fieldLayout.setPadding(false);
                     filtersMap.putIfAbsent(field, new HashMap<>());
+
                     BervanDateTimePicker from = new BervanDateTimePicker(false);
+                    from.setInputWidth("150px");
                     BervanDateTimePicker to = new BervanDateTimePicker(false);
-                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    to.setInputWidth("150px");
+
+                    Icon arrowRight = new Icon(VaadinIcon.ARROW_RIGHT);
+                    arrowRight.getElement().setAttribute("style", "margin-top: 5px;");
+                    fieldLayout.add(new HorizontalLayout(from, arrowRight, to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
@@ -83,7 +92,9 @@ public class TableClassUtils {
                     filtersMap.putIfAbsent(field, new HashMap<>());
                     BervanDateTimePicker from = new BervanDateTimePicker(true, false, false);
                     BervanDateTimePicker to = new BervanDateTimePicker(true, false, false);
-                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    Icon arrowRight = new Icon(VaadinIcon.ARROW_RIGHT);
+                    arrowRight.getElement().setAttribute("style", "margin-top: 5px;");
+                    fieldLayout.add(new HorizontalLayout(from, arrowRight, to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
@@ -94,7 +105,9 @@ public class TableClassUtils {
                     filtersMap.putIfAbsent(field, new HashMap<>());
                     BervanDateTimePicker from = new BervanDateTimePicker(false, true, false);
                     BervanDateTimePicker to = new BervanDateTimePicker(false, true, false);
-                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    Icon arrowRight = new Icon(VaadinIcon.ARROW_RIGHT);
+                    arrowRight.getElement().setAttribute("style", "margin-top: 5px;");
+                    fieldLayout.add(new HorizontalLayout(from, arrowRight, to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
@@ -152,7 +165,9 @@ public class TableClassUtils {
                     filtersMap.putIfAbsent(field, new HashMap<>());
                     BervanIntegerField from = new BervanIntegerField();
                     BervanIntegerField to = new BervanIntegerField();
-                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    Icon arrowRight = new Icon(VaadinIcon.ARROW_RIGHT);
+                    arrowRight.getElement().setAttribute("style", "margin-top: 5px;");
+                    fieldLayout.add(new HorizontalLayout(from, arrowRight, to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
@@ -180,7 +195,9 @@ public class TableClassUtils {
                     filtersMap.putIfAbsent(field, new HashMap<>());
                     BervanDoubleField from = new BervanDoubleField();
                     BervanDoubleField to = new BervanDoubleField();
-                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    Icon arrowRight = new Icon(VaadinIcon.ARROW_RIGHT);
+                    arrowRight.getElement().setAttribute("style", "margin-top: 5px;");
+                    fieldLayout.add(new HorizontalLayout(from, arrowRight, to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 
@@ -208,7 +225,9 @@ public class TableClassUtils {
                     filtersMap.putIfAbsent(field, new HashMap<>());
                     BervanBigDecimalField from = new BervanBigDecimalField();
                     BervanBigDecimalField to = new BervanBigDecimalField();
-                    fieldLayout.add(new HorizontalLayout(from, new H4(" -> "), to));
+                    Icon arrowRight = new Icon(VaadinIcon.ARROW_RIGHT);
+                    arrowRight.getElement().setAttribute("style", "margin-top: 5px;");
+                    fieldLayout.add(new HorizontalLayout(from, arrowRight, to));
                     filtersMap.get(field).put("FROM", from);
                     filtersMap.get(field).put("TO", to);
 

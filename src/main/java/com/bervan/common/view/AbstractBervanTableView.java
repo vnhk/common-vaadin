@@ -341,6 +341,11 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
         topTableActions.add(newItemButton);
 
+        // Add column toggle button if enabled
+        if (tableConfig.isColumnToggleEnabled()) {
+            addColumnToggleButton(topTableActions);
+        }
+
         // Hook for subclasses to add custom buttons to topTableActions
         customizeTopTableActions(topTableActions);
 
@@ -841,6 +846,55 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     protected void customizePreLoad(SearchRequest request) {
 
+    }
+
+    /**
+     * Adds a column toggle button that opens a dialog to show/hide columns.
+     * Column visibility is persisted in localStorage via BervanTableState.
+     */
+    protected void addColumnToggleButton(HorizontalLayout topTableActions) {
+        Button columnToggleBtn = new BervanButton(new Icon(VaadinIcon.GRID_H));
+        columnToggleBtn.addClassName("bervan-icon-btn");
+        columnToggleBtn.getElement().setAttribute("title", "Toggle columns");
+
+        columnToggleBtn.addClickListener(e -> {
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Visible Columns");
+            dialog.setWidth("300px");
+
+            VerticalLayout content = new VerticalLayout();
+            content.setPadding(false);
+            content.setSpacing(false);
+
+            for (Map.Entry<String, Grid.Column<T>> entry : columnMap.entrySet()) {
+                String key = entry.getKey();
+                Grid.Column<T> column = entry.getValue();
+                String header = column.getHeaderText();
+                if (header == null || header.isEmpty()) {
+                    header = key;
+                }
+
+                Checkbox cb = new Checkbox(header, column.isVisible());
+                cb.getStyle().set("padding", "4px 0");
+                cb.addValueChangeListener(ev -> {
+                    column.setVisible(ev.getValue());
+                    if (tableState != null) {
+                        tableState.setColumnVisible(key, ev.getValue());
+                        tableState.saveToStorage();
+                    }
+                });
+                content.add(cb);
+            }
+
+            dialog.add(content);
+
+            Button closeBtn = new BervanButton("Close", event -> dialog.close());
+            dialog.getFooter().add(closeBtn);
+
+            dialog.open();
+        });
+
+        topTableActions.add(columnToggleBtn);
     }
 
     /**
