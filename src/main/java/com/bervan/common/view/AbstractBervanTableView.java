@@ -930,7 +930,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         return grid;
     }
 
-    private void updateSelectedItemsLabel() {
+    protected void updateSelectedItemsLabel() {
         selectedItemsCountLabel.setText("Selected " + checkboxes.stream().filter(AbstractField::getValue).count() + " item(s)");
     }
 
