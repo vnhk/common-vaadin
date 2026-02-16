@@ -2,6 +2,7 @@ package com.bervan.common.component;
 
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -13,13 +14,15 @@ import com.vaadin.flow.component.textfield.TextField;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class InlineEditableField extends Div {
 
     public enum FieldType {
-        TEXT, COMBOBOX, DATE, NUMBER
+        TEXT, COMBOBOX, DATE, NUMBER, MULTI_SELECT
     }
 
     private final String label;
@@ -162,6 +165,34 @@ public class InlineEditableField extends Div {
                 numberField.focus();
                 return numberField;
 
+            case MULTI_SELECT:
+                MultiSelectComboBox<String> multiSelect = new MultiSelectComboBox<>(label);
+                if (comboBoxOptions != null) {
+                    multiSelect.setItems(comboBoxOptions);
+                }
+                multiSelect.setAllowCustomValue(true);
+                multiSelect.addCustomValueSetListener(e -> multiSelect.select(e.getDetail()));
+                multiSelect.setClearButtonVisible(true);
+                multiSelect.setWidthFull();
+                if (currentValue instanceof Collection<?>) {
+                    multiSelect.select(((Collection<?>) currentValue).stream()
+                            .map(Object::toString).toList());
+                }
+                multiSelect.addValueChangeListener(e -> {
+                    if (e.isFromClient()) {
+                        saveAndClose(new ArrayList<>(e.getValue()));
+                    }
+                });
+                multiSelect.addBlurListener(e -> {
+                    if (editing) {
+                        saveAndClose(new ArrayList<>(multiSelect.getSelectedItems()));
+                    }
+                });
+                multiSelect.getElement().addEventListener("keydown", event -> buildDisplayMode())
+                        .setFilter("event.key === 'Escape'");
+                multiSelect.focus();
+                return multiSelect;
+
             case TEXT:
             default:
                 TextField textField = new TextField(label);
@@ -192,6 +223,10 @@ public class InlineEditableField extends Div {
 
     private String formatValue(Object value) {
         if (value == null) return "";
+        if (value instanceof Collection<?> col) {
+            if (col.isEmpty()) return "";
+            return col.stream().map(Object::toString).reduce((a, b) -> a + ", " + b).orElse("");
+        }
         if (value instanceof LocalDateTime) {
             return ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
