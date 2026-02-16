@@ -5,10 +5,8 @@ import com.bervan.common.config.BervanViewConfig;
 import com.bervan.common.service.BaseService;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 
 import java.util.UUID;
 
@@ -24,13 +22,17 @@ public class AbstractAsyncTaskList extends AbstractBervanTableView<UUID, AsyncTa
     }
 
     @Override
-    protected void preColumnAutoCreation(Grid<AsyncTask> grid) {
-        grid.addComponentColumn(entity -> {
-                    Icon linkIcon = new Icon(VaadinIcon.LINK);
-                    linkIcon.getStyle().set("cursor", "pointer");
-                    return new Anchor(ROUTE_NAME + "/" + entity.getId(), new HorizontalLayout(linkIcon));
-                }).setKey("link")
-                .setWidth("6px")
-                .setResizable(false);
+    protected Grid<AsyncTask> getGrid() {
+        Grid<AsyncTask> grid = new Grid<>(AsyncTask.class, false);
+        buildGridAutomatically(grid);
+
+        if (grid.getColumnByKey("status") != null) {
+            grid.getColumnByKey("status").setRenderer(new ComponentRenderer<>(
+                    entity -> new Anchor(ROUTE_NAME + "/" + entity.getId(),
+                            entity.getStatus() != null ? entity.getStatus() : entity.getId().toString())
+            ));
+        }
+
+        return grid;
     }
 }

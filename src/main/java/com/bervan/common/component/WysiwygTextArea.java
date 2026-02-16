@@ -92,6 +92,18 @@ public class WysiwygTextArea extends AbstractPageView implements AutoConfigurabl
                         "script.src = 'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js'; " +
                         "script.onload = function() {" +
                         "  var quill = new Quill('#" + id + "', { theme: 'snow' });" +
+                        "  quill.clipboard.addMatcher(Node.ELEMENT_NODE, function(node, delta) {" +
+                        "    delta.ops.forEach(function(op) {" +
+                        "      if (op.attributes && op.attributes.color) {" +
+                        "        var c = op.attributes.color.toLowerCase().replace(/\\s/g, '');" +
+                        "        if (c === '#000000' || c === '#000' || c === 'black' || " +
+                        "            c === 'rgb(0,0,0)' || c === 'rgba(0,0,0,1)') {" +
+                        "          delete op.attributes.color;" +
+                        "        }" +
+                        "      }" +
+                        "    });" +
+                        "    return delta;" +
+                        "  });" +
                         "  quill.on('text-change', function() {" +
                         "    $0.$server.onTextChange(quill.root.innerHTML);" +
                         "  });" +

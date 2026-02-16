@@ -296,3 +296,14 @@
     font-size: var(--bervan-font-size-sm);
     font-weight: var(--bervan-font-weight-medium);
 }
+
+/* ===== Clickable Name Links in Grid ===== */
+vaadin-grid a {
+    color: var(--bervan-text-primary);
+    text-decoration: none;
+}
+
+vaadin-grid a:hover {
+    text-decoration: underline;
+    color: var(--lumo-primary-color);
+}
