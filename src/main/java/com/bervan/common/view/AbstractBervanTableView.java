@@ -741,6 +741,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         }
 
         tableToolbarActions = toolbar
+                .withComponentHelper(this.componentHelper)
                 .withEditButton(service)
                 .withDeleteButton()
                 .withExportButton(isExportable(), service, () -> pathToFileStorage, () -> globalTmpDir)

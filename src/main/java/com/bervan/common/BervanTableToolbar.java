@@ -75,6 +75,13 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
         componentHelper = new CommonComponentHelper<>(tClass);
     }
 
+    public BervanTableToolbar<ID, T> withComponentHelper(ComponentHelper<ID, T> componentHelper) {
+        if (componentHelper != null) {
+            this.componentHelper = componentHelper;
+        }
+        return this;
+    }
+
     /**
      * Enables icon-only mode for a more compact, modern appearance.
      * Called automatically when floating toolbar is enabled.
