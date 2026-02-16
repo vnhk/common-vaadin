@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class BervanTableToolbar<ID extends Serializable, T extends PersistableTableData<ID>> extends AbstractPageView {
@@ -148,17 +149,23 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
 
     public BervanTableToolbar<ID, T> withExportButton(boolean isExportable, BaseService<ID, T> service,
                                                       String pathToFileStorageVal, String globalTmpDirVal) {
+        return withExportButton(isExportable, service, () -> pathToFileStorageVal, () -> globalTmpDirVal);
+    }
+
+    public BervanTableToolbar<ID, T> withExportButton(boolean isExportable, BaseService<ID, T> service,
+                                                      Supplier<String> pathToFileStorageSupplier,
+                                                      Supplier<String> globalTmpDirSupplier) {
 
         if (useIconButtons) {
             checkboxExportButton = new BervanButton(new Icon(VaadinIcon.DOWNLOAD), exportEvent -> {
-                handleExport(isExportable, service, pathToFileStorageVal, globalTmpDirVal);
+                handleExport(isExportable, service, pathToFileStorageSupplier, globalTmpDirSupplier);
             });
             checkboxExportButton.getElement().setAttribute("title", "Export selected");
             checkboxExportButton.addClassName("bervan-icon-btn");
             checkboxExportButton.addClassName("success");
         } else {
             checkboxExportButton = new BervanButton("Export", exportEvent -> {
-                handleExport(isExportable, service, pathToFileStorageVal, globalTmpDirVal);
+                handleExport(isExportable, service, pathToFileStorageSupplier, globalTmpDirSupplier);
             }, BervanButtonStyle.WARNING);
         }
 
@@ -168,7 +175,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
     }
 
     private void handleExport(boolean isExportable, BaseService<ID, T> service,
-                              String pathToFileStorageVal, String globalTmpDirVal) {
+                              Supplier<String> pathToFileStorageSupplier, Supplier<String> globalTmpDirSupplier) {
         if (!isExportable) {
             log.error("Table is not exportable!");
             return;
@@ -181,7 +188,7 @@ public class BervanTableToolbar<ID extends Serializable, T extends PersistableTa
                 .filter(e -> itemsId.contains(e.getId().toString()))
                 .toList();
 
-        openExportDialog(toBeExported, service, pathToFileStorageVal, globalTmpDirVal);
+        openExportDialog(toBeExported, service, pathToFileStorageSupplier.get(), globalTmpDirSupplier.get());
     }
 
     public BervanTableToolbar<ID, T> withEditButton(BaseService<ID, T> service) {
