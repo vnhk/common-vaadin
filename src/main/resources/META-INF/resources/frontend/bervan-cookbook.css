@@ -1,0 +1,170 @@
+/* ===== Cook Book Module Styles ===== */
+
+/* Recipe Header */
+.cb-recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cb-recipe-title {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+/* Favorite Icon */
+.cb-favorite-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.cb-favorite-btn:hover {
+    transform: scale(1.2);
+}
+
+.cb-favorite-active {
+    color: #ef4444;
+}
+
+/* Rating Stars */
+.cb-rating-stars {
+    display: inline-flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.cb-star-filled {
+    color: #f59e0b;
+}
+
+.cb-star-empty {
+    color: var(--bervan-text-disabled, #475569);
+}
+
+/* Category Badges */
+.cb-category-badge {
+    display: inline-flex;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: var(--bervan-font-size-xs, 0.75rem);
+    font-weight: 600;
+    background: rgba(var(--bervan-info-rgb, 59, 130, 246), 0.15);
+    color: rgb(var(--bervan-info-rgb, 59, 130, 246));
+}
+
+.cb-category-nabial {
+    background: rgba(var(--bervan-info-rgb, 59, 130, 246), 0.15);
+    color: rgb(var(--bervan-info-rgb, 59, 130, 246));
+}
+
+.cb-category-mieso {
+    background: rgba(var(--bervan-danger-rgb, 239, 68, 68), 0.15);
+    color: rgb(var(--bervan-danger-rgb, 239, 68, 68));
+}
+
+.cb-category-ryby {
+    background: rgba(var(--bervan-accent-rgb, 34, 211, 238), 0.15);
+    color: rgb(var(--bervan-accent-rgb, 34, 211, 238));
+}
+
+.cb-category-warzywa {
+    background: rgba(var(--bervan-success-rgb, 16, 185, 129), 0.15);
+    color: rgb(var(--bervan-success-rgb, 16, 185, 129));
+}
+
+.cb-category-owoce {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.cb-category-przyprawy {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+}
+
+.cb-category-zboza {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
+
+.cb-category-tluszcze {
+    background: rgba(var(--bervan-warning-rgb, 245, 158, 11), 0.15);
+    color: rgb(var(--bervan-warning-rgb, 245, 158, 11));
+}
+
+.cb-category-napoje {
+    background: rgba(var(--bervan-info-rgb, 59, 130, 246), 0.15);
+    color: rgb(var(--bervan-info-rgb, 59, 130, 246));
+}
+
+.cb-category-slodycze {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+}
+
+.cb-category-inne {
+    background: rgba(100, 116, 139, 0.15);
+    color: #64748b;
+}
+
+/* Ingredient Chips */
+.cb-ingredient-chip {
+    display: inline-flex;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: var(--bervan-font-size-xs, 0.75rem);
+    margin: 2px;
+    font-weight: 500;
+}
+
+.cb-ingredient-matched {
+    background: rgba(var(--bervan-success-rgb, 16, 185, 129), 0.2);
+    color: rgb(var(--bervan-success-rgb, 16, 185, 129));
+}
+
+.cb-ingredient-missing {
+    background: rgba(var(--bervan-danger-rgb, 239, 68, 68), 0.2);
+    color: rgb(var(--bervan-danger-rgb, 239, 68, 68));
+}
+
+/* Shopping Cart */
+.cb-purchased-item {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* Time Badge */
+.cb-time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--bervan-font-size-sm, 0.875rem);
+    color: var(--bervan-text-secondary, #94a3b8);
+}
+
+/* Metadata Grid */
+.cb-metadata-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--bervan-spacing-md, 16px);
+}
+
+@media (max-width: 768px) {
+    .cb-metadata-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .cb-metadata-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Optional Ingredient */
+.cb-optional-ingredient {
+    opacity: 0.7;
+    font-style: italic;
+    font-size: var(--bervan-font-size-xs, 0.75rem);
+    color: var(--bervan-text-tertiary, #64748b);
+}
