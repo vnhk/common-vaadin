@@ -33,13 +33,13 @@ public class CommonComponentHelper<ID extends Serializable, T extends Persistabl
         value = getInitValueForInput(bervanViewConfig, field, item, config, value);
 
         if (Objects.equals(config.getExtension(), VaadinDynamicDropdownBervanColumn.class.getSimpleName())) {
-            String key = config.getInternalName();
+            String key = bervanViewConfig.getInternalName(field);
             dynamicDropdownAllValues.put(key, getAllValuesForDynamicDropdowns(key, item));
             String initialSelectedValue = getInitialSelectedValueForDynamicDropdown(key, item);
 
             component = new BervanDynamicDropdownController(key, config.getDisplayName(), dynamicDropdownAllValues.get(key), initialSelectedValue, config.isRequired());
         } else if (Objects.equals(config.getExtension(), VaadinDynamicMultiDropdownBervanColumn.class.getSimpleName())) {
-            String key = config.getInternalName();
+            String key = bervanViewConfig.getInternalName(field);
             dynamicMultiDropdownAllValues.put(key, getAllValuesForDynamicMultiDropdowns(key, item));
             List<String> initialSelectedValues = getInitialSelectedValueForDynamicMultiDropdown(key, item);
 
