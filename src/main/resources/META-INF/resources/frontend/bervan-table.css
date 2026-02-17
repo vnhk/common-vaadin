@@ -89,6 +89,10 @@
 }
 
 /* ===== Checkbox Column ===== */
+.bervan-modern-table .bervan-checkbox-cell {
+    padding: 5px !important;
+}
+
 .bervan-modern-table .modern-table-checkbox {
     --vaadin-checkbox-size: 18px;
 }

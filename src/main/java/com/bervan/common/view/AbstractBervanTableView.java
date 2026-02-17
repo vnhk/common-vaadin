@@ -596,13 +596,15 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         if (checkboxesColumnsEnabled) {
             buildSelectAllCheckboxesComponent();
 
-            grid.addColumn(createCheckboxComponent())
+            Grid.Column<T> checkboxCol = grid.addColumn(createCheckboxComponent())
                     .setHeader(selectAllCheckbox)
                     .setKey(CHECKBOX_COLUMN_KEY)
-                    .setWidth("10px")
+                    .setWidth("100px")
+                    .setFlexGrow(0)
                     .setTextAlign(ColumnTextAlign.CENTER)
                     .setResizable(false)
                     .setSortable(false);
+            checkboxCol.setClassNameGenerator(item -> "bervan-checkbox-cell");
         }
 
         preColumnAutoCreation(grid);
