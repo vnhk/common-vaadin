@@ -184,8 +184,29 @@
     border-radius: 8px;
 }
 
-/* Half Star */
-.cb-star-half {
-    color: #f59e0b;
-    opacity: 0.6;
+/* Instructions - Quill editor auto-height */
+.cb-instructions-editor .ql-container {
+    height: auto !important;
+    min-height: 200px;
+}
+
+.cb-instructions-editor .ql-editor {
+    min-height: 200px;
+    height: auto !important;
+    overflow-y: visible !important;
+    font-size: max(15px, 1em);
+}
+
+.cb-instructions-editor .ql-editor * {
+    font-size: max(15px, inherit);
+}
+
+.cb-instructions-editor .ql-editor img {
+    max-width: 400px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.cb-instructions-editor .ql-editor .img-placeholder {
+    max-width: 400px;
 }
