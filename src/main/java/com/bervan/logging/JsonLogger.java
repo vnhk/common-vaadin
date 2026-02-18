@@ -115,12 +115,18 @@ public class JsonLogger {
             return;
         }
 
+        // Extract Throwable from params if someone called e.g. error("msg", exception)
+        // which Java resolves to the varargs overload instead of error(String, Throwable)
+        if (throwable == null && params != null && params.length > 0
+                && params[params.length - 1] instanceof Throwable t) {
+            throwable = t;
+            Object[] newParams = new Object[params.length - 1];
+            System.arraycopy(params, 0, newParams, 0, params.length - 1);
+            params = newParams;
+        }
+
         if (params == null || params.length == 0) {
-            //append module name as new field in json
-            StructuredArgument structuredArgument = StructuredArguments.keyValue("moduleName", moduleName);
-            params = new Object[1];
-            System.arraycopy(params, 0, params, 1, 0);
-            params[0] = structuredArgument;
+            params = new Object[]{StructuredArguments.keyValue("moduleName", moduleName)};
         } else {
             Object[] newParams = new Object[params.length + 1];
             System.arraycopy(params, 0, newParams, 0, params.length);

@@ -20,6 +20,9 @@ public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoC
 
     public Set<String> getFetchableFieldNames(Class<?> tClass) {
         Map<String, ClassViewAutoConfigColumn> stringClassViewAutoConfigColumnMap = get(tClass.getSimpleName());
+        if (stringClassViewAutoConfigColumnMap == null) {
+            return Set.of();
+        }
         return stringClassViewAutoConfigColumnMap.entrySet().stream()
                 .filter(e -> e.getValue().isFetchable())
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
@@ -48,6 +51,9 @@ public class BervanViewConfig extends HashMap<String, Map<String, ClassViewAutoC
 
     public Set<String> getEditableFieldNames(Class<?> tClass) {
         Map<String, ClassViewAutoConfigColumn> stringClassViewAutoConfigColumnMap = get(tClass.getSimpleName());
+        if (stringClassViewAutoConfigColumnMap == null) {
+            return Set.of();
+        }
         return stringClassViewAutoConfigColumnMap.entrySet().stream()
                 .filter(e -> e.getValue().isInEditForm())
                 .map(Map.Entry::getKey).collect(Collectors.toSet());
