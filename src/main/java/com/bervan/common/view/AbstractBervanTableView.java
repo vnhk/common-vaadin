@@ -191,10 +191,12 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         showGridLoadingProgress(true);
 
         SecurityContext context = SecurityContextHolder.getContext();
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         UI current = UI.getCurrent();
 
         CompletableFuture.runAsync(() -> {
             try {
+                Thread.currentThread().setContextClassLoader(classLoader);
                 SecurityContextHolder.setContext(context);
                 data.removeAll(data);
                 data.addAll(loadData());
@@ -1069,7 +1071,6 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     }
 
                     newObject = preSaveActions(newObject);
-
                     T save = save(newObject);
 
                     postSaveActions(save);
