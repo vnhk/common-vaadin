@@ -102,12 +102,20 @@ public class JsonLogger {
         StructuredArgument structuredArgument = StructuredArguments.keyValue(json.getKey(), json.getValue());
         if (params == null || params.length == 0) {
             return new Object[]{structuredArgument};
+        }
+        // If the last param is a Throwable, insert JSON before it so Throwable stays last.
+        // This allows the Throwable extraction in log() to work correctly and Logback to print the stack trace.
+        boolean lastIsThrowable = params[params.length - 1] instanceof Throwable;
+        Object[] newParams = new Object[params.length + 1];
+        if (lastIsThrowable) {
+            System.arraycopy(params, 0, newParams, 0, params.length - 1);
+            newParams[params.length - 1] = structuredArgument;
+            newParams[params.length] = params[params.length - 1];
         } else {
-            Object[] newParams = new Object[params.length + 1];
             System.arraycopy(params, 0, newParams, 0, params.length);
             newParams[params.length] = structuredArgument;
-            return newParams;
         }
+        return newParams;
     }
 
     private void log(Level level, String message, Object[] params, Throwable throwable) {
