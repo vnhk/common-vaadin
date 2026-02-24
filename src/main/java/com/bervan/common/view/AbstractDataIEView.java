@@ -9,12 +9,15 @@ import com.bervan.common.model.PersistableTableData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.ieentities.BaseExcelExport;
+import com.bervan.ieentities.BaseJsonExport;
 import com.bervan.ieentities.BaseExcelImport;
+import com.bervan.ieentities.BaseJsonImport;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.bervan.logging.JsonLogger;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -99,6 +102,14 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
 
             dialog.add(new Hr());
 
+            RadioButtonGroup<String> formatGroup = new RadioButtonGroup<>();
+            formatGroup.setLabel("Export format");
+            formatGroup.setItems("Excel (.xlsx)", "JSON (.json)");
+            formatGroup.setValue("Excel (.xlsx)");
+            dialog.add(formatGroup);
+
+            dialog.add(new Hr());
+
             //uncheck all button
             HorizontalLayout verticalLayout = new HorizontalLayout();
             BervanButton uncheckAllButton = new BervanButton("Uncheck all", (click) -> checkboxes.forEach(e -> e.setValue(false)), BervanButtonStyle.WARNING);
@@ -106,7 +117,9 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
 
             verticalLayout.add(new BervanButton("Export", (click) -> {
                 List<String> fields = checkboxes.stream().filter(e -> e.getValue()).map(e -> e.getLabel()).toList();
-                StreamResource resource = prepareDownloadResource(fields);
+                StreamResource resource = "JSON (.json)".equals(formatGroup.getValue())
+                        ? prepareJsonDownloadResource(fields)
+                        : prepareDownloadResource(fields);
                 Anchor downloadLink = new Anchor(resource, "Export");
                 downloadLink.getElement().setAttribute("download", true);
 
@@ -143,9 +156,16 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
             }
         }
 
-        BaseExcelImport baseExcelImport = new BaseExcelImport(Collections.singletonList(classToExport));
-        List<? extends ExcelIEEntity<ID>> objects = (List<? extends ExcelIEEntity<ID>>) baseExcelImport.importExcel(baseExcelImport.load(file));
-        log.debug("Extracted " + objects.size() + " entities from excel.");
+        List<? extends ExcelIEEntity<ID>> objects;
+        if (fileName.toLowerCase().endsWith(".json")) {
+            BaseJsonImport baseJsonImport = new BaseJsonImport(Collections.singletonList(classToExport));
+            objects = (List<? extends ExcelIEEntity<ID>>) baseJsonImport.importJson(baseJsonImport.load(file));
+            log.debug("Extracted " + objects.size() + " entities from JSON.");
+        } else {
+            BaseExcelImport baseExcelImport = new BaseExcelImport(Collections.singletonList(classToExport));
+            objects = (List<? extends ExcelIEEntity<ID>>) baseExcelImport.importExcel(baseExcelImport.load(file));
+            log.debug("Extracted " + objects.size() + " entities from excel.");
+        }
         postDataLoad(objects);
 
         dataService.saveIfValid(objects);
@@ -179,6 +199,35 @@ public abstract class AbstractDataIEView<ID extends Serializable, T extends Pers
             });
         } catch (Exception e) {
             log.error("Could not prepare export data.", e);
+            showErrorNotification("Could not prepare export data.");
+        }
+
+        return null;
+    }
+
+    public StreamResource prepareJsonDownloadResource(List<String> fields) {
+        try {
+            BaseJsonExport baseJsonExport = new BaseJsonExport();
+            baseJsonExport.setColumnsToExport(fields);
+            List<ExcelIEEntity<?>> dataToExport = getDataToExport();
+            log.info("Found " + dataToExport.size() + " to be exported!");
+            if (dataToExport.isEmpty()) {
+                showWarningNotification("No data to be exported!");
+                return null;
+            }
+            Map<String, List<Map<String, Object>>> jsonData = baseJsonExport.exportJson(dataToExport);
+            String filename = "export" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd_MM_yyyy_DD_mm_ss")) + ".json";
+            File saved = baseJsonExport.save(jsonData, pathToFileStorage + globalTmpDir, filename);
+
+            return new StreamResource(saved.getName(), () -> {
+                try {
+                    return new FileInputStream(saved);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Could not prepare JSON export data.", e);
             showErrorNotification("Could not prepare export data.");
         }
 
