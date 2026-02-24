@@ -62,7 +62,12 @@ public abstract class AbstractOneValueView extends AbstractPageView {
     }
 
     protected void save(String value) {
-        item.setContent(value);
-        service.save(item);
+        try {
+            item.setContent(value);
+            service.save(item);
+            showSuccessNotification("Saved successfully!");
+        } catch (Exception e) {
+            showErrorNotification("Failed to save!");
+        }
     }
 }

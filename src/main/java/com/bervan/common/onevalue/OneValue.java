@@ -7,6 +7,7 @@ import com.bervan.history.model.HistoryCollection;
 import com.bervan.history.model.HistorySupported;
 import com.bervan.ieentities.ExcelIEEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -25,6 +26,8 @@ public class OneValue extends BervanOwnedBaseEntity<UUID> implements BaseOneValu
     private UUID id;
     private String name;
     @Lob
+    @Size(max = 5000000)
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
     private LocalDateTime modificationDate;
     private boolean deleted;
