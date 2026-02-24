@@ -15,6 +15,8 @@ import com.bervan.common.search.SearchRequest;
 import com.bervan.common.service.BaseService;
 import com.bervan.common.view.table.BervanTableConfig;
 import com.bervan.common.view.table.BervanTableState;
+import com.bervan.ieentities.BaseExcelImport;
+import com.bervan.ieentities.BaseJsonImport;
 import com.bervan.ieentities.ExcelIEEntity;
 import com.bervan.logging.BaseProcessContext;
 import com.bervan.logging.JsonLogger;
@@ -35,6 +37,8 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableBiConsumer;
@@ -47,6 +51,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.io.*;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -346,6 +351,11 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         // Add column toggle button if enabled
         if (tableConfig.isColumnToggleEnabled()) {
             addColumnToggleButton(topTableActions);
+        }
+
+        // Add import button if entity supports import/export
+        if (isExportable()) {
+            addImportButton(topTableActions);
         }
 
         // Hook for subclasses to add custom buttons to topTableActions
@@ -900,6 +910,77 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         });
 
         topTableActions.add(columnToggleBtn);
+    }
+
+    /**
+     * Adds an import button that opens a file upload dialog.
+     * Supports both .xlsx (Excel) and .json formats — auto-detected by extension.
+     */
+    protected void addImportButton(HorizontalLayout topTableActions) {
+        Button importBtn = new BervanButton(new Icon(VaadinIcon.UPLOAD));
+        importBtn.addClassName("bervan-icon-btn");
+        importBtn.getElement().setAttribute("title", "Import");
+        importBtn.addClickListener(e -> openImportDialog());
+        topTableActions.add(importBtn);
+    }
+
+    protected void openImportDialog() {
+        Dialog dialog = new Dialog("Import data");
+        dialog.setWidth("50vw");
+
+        HorizontalLayout topBar = getDialogTopBarLayout(dialog);
+        dialog.add(topBar);
+
+        MemoryBuffer buffer = new MemoryBuffer();
+        Upload upload = new Upload(buffer);
+        upload.setAcceptedFileTypes(".xlsx", ".json");
+
+        upload.addSucceededListener(event -> {
+            String fileName = event.getFileName();
+            InputStream inputStream = buffer.getInputStream();
+            try {
+                importData(inputStream, fileName);
+                showSuccessNotification("Data imported successfully: " + fileName);
+                dialog.close();
+                refreshData();
+            } catch (Exception ex) {
+                log.error("Failed to import file: " + fileName, ex);
+                showErrorNotification("Failed to import data from file: " + fileName);
+            }
+        });
+
+        upload.addFailedListener(event -> showErrorNotification("Upload failed"));
+
+        dialog.add(upload);
+        dialog.open();
+    }
+
+    private void importData(InputStream inputStream, String fileName) throws IOException {
+        File uploadFolder = new File(pathToFileStorage + globalTmpDir);
+        if (!uploadFolder.exists()) {
+            uploadFolder.mkdirs();
+        }
+        File file = new File(pathToFileStorage + globalTmpDir + File.separator + fileName);
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            byte[] buffer = new byte[10240];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+            }
+        }
+
+        List<? extends ExcelIEEntity<ID>> objects;
+        if (fileName.toLowerCase().endsWith(".json")) {
+            BaseJsonImport baseJsonImport = new BaseJsonImport(Collections.singletonList(tClass));
+            objects = (List<? extends ExcelIEEntity<ID>>) baseJsonImport.importJson(baseJsonImport.load(file));
+            log.debug("Extracted " + objects.size() + " entities from JSON.");
+        } else {
+            BaseExcelImport baseExcelImport = new BaseExcelImport(Collections.singletonList(tClass));
+            objects = (List<? extends ExcelIEEntity<ID>>) baseExcelImport.importExcel(baseExcelImport.load(file));
+            log.debug("Extracted " + objects.size() + " entities from Excel.");
+        }
+
+        service.saveIfValid(objects);
     }
 
     /**
