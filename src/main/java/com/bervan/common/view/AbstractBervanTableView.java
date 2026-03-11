@@ -233,6 +233,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
 
     @Override
     public void renderCommonComponents() {
+        contentLayout.add(topLayout);
         grid = getGrid();
         grid.setItems(data);
         grid.addClassName("bervan-table");
