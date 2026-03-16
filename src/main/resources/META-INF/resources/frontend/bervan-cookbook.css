@@ -207,19 +207,23 @@
     min-height: 200px;
     height: auto !important;
     overflow-y: visible !important;
-    font-size: max(15px, 1em);
+    font-size: 1rem;
+    line-height: 1.7;
 }
 
-.cb-instructions-editor .ql-editor * {
-    font-size: max(15px, inherit);
+.cb-instructions-editor .ql-editor p,
+.cb-instructions-editor .ql-editor li,
+.cb-instructions-editor .ql-editor span {
+    font-size: 1rem;
 }
 
 .cb-instructions-editor .ql-editor img {
-    max-width: 400px;
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
     height: auto;
+    object-fit: contain;
     border-radius: 8px;
+    display: block;
 }
 
-.cb-instructions-editor .ql-editor .img-placeholder {
-    max-width: 400px;
-}
