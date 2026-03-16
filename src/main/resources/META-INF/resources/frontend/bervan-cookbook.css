@@ -161,6 +161,19 @@
     }
 }
 
+/* Clickable Ingredient Name */
+.cb-ingredient-clickable {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    color: var(--bervan-text-primary, inherit);
+    transition: color 0.15s ease;
+}
+
+.cb-ingredient-clickable:hover {
+    color: rgb(var(--bervan-info-rgb, 59, 130, 246));
+}
+
 /* Optional Ingredient */
 .cb-optional-ingredient {
     opacity: 0.7;
