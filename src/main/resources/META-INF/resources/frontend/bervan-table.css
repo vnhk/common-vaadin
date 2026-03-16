@@ -8,6 +8,12 @@
     font-family: var(--bervan-font-family);
 }
 
+/* ===== Responsive Grid Height ===== */
+/* Grid fills available vertical space; min-height prevents collapse on small screens */
+vaadin-grid.bervan-table {
+    min-height: 250px;
+}
+
 .bervan-modern-table.bervan-glass {
     background: var(--bervan-glass-bg);
     backdrop-filter: blur(var(--bervan-glass-blur));

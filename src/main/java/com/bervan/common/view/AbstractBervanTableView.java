@@ -335,12 +335,16 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
                     grid, belowGridInfoLayout, paginationBar);
         }
 
+        contentLayout.setHeightFull();
+        contentLayout.setFlexGrow(1, grid);
 
         if (pageLayout != null) {
             add(pageLayout);
         }
 
         add(contentLayout);
+        setHeightFull();
+        setFlexGrow(1, contentLayout);
 
         // Add floating toolbar if enabled
         if (tableConfig.isFloatingToolbarEnabled()) {
