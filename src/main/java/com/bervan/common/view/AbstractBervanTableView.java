@@ -771,7 +771,7 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
         return tClass != null && ExcelIEEntity.class.isAssignableFrom(tClass);
     }
 
-    private void updateCurrentPageText() {
+    protected void updateCurrentPageText() {
         currentPage.setText("Page: " + (pageNumber + 1) + "/" + (maxPages));
         List<Integer> items = new ArrayList<>();
         items.add(maxPages);

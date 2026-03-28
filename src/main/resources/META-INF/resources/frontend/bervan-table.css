@@ -317,3 +317,71 @@ vaadin-grid a:hover {
     text-decoration: underline;
     color: var(--lumo-primary-color);
 }
+
+/* ===== File Storage Tile View ===== */
+.file-tiles-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    padding: 16px;
+    width: 100%;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.file-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px 8px 12px;
+    gap: 6px;
+    border-radius: var(--bervan-border-radius-md, 8px);
+    cursor: pointer;
+    background: var(--bervan-surface-2, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--bervan-border-color, rgba(255, 255, 255, 0.08));
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    text-align: center;
+    overflow: hidden;
+    word-break: break-word;
+    min-height: 100px;
+    user-select: none;
+}
+
+.file-tile:hover {
+    background: var(--bervan-surface-hover, rgba(255, 255, 255, 0.08));
+    border-color: var(--bervan-primary, rgba(100, 160, 255, 0.4));
+    transform: translateY(-1px);
+}
+
+.file-tile:active {
+    transform: translateY(0);
+}
+
+.file-tile-icon {
+    width: 36px;
+    height: 36px;
+    color: var(--bervan-text-secondary, rgba(255, 255, 255, 0.6));
+}
+
+.file-tile-icon-folder {
+    color: var(--bervan-warning, #f0a500) !important;
+}
+
+.file-tile-name {
+    font-size: var(--bervan-font-size-sm, 12px);
+    color: var(--bervan-text-primary, rgba(255, 255, 255, 0.87));
+    line-height: 1.3;
+    max-height: 2.6em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-all;
+    width: 100%;
+}
+
+.file-tile-size {
+    font-size: var(--bervan-font-size-xs, 11px);
+    color: var(--bervan-text-tertiary, rgba(255, 255, 255, 0.4));
+}
