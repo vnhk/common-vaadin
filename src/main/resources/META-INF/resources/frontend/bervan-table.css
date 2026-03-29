@@ -386,3 +386,12 @@ vaadin-grid a:hover {
     font-size: var(--bervan-font-size-xs, 11px);
     color: var(--bervan-text-tertiary, rgba(255, 255, 255, 0.4));
 }
+
+.file-tile-thumbnail {
+    width: 100%;
+    max-width: 110px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+}
