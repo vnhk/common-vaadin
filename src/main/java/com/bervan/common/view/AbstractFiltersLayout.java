@@ -159,6 +159,8 @@ public class AbstractFiltersLayout<ID extends Serializable, T extends Persistabl
         });
         add(filtersButton, searchForm);
         removeFiltersButton.setVisible(false);
+        // Prevent the filter layout from growing and squeezing the table out of view
+        getStyle().set("flex-shrink", "0").set("min-height", "0");
     }
 
     private Div getSearchForm(Button applyFiltersButton, HorizontalLayout queryWithHelp) {

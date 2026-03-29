@@ -291,6 +291,9 @@
     border-radius: var(--bervan-border-radius-lg);
     padding: var(--bervan-spacing-md);
     margin-bottom: var(--bervan-spacing-md);
+    max-height: 55vh;
+    overflow-y: auto;
+    flex-shrink: 0;
 }
 
 .bervan-filter-section {
