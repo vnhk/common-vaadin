@@ -203,9 +203,10 @@ public abstract class AbstractBervanTableView<ID extends Serializable, T extends
             try {
                 Thread.currentThread().setContextClassLoader(classLoader);
                 SecurityContextHolder.setContext(context);
-                data.removeAll(data);
-                data.addAll(loadData());
+                List<T> newData = new ArrayList<>(loadData());
                 current.access(() -> {
+                    data.clear();
+                    data.addAll(newData);
                     reloadItemsCountInfo();
                     updateCurrentPageText();
                     showGridLoadingProgress(false);
