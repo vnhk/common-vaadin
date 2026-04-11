@@ -197,6 +197,34 @@
     border-radius: 8px;
 }
 
+/* ===== Diet View - Dark Theme Fixes ===== */
+
+/* Select dropdown overlay */
+vaadin-select-overlay {
+    --lumo-base-color: var(--bervan-surface-1, #1e293b);
+}
+
+vaadin-select-overlay vaadin-item {
+    color: var(--bervan-text-primary, #f1f5f9) !important;
+    background: var(--bervan-surface-1, #1e293b);
+}
+
+vaadin-select-overlay vaadin-item:hover {
+    background: var(--bervan-surface-2, #334155) !important;
+}
+
+/* RadioButtonGroup labels */
+vaadin-radio-button::part(label) {
+    color: var(--bervan-text-primary, #f1f5f9);
+}
+
+/* Notifications */
+vaadin-notification-card::part(overlay) {
+    background: var(--bervan-surface-2, #334155);
+    color: var(--bervan-text-primary, #f1f5f9);
+    border: 1px solid var(--bervan-border-color, rgba(255,255,255,0.1));
+}
+
 /* Instructions - Quill editor auto-height */
 .cb-instructions-editor .ql-container {
     height: auto !important;
