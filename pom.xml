@@ -48,6 +48,11 @@
             <artifactId>playwright</artifactId>
             <version>1.49.0</version>
         </dependency>
+           <dependency>
+               <groupId>net.coobird</groupId>
+               <artifactId>thumbnailator</artifactId>
+               <version>[0.4, 0.5)</version>
+           </dependency>
         <dependency>
             <groupId>com.bervan</groupId>
             <artifactId>history-tables-core</artifactId>

@@ -30,12 +30,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & BaseModel<ID>, ID extends Serializable> {
@@ -203,13 +198,17 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
         log.debug("Loading entities");
         Set<T> loaded = service.load(PageRequest.of(page, size));
         List<DTO> dtos = loaded.stream()
-                .map(p -> mapper.map(p, dtoClass))
+                .map(p -> map(p, dtoClass))
                 .toList();
         int total = Math.toIntExact(service.loadCount());
         int fromIndex = Math.min(page * size, total);
         int toIndex = Math.min(fromIndex + size, total);
         log.debug("Entities loaded: {} - {}", fromIndex, toIndex);
         return ResponseEntity.ok(new PageImpl<>(dtos, PageRequest.of(page, size), total));
+    }
+
+    public <DTO extends BaseDTO<ID>> DTO map(T p, Class<DTO> dtoClass) {
+        return mapper.map(p, dtoClass);
     }
 
     protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> load(SearchRequest request, int page, int size, Class<DTO> dtoClass) {
@@ -241,8 +240,8 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
 
             boolean hasPredefinedValues =
                     (col.getStrValues() != null && !col.getStrValues().isEmpty()) ||
-                    (col.getIntValues() != null && !col.getIntValues().isEmpty()) ||
-                    col.isDynamicStrValues();
+                            (col.getIntValues() != null && !col.getIntValues().isEmpty()) ||
+                            col.isDynamicStrValues();
 
             if (globalFilter != null && !globalFilter.isBlank() && !hasPredefinedValues
                     && field != null && String.class.equals(field.getType())) {
@@ -309,36 +308,42 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
     private Field findEntityField(Class<?> clazz, String name) {
         Class<?> c = clazz;
         while (c != null && !c.equals(Object.class)) {
-            try { return c.getDeclaredField(name); } catch (NoSuchFieldException e) { c = c.getSuperclass(); }
+            try {
+                return c.getDeclaredField(name);
+            } catch (NoSuchFieldException e) {
+                c = c.getSuperclass();
+            }
         }
         return null;
     }
 
     private boolean isNumericFieldType(Class<?> t) {
         return Integer.class.equals(t) || int.class.equals(t) ||
-               Long.class.equals(t) || long.class.equals(t) ||
-               Double.class.equals(t) || double.class.equals(t) ||
-               Float.class.equals(t) || float.class.equals(t) ||
-               BigDecimal.class.equals(t);
+                Long.class.equals(t) || long.class.equals(t) ||
+                Double.class.equals(t) || double.class.equals(t) ||
+                Float.class.equals(t) || float.class.equals(t) ||
+                BigDecimal.class.equals(t);
     }
 
     private void applyDateRangeFilter(SearchRequest req, MultiValueMap<String, String> params,
-                                       Class<?> entityClass, String fieldName, boolean isDateTime) {
+                                      Class<?> entityClass, String fieldName, boolean isDateTime) {
         String from = params.getFirst(fieldName + "_from");
         String to = params.getFirst(fieldName + "_to");
         String groupId = "RANGE_" + fieldName.toUpperCase() + "_GROUP";
         if (from != null && !from.isBlank()) {
             Object val = parseDateValue(from, isDateTime);
-            if (val != null) req.addCriterion(groupId, entityClass, fieldName, SearchOperation.GREATER_EQUAL_OPERATION, val);
+            if (val != null)
+                req.addCriterion(groupId, entityClass, fieldName, SearchOperation.GREATER_EQUAL_OPERATION, val);
         }
         if (to != null && !to.isBlank()) {
             Object val = parseDateValue(to, isDateTime);
-            if (val != null) req.addCriterion(groupId, entityClass, fieldName, SearchOperation.LESS_EQUAL_OPERATION, val);
+            if (val != null)
+                req.addCriterion(groupId, entityClass, fieldName, SearchOperation.LESS_EQUAL_OPERATION, val);
         }
     }
 
     private void applyNumericRangeFilter(SearchRequest req, MultiValueMap<String, String> params,
-                                          Class<?> entityClass, String fieldName, Class<?> fieldType) {
+                                         Class<?> entityClass, String fieldName, Class<?> fieldType) {
         String from = params.getFirst(fieldName + "_from");
         String to = params.getFirst(fieldName + "_to");
         String groupId = "RANGE_" + fieldName.toUpperCase() + "_GROUP";
@@ -347,7 +352,8 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
                 req.addCriterion(groupId, entityClass, fieldName, SearchOperation.GREATER_EQUAL_OPERATION, parseNumericValue(from, fieldType));
             if (to != null && !to.isBlank())
                 req.addCriterion(groupId, entityClass, fieldName, SearchOperation.LESS_EQUAL_OPERATION, parseNumericValue(to, fieldType));
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     private Object parseDateValue(String value, boolean isDateTime) {
@@ -358,7 +364,9 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
             } else {
                 return LocalDate.parse(value.length() > 10 ? value.substring(0, 10) : value);
             }
-        } catch (Exception e) { return null; }
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private Object parseNumericValue(String value, Class<?> fieldType) {
@@ -376,7 +384,8 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
             if (Integer.class.equals(t) || int.class.equals(t)) return Integer.parseInt(value);
             if (Long.class.equals(t) || long.class.equals(t)) return Long.parseLong(value);
             if (Boolean.class.equals(t) || boolean.class.equals(t)) return Boolean.parseBoolean(value);
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
         return value;
     }
 
@@ -403,7 +412,8 @@ public abstract class BaseOwnedController<T extends BervanOwnedBaseEntity<ID> & 
         int imported = 0;
         List<String> errors = new ArrayList<>();
         try {
-            List<Map<String, Object>> items = objectMapper.readValue(file.getInputStream(), new TypeReference<>() {});
+            List<Map<String, Object>> items = objectMapper.readValue(file.getInputStream(), new TypeReference<>() {
+            });
             ObjectMapper lenient = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Map<String, Object> item : items) {
                 try {
