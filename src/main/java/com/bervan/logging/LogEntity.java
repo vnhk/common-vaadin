@@ -2,6 +2,7 @@ package com.bervan.logging;
 
 import com.bervan.common.model.BervanBaseEntity;
 import com.bervan.common.model.PersistableTableData;
+import com.bervan.core.model.BaseModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class LogEntity extends BervanBaseEntity<Long> implements PersistableTableData<Long> {
+public class LogEntity extends BervanBaseEntity<Long> implements PersistableTableData<Long>, BaseModel<Long> {
     public static final int MAX_LOG_MESSAGE_LENGTH = 20000;
 
     @Id

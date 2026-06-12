@@ -8,6 +8,15 @@ columns:
     required: false
     strValues: [ "DEBUG", "INFO", "WARN", "ERROR" ]
 
+  - field: applicationName
+    displayName: "Application Name"
+    internalName: "applicationName"
+    inSaveForm: false
+    inEditForm: false
+    inTable: false
+    required: false
+    dynamicStrValues: true
+
   - field: timestamp
     displayName: "Timestamp"
     internalName: "timestamp"
@@ -101,4 +110,3 @@ columns:
     required: false
     fetchable: false
     filterable: false
-    extension: "JsonLogViewerColumn"

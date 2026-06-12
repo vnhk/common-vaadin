@@ -1,17 +1,23 @@
 package com.bervan.logging.api;
 
+import com.bervan.common.config.EntityConfigValidator;
+import com.bervan.common.controller.BaseController;
+import com.bervan.common.mapper.BervanDTOMapper;
 import com.bervan.logging.LogEntity;
 import com.bervan.logging.LogRepository;
 import com.bervan.logging.LogService;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,44 +27,24 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/logs")
 @RolesAllowed("USER")
-public class LogRestController {
+public class LogRestController extends BaseController<LogEntity, Long> {
 
     private final LogService logService;
     private final LogRepository logRepository;
 
-    public LogRestController(LogService logService, LogRepository logRepository) {
+    public LogRestController(LogService logService, LogRepository logRepository, BervanDTOMapper mapper, EntityConfigValidator validator) {
+        super(logService, mapper, validator, "LogEntity");
         this.logService = logService;
         this.logRepository = logRepository;
     }
 
     @GetMapping
     public ResponseEntity<Page<LogDto>> listLogs(
-            @RequestParam String appName,
-            @RequestParam(required = false) String fromTime,
-            @RequestParam(required = false) String toTime,
-            @RequestParam(required = false) String logLevel,
-            @RequestParam(required = false) String processName,
-            @RequestParam(required = false) String moduleName,
+            @RequestParam MultiValueMap<String, String> allParams,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "500") int size,
-            @RequestParam(defaultValue = "timestamp") String sort,
-            @RequestParam(defaultValue = "asc") String direction
+            @RequestParam(defaultValue = "20") int size
     ) {
-        Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(dir, sort));
-
-        Page<LogEntity> result = logRepository.findLogs(
-                appName,
-                fromTime != null ? LocalDateTime.parse(fromTime) : null,
-                toTime != null ? LocalDateTime.parse(toTime) : null,
-                blankToNull(logLevel),
-                blankToNull(processName),
-                blankToNull(moduleName),
-                pageable
-        );
-
-        Page<LogDto> dtoPage = result.map(this::toDto);
-        return ResponseEntity.ok(dtoPage);
+        return super.search(allParams, page, size, LogDto.class, LogEntity.class);
     }
 
     @GetMapping("/trackers")
