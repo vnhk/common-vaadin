@@ -24,6 +24,7 @@ columns:
     inEditForm: false
     inTable: false
     required: false
+    dataType: DATETIME
 
   - field: class
     displayName: "Class"
