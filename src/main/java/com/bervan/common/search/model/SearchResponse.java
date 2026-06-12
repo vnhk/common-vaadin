@@ -3,8 +3,14 @@ package com.bervan.common.search.model;
 import com.bervan.history.model.Persistable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class SearchResponse<T extends Persistable> {
+
+    private List<T> resultList;
+    private Integer currentFound;
+    private Integer currentPage;
+    private Long allFound;
 
     public SearchResponse(List<T> resultList, Integer currentFound, Integer currentPage, Long allFound) {
         this.resultList = resultList;
@@ -13,10 +19,9 @@ public class SearchResponse<T extends Persistable> {
         this.allFound = allFound;
     }
 
-    private List<T> resultList;
-    private Integer currentFound;
-    private Integer currentPage;
-    private Long allFound;
+    public Optional<T> getFirstResult() {
+        return resultList.stream().findFirst();
+    }
 
     public List<T> getResultList() {
         return resultList;
