@@ -7,6 +7,7 @@ import com.bervan.common.model.PersistableData;
 import com.bervan.common.search.SearchRequest;
 import com.bervan.common.search.model.Operator;
 import com.bervan.common.search.model.SearchOperation;
+import com.bervan.common.search.model.SortDirection;
 import com.bervan.common.service.BaseService;
 import com.bervan.core.model.BaseDTO;
 import com.bervan.core.model.BaseModel;
@@ -195,9 +196,9 @@ public abstract class BaseController<T extends AbstractBaseEntity<ID> & BaseMode
         return ResponseEntity.noContent().build();
     }
 
-    protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> load(int page, int size, Class<DTO> dtoClass) {
+    protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> load(int page, int size, Class<DTO> dtoClass, String sortField, SortDirection sortOrder) {
         log.debug("Loading entities");
-        Set<T> loaded = service.load(PageRequest.of(page, size));
+        List<T> loaded = service.load(new SearchRequest(), PageRequest.of(page, size), sortField, sortOrder);
         List<DTO> dtos = loaded.stream()
                 .map(p -> map(p, dtoClass))
                 .toList();
@@ -212,8 +213,8 @@ public abstract class BaseController<T extends AbstractBaseEntity<ID> & BaseMode
         return mapper.map(p, dtoClass);
     }
 
-    protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> load(SearchRequest request, int page, int size, Class<DTO> dtoClass) {
-        Set<T> loaded = service.load(request, PageRequest.of(page, size));
+    protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> load(SearchRequest request, int page, int size, Class<DTO> dtoClass, String sortField, SortDirection sortOrder) {
+        List<T> loaded = service.load(request, PageRequest.of(page, size), sortField, sortOrder);
         List<DTO> dtos = loaded.stream()
                 .map(p -> mapper.map(p, dtoClass))
                 .toList();
@@ -296,14 +297,28 @@ public abstract class BaseController<T extends AbstractBaseEntity<ID> & BaseMode
     protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> search(
             MultiValueMap<String, String> allParams, int page, int size,
             Class<DTO> dtoClass, Class<?> entityClass) {
-        return load(buildSearchRequest(allParams, entityClass), page, size, dtoClass);
+        return load(buildSearchRequest(allParams, entityClass), page, size, dtoClass, "id", SortDirection.ASC);
     }
 
     protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> search(
             SearchRequest baseRequest, MultiValueMap<String, String> allParams,
             int page, int size, Class<DTO> dtoClass, Class<?> entityClass) {
         baseRequest.merge(buildSearchRequest(allParams, entityClass));
-        return load(baseRequest, page, size, dtoClass);
+        return load(baseRequest, page, size, dtoClass, "id", SortDirection.ASC);
+    }
+
+    protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> search(
+            MultiValueMap<String, String> allParams, int page, int size,
+            Class<DTO> dtoClass, Class<?> entityClass, String sortField, SortDirection sortOrder) {
+        return load(buildSearchRequest(allParams, entityClass), page, size, dtoClass, sortField, sortOrder);
+    }
+
+    protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> search(
+            SearchRequest baseRequest, MultiValueMap<String, String> allParams,
+            int page, int size, Class<DTO> dtoClass, Class<?> entityClass,
+            String sortField, SortDirection sortOrder) {
+        baseRequest.merge(buildSearchRequest(allParams, entityClass));
+        return load(baseRequest, page, size, dtoClass, sortField, sortOrder);
     }
 
     private Field findEntityField(Class<?> clazz, String name) {
