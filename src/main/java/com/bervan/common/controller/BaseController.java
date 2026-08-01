@@ -297,6 +297,21 @@ public abstract class BaseController<T extends AbstractBaseEntity<ID> & BaseMode
     protected <DTO extends BaseDTO<ID>> ResponseEntity<Page<DTO>> search(
             MultiValueMap<String, String> allParams, int page, int size,
             Class<DTO> dtoClass, Class<?> entityClass) {
+        if (allParams != null) {
+            List<String> sort = allParams.get("sort");
+            if (sort != null && !sort.isEmpty()) {
+                String sortField = sort.get(0);
+                SortDirection sortOrder = SortDirection.ASC;
+                if (allParams.get("direction") != null) {
+                    String dir = allParams.get("direction").get(0);
+                    if ("desc".equalsIgnoreCase(dir)) {
+                        sortOrder = SortDirection.DESC;
+                    }
+                }
+                return load(buildSearchRequest(allParams, entityClass), page, size, dtoClass, sortField, sortOrder);
+            }
+        }
+
         return load(buildSearchRequest(allParams, entityClass), page, size, dtoClass, "id", SortDirection.ASC);
     }
 
