@@ -39,6 +39,7 @@ public class ViewAutoConfigLoader {
         for (Resource resource : resources) {
             String filename = resource.getFilename();
             if (filename != null) {
+                log.info("Config loading for: " + filename);
                 ClassViewAutoConfig config = mapper.readValue(resource.getInputStream(), ClassViewAutoConfig.class);
                 String className = filename.replace(".yml", "");
                 configs.put(className, new LinkedHashMap<>());

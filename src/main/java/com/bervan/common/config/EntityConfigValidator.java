@@ -71,13 +71,26 @@ public class EntityConfigValidator {
             }
 
             if (value != null && !value.isBlank()) {
-                int len = value.length();
-                if (len < col.getMin()) {
-                    errors.add(new FieldError(fieldName,
-                            col.getDisplayName() + " must be at least " + col.getMin() + " characters"));
-                } else if (len > col.getMax()) {
-                    errors.add(new FieldError(fieldName,
-                            col.getDisplayName() + " must be at most " + col.getMax() + " characters"));
+                if (ColumnDataType.NUMBER.toString().equalsIgnoreCase(col.getDataType())) {
+                    try {
+                        double num = Double.parseDouble(value);
+                        if (num < col.getMin() || num > col.getMax()) {
+                            errors.add(new FieldError(fieldName,
+                                    col.getDisplayName() + " must be a number between " + col.getMin() + " and " + col.getMax()));
+                        }
+                    } catch (NumberFormatException e) {
+                        errors.add(new FieldError(fieldName,
+                                col.getDisplayName() + " must be a valid number"));
+                    }
+                } else {
+                    int len = value.length();
+                    if (len < col.getMin()) {
+                        errors.add(new FieldError(fieldName,
+                                col.getDisplayName() + " must be at least " + col.getMin() + " characters"));
+                    } else if (len > col.getMax()) {
+                        errors.add(new FieldError(fieldName,
+                                col.getDisplayName() + " must be at most " + col.getMax() + " characters"));
+                    }
                 }
             }
         }
